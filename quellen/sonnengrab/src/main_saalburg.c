@@ -9,7 +9,9 @@
  *   Tasten        evdev-Codes aus wl_keyboard.key (physische Lage, unabhängig vom Layout)
  *   Takt          Spiellogik fest mit 60 Hz, gezeichnet wird auf frame-Rückruf
  *   Fokus weg     Spiel hält an (Pause-Menü)
- *   Ton           Saalburg hat noch keine Tonausgabe – das Spiel läuft stumm
+ *   Ton           ALSA (alsa-lib des Systems, zur Laufzeit geladen): „default“ ist bei
+ *                 Saalburg dmix mit dem Lautstärkeregler des Systems. Braucht ton = ja in
+ *                 app.conf; fehlt das Recht oder die Bibliothek, läuft das Spiel stumm.
  */
 #define _GNU_SOURCE
 #include <errno.h>
@@ -24,6 +26,8 @@
 #include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
+#include <dlfcn.h>
+#include <pthread.h>
 #include "game.h"
 
 /* ------------------------------------------------------------------ */
@@ -374,7 +378,7 @@ static void present(void) {
 enum {
     K_ESC = 1, K_W = 17, K_P = 25, K_ENTER = 28, K_LCTRL = 29, K_A = 30, K_S = 31, K_D = 32,
     K_LSHIFT = 42, K_X = 45, K_RSHIFT = 54, K_SPACE = 57, K_KPENTER = 96, K_RCTRL = 97,
-    K_UP = 103, K_LEFT = 105, K_RIGHT = 106, K_DOWN = 108,
+    K_N = 49, K_M = 50, K_UP = 103, K_LEFT = 105, K_RIGHT = 106, K_DOWN = 108,
 };
 static Input gather_input(void) {
     Input in;
@@ -388,6 +392,8 @@ static Input gather_input(void) {
     in.run = keys[K_LSHIFT] || keys[K_RSHIFT];
     in.pause = keys[K_ESC] || keys[K_P];
     in.confirm = keys[K_ENTER] || keys[K_KPENTER];
+    in.music = keys[K_M];
+    in.sfx = keys[K_N];
     return in;
 }
 
@@ -395,6 +401,69 @@ static double now_s(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return ts.tv_sec + ts.tv_nsec * 1e-9;
+}
+
+/* ------------------------------------------------------------------ */
+/*                         Ton über ALSA (dlopen)                      */
+/* ------------------------------------------------------------------ */
+#define TON_RATE 48000
+#define TON_PERIODE 480 /* 10 ms */
+typedef struct snd_pcm snd_pcm_t;
+static int (*p_open)(snd_pcm_t **, const char *, int, int);
+static int (*p_set_params)(snd_pcm_t *, int, int, unsigned, unsigned, int, unsigned);
+static long (*p_writei)(snd_pcm_t *, const void *, unsigned long);
+static int (*p_recover)(snd_pcm_t *, int, int);
+static int (*p_close)(snd_pcm_t *);
+static const char *(*p_strerror)(int);
+static snd_pcm_t *pcm = NULL;
+static pthread_mutex_t ton_mutex = PTHREAD_MUTEX_INITIALIZER;
+static volatile int ton_laeuft = 0;
+static pthread_t ton_faden;
+static void ton_lock(void) { pthread_mutex_lock(&ton_mutex); }
+static void ton_unlock(void) { pthread_mutex_unlock(&ton_mutex); }
+
+static int ton_oeffnen(void) {
+    void *lib = dlopen("libasound.so.2", RTLD_NOW | RTLD_LOCAL);
+    if (!lib) { fprintf(stderr, "sonnengrab: ohne Ton (alsa-lib fehlt)\n"); return 0; }
+    p_open = (int (*)(snd_pcm_t **, const char *, int, int))dlsym(lib, "snd_pcm_open");
+    p_set_params = (int (*)(snd_pcm_t *, int, int, unsigned, unsigned, int, unsigned))dlsym(lib, "snd_pcm_set_params");
+    p_writei = (long (*)(snd_pcm_t *, const void *, unsigned long))dlsym(lib, "snd_pcm_writei");
+    p_recover = (int (*)(snd_pcm_t *, int, int))dlsym(lib, "snd_pcm_recover");
+    p_close = (int (*)(snd_pcm_t *))dlsym(lib, "snd_pcm_close");
+    p_strerror = (const char *(*)(int))dlsym(lib, "snd_strerror");
+    if (!p_open || !p_set_params || !p_writei || !p_recover || !p_close || !p_strerror) return 0;
+    /* 0 = SND_PCM_STREAM_PLAYBACK; 2 = S16_LE; 3 = RW_INTERLEAVED */
+    int e = p_open(&pcm, "default", 0, 0);
+    if (e < 0) { fprintf(stderr, "sonnengrab: ohne Ton (%s)\n", p_strerror(e)); pcm = NULL; return 0; }
+    e = p_set_params(pcm, 2, 3, 2, TON_RATE, 1, 70000);
+    if (e < 0) { fprintf(stderr, "sonnengrab: ohne Ton (%s)\n", p_strerror(e)); p_close(pcm); pcm = NULL; return 0; }
+    return 1;
+}
+
+static void *ton_schleife(void *arg) {
+    (void)arg;
+    static short puffer[TON_PERIODE * 2];
+    double start = now_s(), geschrieben = 0;
+    while (ton_laeuft) {
+        /* Sicherung: nie mehr als 100 ms vor der Uhr (falls ein Gerät nicht bremst) */
+        double vorsprung = geschrieben / TON_RATE - (now_s() - start);
+        if (vorsprung > 0.1) { struct timespec ts = { 0, (long)((vorsprung - 0.1) * 1e9) }; nanosleep(&ts, NULL); }
+        if (vorsprung < -0.5) { start = now_s(); geschrieben = 0; } /* nach Aussetzern neu ansetzen */
+        geschrieben += TON_PERIODE;
+        audio_mix(puffer, TON_PERIODE);
+        const short *p = puffer;
+        unsigned long rest = TON_PERIODE;
+        while (rest > 0 && ton_laeuft) {
+            long n = p_writei(pcm, p, rest); /* blockiert, bis Platz ist: gibt den Takt vor */
+            if (n < 0) {
+                if (p_recover(pcm, (int)n, 1) < 0) { fprintf(stderr, "sonnengrab: Ton abgebrochen (%s)\n", p_strerror((int)n)); ton_laeuft = 0; break; }
+                continue;
+            }
+            p += n * 2;
+            rest -= (unsigned long)n;
+        }
+    }
+    return NULL;
 }
 
 /* ------------------------------------------------------------------ */
@@ -420,7 +489,15 @@ int main(void) {
     if (!id_compositor || !id_shm || !id_wm) die("Oberfläche bietet wl_compositor, wl_shm oder xdg_wm_base nicht an");
     roundtrip(); /* Fähigkeiten des Sitzes, Tastatur */
 
+    audio_set_lock(ton_lock, ton_unlock);
+    audio_init(TON_RATE);
+    int ton = ton_oeffnen();
+    game_set_audio_available(ton);
     game_init();
+    if (ton) {
+        ton_laeuft = 1;
+        if (pthread_create(&ton_faden, NULL, ton_schleife, NULL) != 0) ton_laeuft = 0;
+    }
 
     id_surface = new_id(T_SURFACE);
     m_begin(); m_u32(id_surface); m_send(id_compositor, 0);                  /* create_surface */
@@ -465,6 +542,8 @@ int main(void) {
         }
         if (stepped) present();
     }
+    if (ton_laeuft) { ton_laeuft = 0; pthread_join(ton_faden, NULL); }
+    if (pcm) p_close(pcm);
     destroy_buffers();
     flush_out();
     close(sock);

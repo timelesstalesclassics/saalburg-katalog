@@ -943,6 +943,8 @@ static float shake = 0;
 static int state_t = 0;
 static int locked_cool = 0;
 static int music_enabled = 1, sfx_enabled = 1;
+static int audio_ok = 1;
+static void menus_build(void);
 
 static void show_msg(const char *s, int frames) { snprintf(msg_text, sizeof(msg_text), "%s", s); msg_t = frames; }
 
@@ -976,13 +978,12 @@ void game_init(void) {
     build_room(2 * GX + 0);
     gstate = GS_TITLE;
     memset(&prev_in, 0, sizeof(prev_in));
-#ifdef SAALBURG
-    music_enabled = sfx_enabled = 0;
-    audio_set_music(0); audio_set_sfx(0);
-#else
-    audio_set_music(1); audio_set_sfx(1);
-#endif
+    menus_build();
+    music_enabled = sfx_enabled = audio_ok;
+    audio_set_music(audio_ok); audio_set_sfx(audio_ok);
 }
+/* Plattform meldet, ob Ton ausgegeben werden kann (vor game_init aufrufen) */
+void game_set_audio_available(int ok) { audio_ok = ok ? 1 : 0; }
 int game_quit_requested(void) { return quit_req; }
 int game_fullscreen_toggle_requested(void) { int r = fs_req; fs_req = 0; return r; }
 
@@ -1152,16 +1153,21 @@ static void update_particles(void) {
 }
 
 enum { MA_START, MA_MUSIC, MA_SFX, MA_FS, MA_QUIT, MA_RESUME, MA_TITLE };
-#ifdef SAALBURG
-/* Saalburg: kein Ton im System, Vollbild über die Oberfläche (Super+1) */
-static const int TITLE_MENU[] = { MA_START, MA_QUIT };
-static const int PAUSE_MENU[] = { MA_RESUME, MA_TITLE };
-#else
-static const int TITLE_MENU[] = { MA_START, MA_MUSIC, MA_SFX, MA_FS, MA_QUIT };
-static const int PAUSE_MENU[] = { MA_RESUME, MA_MUSIC, MA_SFX, MA_FS, MA_TITLE };
+/* Menüs je nach Plattform: Vollbild-Punkt nur unter Windows (Saalburg: Super+1),
+ * Musik/Effekte nur, wenn Ton ausgegeben werden kann */
+static int TITLE_MENU[6], PAUSE_MENU[6], N_TITLE = 0, N_PAUSE = 0;
+static void menus_build(void) {
+    N_TITLE = N_PAUSE = 0;
+    TITLE_MENU[N_TITLE++] = MA_START; PAUSE_MENU[N_PAUSE++] = MA_RESUME;
+    if (audio_ok) {
+        TITLE_MENU[N_TITLE++] = MA_MUSIC; TITLE_MENU[N_TITLE++] = MA_SFX;
+        PAUSE_MENU[N_PAUSE++] = MA_MUSIC; PAUSE_MENU[N_PAUSE++] = MA_SFX;
+    }
+#ifndef SAALBURG
+    TITLE_MENU[N_TITLE++] = MA_FS; PAUSE_MENU[N_PAUSE++] = MA_FS;
 #endif
-#define N_TITLE ((int)(sizeof TITLE_MENU / sizeof TITLE_MENU[0]))
-#define N_PAUSE ((int)(sizeof PAUSE_MENU / sizeof PAUSE_MENU[0]))
+    TITLE_MENU[N_TITLE++] = MA_QUIT; PAUSE_MENU[N_PAUSE++] = MA_TITLE;
+}
 static const char *menu_label(int a) {
     switch (a) {
     case MA_START: return "SPIEL STARTEN";
@@ -1188,10 +1194,8 @@ static int confirm_pressed(const Input *in) {
 
 void game_update(const Input *in) {
     gframe++; state_t++;
-#ifndef SAALBURG
-    if (in->music && !prev_in.music) { music_enabled = !music_enabled; audio_set_music(music_enabled); }
-#endif
-    if (in->sfx && !prev_in.sfx) { sfx_enabled = !sfx_enabled; audio_set_sfx(sfx_enabled); }
+    if (audio_ok && in->music && !prev_in.music) { music_enabled = !music_enabled; audio_set_music(music_enabled); }
+    if (audio_ok && in->sfx && !prev_in.sfx) { sfx_enabled = !sfx_enabled; audio_set_sfx(sfx_enabled); }
     if (fade_t > 0) fade_t--;
     if (shake > 0) shake *= 0.9f; if (shake < 0.2f) shake = 0;
     if (banner_t > 0) banner_t--;
@@ -1739,10 +1743,10 @@ static void draw_hud(unsigned int *fb) {
         if (nm) text_srgb_c(fb, SCR_W / 2 + 8, 7, nm, 1, 0xC8A878, 1);
     }
     snprintf(buf, sizeof buf, "%07d", score); text_srgb(fb, SCR_W - 6 - text_width(buf, 1, 1), 7, buf, 1, 0xF0D890, 1);
-#ifndef SAALBURG
-    text_srgb(fb, SCR_W - 92, 7, "♪", 1, music_enabled ? 0xE0B050 : 0x403020, 0);
-    text_srgb(fb, SCR_W - 82, 7, "FX", 1, sfx_enabled ? 0xE0B050 : 0x403020, 0);
-#endif
+    if (audio_ok) {
+        text_srgb(fb, SCR_W - 92, 7, "♪", 1, music_enabled ? 0xE0B050 : 0x403020, 0);
+        text_srgb(fb, SCR_W - 82, 7, "FX", 1, sfx_enabled ? 0xE0B050 : 0x403020, 0);
+    }
     if (round_no > 1) { snprintf(buf, sizeof buf, "D%d", round_no); text_srgb(fb, 122, 7, buf, 1, 0xB07040, 1); }
 }
 
@@ -1784,7 +1788,7 @@ void game_render(unsigned int *fb) {
         text_srgb_c(fb, SCR_W / 2, SCR_H - 34, "←→ LAUFEN   SHIFT RENNEN   ↑↓ KLETTERN", 1, 0x907860, 1);
         text_srgb_c(fb, SCR_W / 2, SCR_H - 23, "LEERTASTE HOCHSPRUNG   X ODER ↓+RICHTUNG WEITSPRUNG", 1, 0x907860, 1);
 #ifdef SAALBURG
-        text_srgb_c(fb, SCR_W / 2, SCR_H - 12, "ESC MENÜ   SUPER+1 VOLLBILD   SUPER+Q BEENDEN", 1, 0x705A48, 1);
+        text_srgb_c(fb, SCR_W / 2, SCR_H - 12, audio_ok ? "M MUSIK   N EFFEKTE   ESC MENÜ   SUPER+Q BEENDEN" : "ESC MENÜ   SUPER+1 VOLLBILD   SUPER+Q BEENDEN", 1, 0x705A48, 1);
 #else
         text_srgb_c(fb, SCR_W / 2, SCR_H - 12, "M MUSIK   N EFFEKTE   F11 VOLLBILD   ESC MENÜ", 1, 0x705A48, 1);
 #endif

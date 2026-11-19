@@ -19,7 +19,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 | `claude-web` | Web-App | claude.ai im eigenen Fenster |
 | `notizen` | Terminal | eine Notizdatei mit nano, ohne Internet |
 | `rechner` | Terminal | Taschenrechner bc, ohne Internet |
-| `sonnengrab` | Programm | Pyramiden-Plattformspiel (Wayland, ohne Internet); Quelltext unter `quellen/sonnengrab/` |
+| `sonnengrab` | Programm | Pyramiden-Plattformspiel mit Musik (Wayland, Ton, ohne Internet); Quelltext unter `quellen/sonnengrab/` |
 
 ## Eine App hinzufügen oder ändern
 
@@ -37,7 +37,7 @@ Katalog (`/daten/claude/katalog`, `app katalog …`), den der App-Store zusätzl
 3. Nach `main` bringen; der Ablauf „Katalog bauen“ erledigt den Rest.
 
 Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `farbe`,
-`art` (`terminal`, `web`, `programm`), `start` bzw. `url`, `reihe`, `netzwerk`, `gpu`,
+`art` (`terminal`, `web`, `programm`), `start` bzw. `url`, `reihe`, `netzwerk`, `gpu`, `ton`,
 `ram_max`, `ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server).
 Jede App läuft in ihrer eigenen Sandbox (eigene Kennung, Landlock, cgroup, seccomp).
 

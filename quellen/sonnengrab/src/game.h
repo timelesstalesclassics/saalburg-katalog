@@ -20,6 +20,7 @@ void game_init(void);
 void game_update(const Input *in);          /* 60 Hz */
 void game_render(unsigned int *fb);          /* SCR_W*SCR_H, 0x00RRGGBB */
 int  game_quit_requested(void);
+void game_set_audio_available(int ok);  /* vor game_init: kann die Plattform Ton ausgeben? */
 void game_focus_lost(void);              /* Fenster verliert den Fokus */
 int  game_fullscreen_toggle_requested(void); /* liefert 1 einmalig nach Menüwahl */
 

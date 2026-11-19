@@ -1,5 +1,5 @@
 #!/bin/sh
-# Baut Sonnengrab für Saalburg (statisch gegen musl, ohne weitere Bibliotheken)
+# Baut Sonnengrab für Saalburg (gegen musl; alsa-lib des Systems wird zur Laufzeit geladen)
 # und legt das Programm in apps/sonnengrab/ des Katalogs.
 #   ZIG=/pfad/zu/zig ./bauen.sh            Saalburg
 #   ZIG=/pfad/zu/zig ./bauen.sh windows    zusätzlich Sonnengrab.exe (Windows, mit Ton)
@@ -16,8 +16,8 @@ case "$1" in
     ./bau/sgtest validate
     exit 0 ;;
 esac
-"$ZIG" cc -target x86_64-linux-musl -static -O2 -std=gnu11 -DSAALBURG -Wno-unused-function -s \
-  -o "$HIER/../../apps/sonnengrab/sonnengrab" src/game.c src/main_saalburg.c
+"$ZIG" cc -target x86_64-linux-musl -dynamic -O2 -std=gnu11 -DSAALBURG -Wno-unused-function -s \
+  -o "$HIER/../../apps/sonnengrab/sonnengrab" src/game.c src/main_saalburg.c -lpthread -ldl
 echo "fertig: apps/sonnengrab/sonnengrab"
 echo "Test mit nachgebauter Oberfläche: python3 werkzeug/mock_compositor.py ../../apps/sonnengrab/sonnengrab /tmp/sonnengrab-test"
 if [ "$1" = windows ]; then

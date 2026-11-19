@@ -18,6 +18,7 @@ srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM); srv.bind(path); srv.lis
 
 # Sandbox von Saalburg: absoluter WAYLAND_DISPLAY
 env = {"WAYLAND_DISPLAY": path, "XDG_RUNTIME_DIR": rt, "HOME": OUT, "PATH": "/usr/bin:/bin"}
+if "ALSA_CONFIG_PATH" in os.environ: env["ALSA_CONFIG_PATH"] = os.environ["ALSA_CONFIG_PATH"]
 proc = subprocess.Popen([PROG], env=env, stderr=subprocess.PIPE)
 srv.settimeout(5)
 c, _ = srv.accept(); c.setblocking(False)
