@@ -1,0 +1,54 @@
+# Baut bei jeder Änderung an apps/ die signierten Pakete und den Katalog und legt
+# sie im Zweig „veroeffentlicht“ ab. Von dort lädt der App-Store des OS-Prototyps:
+# https://raw.githubusercontent.com/timelesstalesclassics/os-prototyp-katalog/veroeffentlicht/katalog.osk
+name: Katalog bauen
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/**", "werkzeug/**", "schluessel/**", ".github/workflows/katalog.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: katalog
+  cancel-in-progress: false
+
+jobs:
+  bauen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Werkzeug
+        run: pip install cryptography==44.0.0
+
+      - name: Pakete und Katalog bauen und signieren
+        env:
+          OSAPP_SCHLUESSEL: ${{ secrets.OSAPP_SCHLUESSEL }}
+        run: python3 werkzeug/katalog_bauen.py "$RUNNER_TEMP/aus"
+
+      - name: Im Zweig veroeffentlicht ablegen
+        run: |
+          git config user.name "Katalog"
+          git config user.email "katalog@users.noreply.github.com"
+          if git fetch --depth 1 origin veroeffentlicht; then
+            git worktree add "$RUNNER_TEMP/zweig" FETCH_HEAD
+            cd "$RUNNER_TEMP/zweig" && git checkout -B veroeffentlicht
+          else
+            git worktree add --orphan -b veroeffentlicht "$RUNNER_TEMP/zweig"
+            cd "$RUNNER_TEMP/zweig"
+          fi
+          git rm -rq --ignore-unmatch . || true
+          cp -r "$RUNNER_TEMP/aus/." .
+          cp "$GITHUB_WORKSPACE/schluessel/"*.pub .
+          printf 'Signierte Pakete und Katalog des OS-Prototyps, gebaut aus %s.\n' "$GITHUB_SHA" > LIESMICH.txt
+          git add -A
+          git commit -qm "Katalog aus ${GITHUB_SHA::7}"
+          git push origin veroeffentlicht
