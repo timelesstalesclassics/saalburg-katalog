@@ -1,10 +1,11 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: bdd87ad62049c98f6a9175213f9ec43f88f03166eddeb580e4adceaaa6ee1571a2bb586eb9f2d707a47b5269cd117c38256136c579326fadc1c00b1fc2353e09
+signatur: 85cedaaa297ee57b59eb5b3adf4b7fa94eacef85e2cd03debf4069606e7d6997d663fefbbbd8a0463bbd19334a79b3d1a30f20c87c7d1b6d534da9760bcb2803
 
 katalog = Saalburg-Apps
-stand = 001795112404
+stand = 001795114747
 app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
+app = cursus|1.0|Cursus|1309360|f840fbe02436f996967464e91492a1eb2bf9872195620c576623f013b27d747a|pakete/cursus-1.0.osapp|E-Mail über IMAP und SMTP, nur verschlüsselt (TLS/STARTTLS). Lesen, antworten, weiterleiten; Anhänge über Dokumente. n neu, a antworten, ? Hilfe.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
 app = notizen|1.1|Notizen|2224|6a21c4b99a180e50ea27bed7cece8b244af4c6ca31a342c26656fa9b1c559994|pakete/notizen-1.1.osapp|Eine Notizdatei mit dem Editor nano (Strg+O speichert, Strg+X beendet); liegt in den Dokumenten der App.
