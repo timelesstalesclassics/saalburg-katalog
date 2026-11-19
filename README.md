@@ -22,6 +22,12 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 
 ## Eine App hinzufügen oder ändern
 
+**Nur öffentliche Apps.** Alles hier ist öffentlich – auch der Inhalt der fertigen Pakete
+(bei Python-Programmen also der Quelltext). Private Programme wie aimilling gehören nicht in
+dieses Repo: Sie baut Claude auf dem Mini-PC aus dem privaten Repo und legt sie in den lokalen
+Katalog (`/daten/claude/katalog`, `app katalog …`), den der App-Store zusätzlich liest.
+
+
 1. Ordner `apps/<kennung>/` mit `app.conf` (Pflicht: `kennung` = Ordnername, `version`) und
    ggf. Programmdateien. Erlaubt sind nur Dateien und Ordner (Namen aus Buchstaben, Ziffern,
    `. _ - +`), keine Links.
