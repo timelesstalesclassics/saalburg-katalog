@@ -1,0 +1,64 @@
+# System-Updates für Saalburg: Teile und Manifest kommen in den Zweig „system“
+# (teile/<sha256>, eingang/manifest.txt). Dieser Ablauf prüft sie und legt das
+# signierte Manifest unter system/aktuell.osm im Zweig „veroeffentlicht“ ab.
+# Der Mini-PC lädt es mit „app system aktualisieren“ und installiert erst nach
+# Bestätigung am Bildschirm.
+name: System freigeben
+
+on:
+  push:
+    branches: [system]
+    paths: ["eingang/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: katalog
+  cancel-in-progress: false
+
+jobs:
+  freigeben:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: system
+          path: system
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Werkzeug
+        run: pip install cryptography==44.0.0
+
+      - name: Bisher veröffentlichte Version holen
+        run: |
+          git -C system fetch --depth 1 origin veroeffentlicht || true
+          git -C system show FETCH_HEAD:system/aktuell.osm > "$RUNNER_TEMP/bisher.osm" 2>/dev/null || true
+
+      - name: Prüfen und signieren
+        env:
+          OSAPP_SCHLUESSEL: ${{ secrets.OSAPP_SCHLUESSEL }}
+        run: python3 main/werkzeug/system_signieren.py system "$RUNNER_TEMP/aktuell.osm" "$RUNNER_TEMP/bisher.osm"
+
+      - name: Im Zweig veroeffentlicht ablegen
+        run: |
+          cd system
+          git config user.name "Katalog"
+          git config user.email "katalog@users.noreply.github.com"
+          git fetch --depth 1 origin veroeffentlicht
+          git worktree add "$RUNNER_TEMP/zweig" FETCH_HEAD
+          cd "$RUNNER_TEMP/zweig" && git checkout -B veroeffentlicht
+          mkdir -p system
+          cp "$RUNNER_TEMP/aktuell.osm" system/aktuell.osm
+          git add system/aktuell.osm
+          git commit -qm "System-Update $(sed -n 's/^version = //p' system/aktuell.osm)"
+          git push origin veroeffentlicht

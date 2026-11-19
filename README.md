@@ -40,7 +40,17 @@ Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `
 `ram_max`, `ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server).
 Jede App läuft in ihrer eigenen Sandbox (eigene Kennung, Landlock, cgroup, seccomp).
 
+## System-Updates
+
+Saalburg aktualisiert sich selbst übers Netz (`app system aktualisieren`, mit Bestätigung am
+Bildschirm). Das System wird in inhaltsabhängige Teile zerlegt (im Mittel ~1 MB); im Zweig
+`system` liegen sie unter `teile/<sha256>`, dazu `eingang/manifest.txt`. Der Ablauf
+„System freigeben“ prüft alle Teile und signiert das Manifest (`system/aktuell.osm` im Zweig
+`veroeffentlicht`). Der Mini-PC lädt nur die Teile, die er noch nicht hat. Das sind fertige
+Programme, keine Quelltexte; der Quelltext von Saalburg bleibt privat.
+
 ## Signierschlüssel
 
 Der geheime Schlüssel liegt nur als GitHub-Secret `OSAPP_SCHLUESSEL` im Repo; der Ablauf prüft,
-dass er zu `schluessel/saalburg-katalog.pub` passt. Formate: `werkzeug/katalog_bauen.py`.
+dass er zu `schluessel/saalburg-katalog.pub` passt. System-Updates signiert er mit eigenem
+Vorsatz; Saalburg nimmt sie nur mit diesem mitgelieferten Schlüssel an, nie mit später vertrauten. Formate: `werkzeug/katalog_bauen.py`.
