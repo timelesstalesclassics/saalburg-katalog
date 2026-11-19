@@ -1,0 +1,10 @@
+OSKAT1
+schluessel: saalburg-katalog
+signatur: 72e08671771d7724c2f163577c20d151ff263307e58c9f5174fdd0539459815d719f366b68881a27322120b65095d3586a443cde5fa450fbdd4b9d72b42e250f
+
+katalog = Saalburg-Apps
+stand = 001795085144
+app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
+app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
+app = notizen|1.0|Notizen|2224|e132a37552b9b473ce8513aac528f1a182de73555352b82158a614af79087095|pakete/notizen-1.0.osapp|Eine Notizdatei mit dem Editor nano (Strg+O speichert, Strg+X beendet).
+app = rechner|1.0|Rechner|2224|8c8e43455a1f4297e2a06d0dd682d5d4362a5cb39d80f0a94c3b1a9afb8977ce|pakete/rechner-1.0.osapp|Taschenrechner im Terminal (bc, mit Kommazahlen; quit beendet).
