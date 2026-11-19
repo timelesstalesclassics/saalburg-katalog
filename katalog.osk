@@ -1,10 +1,11 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: b465c5f50ca38aadd9dc0d038829b657ec6afaa1d9dfba1c38d54315212b261dc5e72d640717a4ca3580ded6228b00ab1733115408808b164650c3e04981a60e
+signatur: 75718d5906d42f474bbbdeb6cb7d09ae6a081da244929140876322e029a925d8b4508929bda59ff5e2505982a56d6d3d8a2fdeccea826c026818fe5a5dec2b07
 
 katalog = Saalburg-Apps
-stand = 001795088978
+stand = 001795093135
 app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
 app = notizen|1.0|Notizen|2224|e132a37552b9b473ce8513aac528f1a182de73555352b82158a614af79087095|pakete/notizen-1.0.osapp|Eine Notizdatei mit dem Editor nano (Strg+O speichert, Strg+X beendet).
 app = rechner|1.0|Rechner|2224|8c8e43455a1f4297e2a06d0dd682d5d4362a5cb39d80f0a94c3b1a9afb8977ce|pakete/rechner-1.0.osapp|Taschenrechner im Terminal (bc, mit Kommazahlen; quit beendet).
+app = sonnengrab|1.0|Sonnengrab|130224|b8d757ddaebb6554dd358d04f5b1001253c55d696681de9591808bdbe38e3eaa|pakete/sonnengrab-1.0.osapp|Pyramiden-Plattformspiel: finde die 8 Sonnenamulette. Pfeile laufen und klettern, Leertaste springt, Shift rennt, Esc Menü.
