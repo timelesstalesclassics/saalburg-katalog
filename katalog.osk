@@ -1,9 +1,9 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: 0d295f3b59149a3c291cb819aa91b63f30f3fe1b382242516c2cdfabfa2b68356cfbfbdcd7b264c23a2e8da9a4c09ad283758bccdf9067a1dec90589ba8b6801
+signatur: b465c5f50ca38aadd9dc0d038829b657ec6afaa1d9dfba1c38d54315212b261dc5e72d640717a4ca3580ded6228b00ab1733115408808b164650c3e04981a60e
 
 katalog = Saalburg-Apps
-stand = 001795086179
+stand = 001795088978
 app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
 app = notizen|1.0|Notizen|2224|e132a37552b9b473ce8513aac528f1a182de73555352b82158a614af79087095|pakete/notizen-1.0.osapp|Eine Notizdatei mit dem Editor nano (Strg+O speichert, Strg+X beendet).
