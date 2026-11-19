@@ -21,7 +21,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 | `rechner` | Terminal | Taschenrechner bc, ohne Internet |
 | `sonnengrab` | Programm | Pyramiden-Plattformspiel mit Musik (Wayland, Ton, ohne Internet) |
 | `eisen-und-blut` | Programm | Rundenstrategie 1864–1871 mit 3D-Gefechtsfeld (Godot 4.5, Wayland, OpenGL ES über die GPU, Ton, ohne Internet) |
-| `cursus` | Terminal | E-Mail über IMAP/SMTP, nur verschlüsselt (TLS/STARTTLS); Lesen, Antworten, Weiterleiten, Anhänge über „Dokumente“ (Internet) |
+| `mercurius` | Terminal | E-Mail über IMAP/SMTP, nur verschlüsselt (TLS/STARTTLS); Lesen, Antworten, Weiterleiten, Anhänge über „Dokumente“ (Internet) |
 
 ## Eine App hinzufügen oder ändern
 
