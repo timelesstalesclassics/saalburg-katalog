@@ -1,13 +1,13 @@
-# App-Katalog des OS-Prototyps
+# App-Katalog von Saalburg
 
-Apps für den App-Store des [OS-Prototyps](https://github.com/timelesstalesclassics) (eigenes
+Apps für den App-Store von Saalburg (eigenes
 schlankes Linux-System mit Claude Code). Jede App liegt als Quelle unter `apps/<kennung>/`;
 GitHub baut daraus bei jeder Änderung signierte Pakete und einen signierten Katalog und legt
 sie im Zweig [`veroeffentlicht`](../../tree/veroeffentlicht) ab.
 
 Der App-Store lädt
-`https://raw.githubusercontent.com/timelesstalesclassics/os-prototyp-katalog/veroeffentlicht/katalog.osk`,
-prüft die Signatur mit dem öffentlichen Schlüssel `schluessel/osproto-katalog.pub` (im System
+`https://raw.githubusercontent.com/timelesstalesclassics/saalburg-katalog/veroeffentlicht/katalog.osk`,
+prüft die Signatur mit dem öffentlichen Schlüssel `schluessel/saalburg-katalog.pub` (im System
 mitgeliefert) sowie Größe und SHA-256 jedes Pakets. Installiert wird erst, wenn der Nutzer am
 Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die Rechte der App.
 
@@ -43,4 +43,4 @@ Jede App läuft in ihrer eigenen Sandbox (eigene Kennung, Landlock, cgroup, secc
 ## Signierschlüssel
 
 Der geheime Schlüssel liegt nur als GitHub-Secret `OSAPP_SCHLUESSEL` im Repo; der Ablauf prüft,
-dass er zu `schluessel/osproto-katalog.pub` passt. Formate: `werkzeug/katalog_bauen.py`.
+dass er zu `schluessel/saalburg-katalog.pub` passt. Formate: `werkzeug/katalog_bauen.py`.

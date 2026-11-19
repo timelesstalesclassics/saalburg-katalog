@@ -1,6 +1,6 @@
 # Baut bei jeder Änderung an apps/ die signierten Pakete und den Katalog und legt
-# sie im Zweig „veroeffentlicht“ ab. Von dort lädt der App-Store des OS-Prototyps:
-# https://raw.githubusercontent.com/timelesstalesclassics/os-prototyp-katalog/veroeffentlicht/katalog.osk
+# sie im Zweig „veroeffentlicht“ ab. Von dort lädt der App-Store von Saalburg:
+# https://raw.githubusercontent.com/timelesstalesclassics/saalburg-katalog/veroeffentlicht/katalog.osk
 name: Katalog bauen
 
 on:
@@ -48,7 +48,7 @@ jobs:
           git rm -rq --ignore-unmatch . || true
           cp -r "$RUNNER_TEMP/aus/." .
           cp "$GITHUB_WORKSPACE/schluessel/"*.pub .
-          printf 'Signierte Pakete und Katalog des OS-Prototyps, gebaut aus %s.\n' "$GITHUB_SHA" > LIESMICH.txt
+          printf 'Signierte Pakete und Katalog von Saalburg, gebaut aus %s.\n' "$GITHUB_SHA" > LIESMICH.txt
           git add -A
           git commit -qm "Katalog aus ${GITHUB_SHA::7}"
           git push origin veroeffentlicht

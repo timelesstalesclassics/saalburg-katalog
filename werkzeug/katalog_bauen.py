@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Baut aus apps/<kennung>/ signierte App-Pakete (.osapp) und den signierten
-Katalog (katalog.osk) für den App-Store des OS-Prototyps.
+Katalog (katalog.osk) für den App-Store von Saalburg.
 
   python3 werkzeug/katalog_bauen.py <ausgabe-ordner>
 
@@ -159,7 +159,7 @@ def main():
                                             werte.get("beschreibung", "")[:200]]))
         print(f"  {datei}  {len(paket)} Bytes")
 
-    inhalt = (f"katalog = OS-Prototyp Apps\nstand = {int(time.time()):012d}\n" + "\n".join(zeilen) + "\n").encode()
+    inhalt = (f"katalog = Saalburg-Apps\nstand = {int(time.time()):012d}\n" + "\n".join(zeilen) + "\n").encode()
     with open(os.path.join(aus, "katalog.osk"), "wb") as f:
         f.write(signiert(b"OSKAT1-SIGNATUR\0", b"OSKAT1\n", name, inhalt, geheim))
     print(f"katalog.osk: {len(zeilen)} Apps, signiert von „{name}“")
