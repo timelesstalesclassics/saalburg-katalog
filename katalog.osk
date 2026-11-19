@@ -1,13 +1,13 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: 85cedaaa297ee57b59eb5b3adf4b7fa94eacef85e2cd03debf4069606e7d6997d663fefbbbd8a0463bbd19334a79b3d1a30f20c87c7d1b6d534da9760bcb2803
+signatur: 4423c8fae5dde6585ee25e40a03c2302a2da668412589297ed15d8760ae4d519692140c3e3b9d848d8320cadb36c307f20e31c21a2e29d4527f1e69b5b82c201
 
 katalog = Saalburg-Apps
-stand = 001795114747
+stand = 001795124248
 app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
-app = cursus|1.0|Cursus|1309360|f840fbe02436f996967464e91492a1eb2bf9872195620c576623f013b27d747a|pakete/cursus-1.0.osapp|E-Mail über IMAP und SMTP, nur verschlüsselt (TLS/STARTTLS). Lesen, antworten, weiterleiten; Anhänge über Dokumente. n neu, a antworten, ? Hilfe.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
+app = mercurius|1.0|Mercurius|1309872|8cf14e7e871d37aeff34cfcbdc310bdb6e9e4233c853dde4d4b8e5a1d2ae9dbf|pakete/mercurius-1.0.osapp|E-Mail über IMAP und SMTP, nur verschlüsselt (TLS/STARTTLS). Lesen, antworten, weiterleiten; Anhänge über Dokumente. n neu, a antworten, ? Hilfe.
 app = notizen|1.1|Notizen|2224|6a21c4b99a180e50ea27bed7cece8b244af4c6ca31a342c26656fa9b1c559994|pakete/notizen-1.1.osapp|Eine Notizdatei mit dem Editor nano (Strg+O speichert, Strg+X beendet); liegt in den Dokumenten der App.
 app = rechner|1.0|Rechner|2224|8c8e43455a1f4297e2a06d0dd682d5d4362a5cb39d80f0a94c3b1a9afb8977ce|pakete/rechner-1.0.osapp|Taschenrechner im Terminal (bc, mit Kommazahlen; quit beendet).
 app = sonnengrab|1.0|Sonnengrab|130224|b8d757ddaebb6554dd358d04f5b1001253c55d696681de9591808bdbe38e3eaa|pakete/sonnengrab-1.0.osapp|Pyramiden-Plattformspiel: finde die 8 Sonnenamulette. Pfeile laufen und klettern, Leertaste springt, Shift rennt, Esc Menü.
