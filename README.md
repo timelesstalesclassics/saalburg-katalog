@@ -19,6 +19,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 | `claude-web` | Web-App | claude.ai im eigenen Fenster |
 | `notizen` | Terminal | eine Notizdatei mit nano, ohne Internet |
 | `rechner` | Terminal | Taschenrechner bc, ohne Internet |
+| `sonnengrab` | Programm | Pyramiden-Plattformspiel (Wayland, ohne Internet); Quelltext unter `quellen/sonnengrab/` |
 
 ## Eine App hinzufügen oder ändern
 
