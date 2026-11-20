@@ -40,8 +40,11 @@ Katalog (`/daten/claude/katalog`, `app katalog …`), den der App-Store zusätzl
 
 Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `farbe`,
 `art` (`terminal`, `web`, `programm`), `start` bzw. `url`, `reihe`, `netzwerk`, `gpu`, `ton`,
-`ram_max`, `ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server).
+`ram_max`, `ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server),
+`hintergrund = ja` (läuft weiter, wenn nicht zu sehen; abschaltbar in den Einstellungen).
 Jede App läuft in ihrer eigenen Sandbox (eigene Kennung, Landlock, cgroup, seccomp).
+Ist eine App 10 s nicht zu sehen, friert Saalburg sie ein und lagert sie später aus;
+beim Ausschalten bekommt sie SIGTERM und bis zu 12 s, um ihren Stand zu speichern.
 
 ## System-Updates
 
