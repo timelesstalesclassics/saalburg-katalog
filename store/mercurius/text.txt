@@ -1,0 +1,9 @@
+Mercurius ist der E-Mail-Client für Saalburg. Er läuft im Terminal, ist klein und schnell und arbeitet mit jedem Postfach, das IMAP und SMTP anbietet.
+
+Verbunden wird nur verschlüsselt: über TLS oder STARTTLS, mit Prüfung von Zertifikat und Servername. Ohne Verschlüsselung baut Mercurius keine Verbindung auf.
+
+Die Liste zeigt Ordner und Nachrichten nebeneinander, mit ungelesenen, beantworteten und markierten Mails und Anhängen auf einen Blick. Ältere Nachrichten werden beim Blättern nachgeladen. Alle zwei Minuten sieht Mercurius nach neuer Post. Mails mit Umlauten, alten Zeichensätzen oder nur in HTML werden als gut lesbarer Text gezeigt.
+
+Antworten, allen antworten und weiterleiten samt Anhängen geht mit wenigen Tasten. Den Text schreiben Sie im Editor nano. Gesendete Mails landen im Ordner Gesendet. Anhänge speichert Mercurius in den Dokumenten der App und hängt von dort auch Dateien an, so kommen sie zu anderen Apps.
+
+Mehrere Konten sind möglich. Für Hostinger, Gmail, GMX, WEB.DE, T-Online, Posteo, mailbox.org, iCloud, IONOS und Strato sind die Server schon eingetragen. Vor dem Speichern prüft Mercurius die Zugangsdaten. Maus und geteilter Bildschirm werden unterstützt.
