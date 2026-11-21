@@ -1,0 +1,7 @@
+Tabula ist eine schlanke Tabellenkalkulation für Saalburg. Sie öffnet Excel-Mappen (.xlsx) und CSV-Dateien, bearbeitet sie und speichert sie so, dass Excel und LibreOffice sie direkt lesen. Die Dateien liegen im Ordner „Dokumente“ der App.
+
+Formeln schreiben Sie wie im deutschen Excel: =SUMME(A1:A10), Semikolon als Trenner, Komma als Dezimalzeichen. Rund 165 Funktionen stehen bereit, darunter WENN, SVERWEIS, XVERWEIS, INDEX, VERGLEICH, SUMMEWENN, ZÄHLENWENN, RUNDEN, TEXT, Datums- und Finanzfunktionen. Bezüge wählen Sie beim Tippen mit Maus oder Pfeiltasten aus, F4 setzt die $-Zeichen, Funktionsvorschläge übernimmt die Tab-Taste.
+
+Eingaben wie 1.234,5 oder 15 % oder 5,50 € oder 1.3.2026 werden erkannt und passend formatiert. Dazu kommen fett, kursiv, Farben, Rahmen, verbundene Zellen, Zahlenformate mit Vorschau, mehrere Blätter, Sortieren, AutoSumme, Füllgriff für Reihen, fixierte Zeilen und Spalten sowie Rückgängig.
+
+Diagramme, Bilder und Kommentare aus Excel zeigt Tabula nicht an; beim Öffnen solcher Dateien erscheint ein Hinweis. Beim Ausschalten sichert Tabula ungespeicherte Änderungen und stellt sie beim nächsten Start wieder her. F1 zeigt alle Tastenkürzel.
