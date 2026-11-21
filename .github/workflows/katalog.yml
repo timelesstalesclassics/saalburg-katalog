@@ -46,6 +46,8 @@ jobs:
             cd "$RUNNER_TEMP/zweig"
           fi
           git rm -rq --ignore-unmatch . || true
+          # Das System-Update (system/aktuell.osm) legt „System freigeben“ ab: behalten
+          git checkout HEAD -- system 2>/dev/null || true
           cp -r "$RUNNER_TEMP/aus/." .
           cp "$GITHUB_WORKSPACE/schluessel/"*.pub .
           printf 'Signierte Pakete und Katalog von Saalburg, gebaut aus %s.\n' "$GITHUB_SHA" > LIESMICH.txt
