@@ -1,9 +1,9 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: 7237b36ca4933370dd9554d33ca2c5bc77db8e1fccbfe6595a2b5f371125d95fdd3000e28c0d94420c0a61de327dc7f04f7a37a15d1b326e556810035edd280c
+signatur: d5b5726d0b6d41e61132ac147773ac2cae64a1b95fb5e66bbd52dd3eaf9e4d89b14939f1899d24b775c51951f32206c7de2bf1057e9a3a44264f6999dd5ce800
 
 katalog = Saalburg-Apps
-stand = 001795285485
+stand = 001795285592
 app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
@@ -27,6 +27,8 @@ conf = rechner|a2VubnVuZyAgICAgID0gcmVjaG5lcgp2ZXJzaW9uICAgICAgPSAxLjAKbmFtZSAgI
 kategorie = rechner|Werkzeuge
 conf = sonnengrab|a2VubnVuZyAgICAgID0gc29ubmVuZ3JhYgp2ZXJzaW9uICAgICAgPSAxLjAKbmFtZSAgICAgICAgID0gU29ubmVuZ3JhYgpiZXNjaHJlaWJ1bmcgPSBQeXJhbWlkZW4tUGxhdHRmb3Jtc3BpZWw6IGZpbmRlIGRpZSA4IFNvbm5lbmFtdWxldHRlLiBQZmVpbGUgbGF1ZmVuIHVuZCBrbGV0dGVybiwgTGVlcnRhc3RlIHNwcmluZ3QsIFNoaWZ0IHJlbm50LCBFc2MgTWVuw7wuCnN5bWJvbCAgICAgICA9IOKYgApmYXJiZSAgICAgICAgPSA4YTVhMWMKYXJ0ICAgICAgICAgID0gcHJvZ3JhbW0Kc3RhcnQgICAgICAgID0gZXhlYyAvZGF0ZW4vYXBwcy9zb25uZW5ncmFiL2FrdHVlbGwvc29ubmVuZ3JhYgpuZXR6d2VyayAgICAgPSBuZWluCmdwdSAgICAgICAgICA9IG5laW4KdG9uICAgICAgICAgID0gamEKcmFtX21heCAgICAgID0gMTI4TQo=
 kategorie = sonnengrab|Spiele
+text = sonnengrab|Sonnengrab ist ein Plattformspiel im Stil der 8-Bit-Pyramidenklassiker. Als Forscher mit Laterne dringst du nachts in die Pyramide des Sonnenkönigs ein und suchst in 14 Kammern nach 8 Sonnenamuletten.\n\nSchlüssel-Anchs öffnen die Steintüren, jede Tür verbraucht einen. Stacheln, getaktete Lanzenfallen, rote Lichtstrahlen, Fledermäuse, Skarabäen und Mumien versperren den Weg. Sprungfedern schleudern dich nach oben. Jedes Amulett bringt ein Extraleben. Sind alle geborgen, beginnt der nächste Durchgang mit zusätzlichen Fallen und schnelleren Gegnern.\n\nPixelgrafik mit dynamischem Licht: flackernde Fackeln werfen Schatten, dazu Staub im Lichtschein und Funkenflug. Die Musik mit Oud, Ney-Flöte und Darbuka sowie die Effekte lassen sich mit M und N abschalten.\n\nSteuerung: Pfeiltasten oder WASD laufen und klettern, Shift rennt, Leertaste springt hoch, X oder Pfeil runter mit Richtung springt flach und weit, Esc öffnet das Menü. Verliert das Fenster den Fokus, hält das Spiel an.\n\nDas Spiel braucht kein Internet und keine Grafikkarte und läuft in jeder Bildschirmaufteilung.
+bilder = sonnengrab|bilder/sonnengrab/1-start.png:0f4fdcd417d271fb68fb4dbdbb75172ba23574829e28b44563782b157ce709c0,bilder/sonnengrab/2-eingang.png:73501bdbf7878e7a56cf0bacb862201ecea95090a2482b1021842dbb477dc868,bilder/sonnengrab/3-fallen.png:7b5671c0545b4bc8ecbfdf566e886eb52b34b108ca0029b4d7455d4f6ed97950,bilder/sonnengrab/4-grabkammer.png:2ae772673531c12507fe52588aab1ef5d68f7ed371d66aed1ce64fb3590d557f
 conf = stilus|a2VubnVuZyAgICAgID0gc3RpbHVzCnZlcnNpb24gICAgICA9IDEuMApuYW1lICAgICAgICAgPSBTdGlsdXMKYmVzY2hyZWlidW5nID0gVGV4dHZlcmFyYmVpdHVuZzogV29yZC1EYXRlaWVuICguZG9jeCkgw7ZmZm5lbiwgYmVhcmJlaXRlbiB1bmQgV29yZC1sZXNiYXIgc3BlaWNoZXJuLCBhdWNoIC50eHQuIERhdGVpZW4gbGllZ2VuIGluIGRlbiBEb2t1bWVudGVuIGRlciBBcHAuIEYxIEhpbGZlLCBTdHJnK08gw7ZmZm5lbiwgU3RyZytTIHNwZWljaGVybi4Kc3ltYm9sICAgICAgID0g4pyOCmZhcmJlICAgICAgICA9IDJiNTc5YQphcnQgICAgICAgICAgPSBwcm9ncmFtbQpzdGFydCAgICAgICAgPSBleGVjIC9kYXRlbi9hcHBzL3N0aWx1cy9ha3R1ZWxsL3N0aWx1cwpuZXR6d2VyayAgICAgPSBuZWluCmdwdSAgICAgICAgICA9IG5laW4KdG9uICAgICAgICAgID0gbmVpbgpyYW1fbWF4ICAgICAgPSA1MTJNCg==
 kategorie = stilus|Büro
 empfohlen = stilus|ja
