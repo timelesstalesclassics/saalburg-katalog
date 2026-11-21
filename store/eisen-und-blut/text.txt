@@ -1,0 +1,7 @@
+Rundenstrategie auf Sechseckfeldern in den Einigungskriegen 1864, 1866 und 1870/71, im Stil der klassischen General-Spiele. Sie führen eine preußische Kern-Armee durch acht Schlachten von Danewerk und Düppel über Königgrätz bis Sedan; Regimenter sammeln Erfahrung und begleiten Sie durch den ganzen Feldzug.
+
+Das Gefechtsfeld ist eine 3D-Landschaft mit Hügeln, Wäldern, Dörfern, Schanzen und Flüssen. Die Truppen stehen als Figuren in den Uniformen der Zeit im Gelände: Infanterie mit Fahne, Reiterei, Batterien mit Bedienung. Angriffe zeigt das Spiel mit Salven, Granaten, Pulverdampf und Reiterattacken; Regen, Schnee und Nebel verändern Sicht und Wege.
+
+Initiative, Gelände, Verschanzung und Nachschub entscheiden. Das Zündnadelgewehr feuert vor dem Vorderlader, das Chassepot vor dem Zündnadelgewehr. Zwischen den Schlachten werben Sie mit Prestige neue Einheiten an und rüsten auf. Ein Verzeichnis beschreibt alle Einheiten und ihre Waffen.
+
+Bedienung mit Maus und Tastatur: Linksklick wählt, zieht und greift an, rechte Taste dreht die Ansicht, E beendet die Runde. Der Feldzug wird nach jeder Runde gespeichert. Läuft ohne Internet; nutzt Grafikkarte und Ton.
