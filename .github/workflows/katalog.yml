@@ -6,7 +6,7 @@ name: Katalog bauen
 on:
   push:
     branches: [main]
-    paths: ["apps/**", "werkzeug/**", "schluessel/**", ".github/workflows/katalog.yml"]
+    paths: ["apps/**", "store/**", "werkzeug/**", "schluessel/**", ".github/workflows/katalog.yml"]
   workflow_dispatch:
 
 permissions:

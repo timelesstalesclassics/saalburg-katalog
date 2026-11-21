@@ -43,7 +43,16 @@ Katalog (`/daten/claude/katalog`, `app katalog …`), den der App-Store zusätzl
 Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `farbe`,
 `art` (`terminal`, `web`, `programm`), `start` bzw. `url`, `reihe`, `netzwerk`, `gpu`, `ton`,
 `ram_max`, `ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server),
-`hintergrund = ja` (läuft weiter, wenn nicht zu sehen; abschaltbar in den Einstellungen).
+`hintergrund = ja` (läuft weiter, wenn nicht zu sehen; abschaltbar in den Einstellungen),
+`saalburg = JJJJMMTTHHMM` (Mindestversion von Saalburg in UTC, z. B. `202611211629`; ältere
+Systeme zeigen „Braucht Saalburg vom …“ und installieren erst nach dem System-Update),
+`kategorie` (wie in `store/`).
+
+Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
+`info.conf` (`kategorie = Büro`, `empfohlen = ja`), `text.txt` (lange Beschreibung, höchstens
+1200 Zeichen) und bis zu 4 Bildschirmfotos `*.png` (je höchstens 2 MB, alphabetisch). Sie
+kommen mit Prüfsumme in den signierten Katalog; ältere Saalburg-Versionen überspringen diese
+Zeilen.
 Jede App läuft in ihrer eigenen Sandbox (eigene Kennung, Landlock, cgroup, seccomp).
 Ist eine App 10 s nicht zu sehen, friert Saalburg sie ein und lagert sie später aus;
 beim Ausschalten bekommt sie SIGTERM und bis zu 12 s, um ihren Stand zu speichern.
