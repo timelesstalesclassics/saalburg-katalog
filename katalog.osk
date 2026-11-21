@@ -1,9 +1,9 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: 3ee7c2d120c86cc9d689f4df29ab55116f86c01a25da8ebe1e3b5c4d98980c5d1c679be9f2bf0434ee8fc77a1be130bd2618f39ef6ec05add47093761623bb0c
+signatur: 179f614081ca727e3b6e22041f65937b47dae6e89765fd8f684f6be8a8413733cd9a2f6eb511265c8ffec7b00ff5dd10a8e3466076868b88e7c2a095c121ed07
 
 katalog = Saalburg-Apps
-stand = 001795247536
+stand = 001795248818
 app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
@@ -12,3 +12,4 @@ app = notizen|1.1|Notizen|2224|6a21c4b99a180e50ea27bed7cece8b244af4c6ca31a342c26
 app = rechner|1.0|Rechner|2224|8c8e43455a1f4297e2a06d0dd682d5d4362a5cb39d80f0a94c3b1a9afb8977ce|pakete/rechner-1.0.osapp|Taschenrechner im Terminal (bc, mit Kommazahlen; quit beendet).
 app = sonnengrab|1.0|Sonnengrab|130224|b8d757ddaebb6554dd358d04f5b1001253c55d696681de9591808bdbe38e3eaa|pakete/sonnengrab-1.0.osapp|Pyramiden-Plattformspiel: finde die 8 Sonnenamulette. Pfeile laufen und klettern, Leertaste springt, Shift rennt, Esc Menü.
 app = stilus|1.0|Stilus|8206000|3de161890a9c4f28d4a8165594a0de7c85acf09807bccafb917863dfa90d19dc|pakete/stilus-1.0.osapp|Textverarbeitung: Word-Dateien (.docx) öffnen, bearbeiten und Word-lesbar speichern, auch .txt. Dateien liegen in den Dokumenten der App. F1 Hilfe, Strg+O öffnen, Strg+S speichern.
+app = tabula|1.0|Tabula|1385648|70da1328133ee2e97bd6af01b90be9c845732f946c71e5f38063b75a6f175f1d|pakete/tabula-1.0.osapp|Tabellenkalkulation: Excel-Mappen (.xlsx) und CSV öffnen, bearbeiten und Excel-lesbar speichern, Formeln wie im deutschen Excel. Dateien in den Dokumenten der App. F1 Hilfe.
