@@ -1,9 +1,9 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: d05bf5aca2434af1d49fcc0764abca9cd8fea101f63359b0d27bc082f73309ff0e51ccd3ab447a3e2fde120a91fa74d0f2202a0683b84ab411f51cb9a8627a05
+signatur: 7237b36ca4933370dd9554d33ca2c5bc77db8e1fccbfe6595a2b5f371125d95fdd3000e28c0d94420c0a61de327dc7f04f7a37a15d1b326e556810035edd280c
 
 katalog = Saalburg-Apps
-stand = 001795285143
+stand = 001795285485
 app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
@@ -32,3 +32,5 @@ kategorie = stilus|Büro
 empfohlen = stilus|ja
 conf = tabula|a2VubnVuZyAgICAgID0gdGFidWxhCnZlcnNpb24gICAgICA9IDEuMApuYW1lICAgICAgICAgPSBUYWJ1bGEKYmVzY2hyZWlidW5nID0gVGFiZWxsZW5rYWxrdWxhdGlvbjogRXhjZWwtTWFwcGVuICgueGxzeCkgdW5kIENTViDDtmZmbmVuLCBiZWFyYmVpdGVuIHVuZCBFeGNlbC1sZXNiYXIgc3BlaWNoZXJuLCBGb3JtZWxuIHdpZSBpbSBkZXV0c2NoZW4gRXhjZWwuIERhdGVpZW4gaW4gZGVuIERva3VtZW50ZW4gZGVyIEFwcC4gRjEgSGlsZmUuCnN5bWJvbCAgICAgICA9IOKWpgpmYXJiZSAgICAgICAgPSAyZjZiNGYKYXJ0ICAgICAgICAgID0gcHJvZ3JhbW0Kc3RhcnQgICAgICAgID0gZXhlYyAvZGF0ZW4vYXBwcy90YWJ1bGEvYWt0dWVsbC90YWJ1bGEKbmV0endlcmsgICAgID0gbmVpbgpncHUgICAgICAgICAgPSBuZWluCnRvbiAgICAgICAgICA9IG5laW4KcmFtX21heCAgICAgID0gNTEyTQo=
 kategorie = tabula|Büro
+text = tabula|Tabula ist eine schlanke Tabellenkalkulation für Saalburg. Sie öffnet Excel-Mappen (.xlsx) und CSV-Dateien, bearbeitet sie und speichert sie so, dass Excel und LibreOffice sie direkt lesen. Die Dateien liegen im Ordner „Dokumente“ der App.\n\nFormeln schreiben Sie wie im deutschen Excel: =SUMME(A1:A10), Semikolon als Trenner, Komma als Dezimalzeichen. Rund 165 Funktionen stehen bereit, darunter WENN, SVERWEIS, XVERWEIS, INDEX, VERGLEICH, SUMMEWENN, ZÄHLENWENN, RUNDEN, TEXT, Datums- und Finanzfunktionen. Bezüge wählen Sie beim Tippen mit Maus oder Pfeiltasten aus, F4 setzt die $-Zeichen, Funktionsvorschläge übernimmt die Tab-Taste.\n\nEingaben wie 1.234,5 oder 15 % oder 5,50 € oder 1.3.2026 werden erkannt und passend formatiert. Dazu kommen fett, kursiv, Farben, Rahmen, verbundene Zellen, Zahlenformate mit Vorschau, mehrere Blätter, Sortieren, AutoSumme, Füllgriff für Reihen, fixierte Zeilen und Spalten sowie Rückgängig.\n\nDiagramme, Bilder und Kommentare aus Excel zeigt Tabula nicht an; beim Öffnen solcher Dateien erscheint ein Hinweis. Beim Ausschalten sichert Tabula ungespeicherte Änderungen und stellt sie beim nächsten Start wieder her. F1 zeigt alle Tastenkürzel.
+bilder = tabula|bilder/tabula/1-start.png:4b9fbf22328b6f29fd9c580652945cfa589a602813e2a5a59ec3c0164eee38eb,bilder/tabula/2-formel.png:735b2d17a8cf87b0c157954be9358de2d97705e926876d3d59fc644133486d69,bilder/tabula/3-zahlenformat.png:32d3cac4298620a78741553953e89801766fb40ac06414bbdb321a905eaf7787,bilder/tabula/4-oeffnen.png:0f1b4b69de8d94898dbd2650453338733963ddc500467deafd2b6d0573967bf5
