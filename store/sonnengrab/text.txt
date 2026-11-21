@@ -1,0 +1,9 @@
+Sonnengrab ist ein Plattformspiel im Stil der 8-Bit-Pyramidenklassiker. Als Forscher mit Laterne dringst du nachts in die Pyramide des Sonnenkönigs ein und suchst in 14 Kammern nach 8 Sonnenamuletten.
+
+Schlüssel-Anchs öffnen die Steintüren, jede Tür verbraucht einen. Stacheln, getaktete Lanzenfallen, rote Lichtstrahlen, Fledermäuse, Skarabäen und Mumien versperren den Weg. Sprungfedern schleudern dich nach oben. Jedes Amulett bringt ein Extraleben. Sind alle geborgen, beginnt der nächste Durchgang mit zusätzlichen Fallen und schnelleren Gegnern.
+
+Pixelgrafik mit dynamischem Licht: flackernde Fackeln werfen Schatten, dazu Staub im Lichtschein und Funkenflug. Die Musik mit Oud, Ney-Flöte und Darbuka sowie die Effekte lassen sich mit M und N abschalten.
+
+Steuerung: Pfeiltasten oder WASD laufen und klettern, Shift rennt, Leertaste springt hoch, X oder Pfeil runter mit Richtung springt flach und weit, Esc öffnet das Menü. Verliert das Fenster den Fokus, hält das Spiel an.
+
+Das Spiel braucht kein Internet und keine Grafikkarte und läuft in jeder Bildschirmaufteilung.
