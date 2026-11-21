@@ -1,5 +1,5 @@
 version = 202611201726
-teile = https://raw.githubusercontent.com/timelesstalesclassics/saalburg-katalog/system/teile
+teile = https://raw.githubusercontent.com/timelesstalesclassics/saalburg-katalog/system/teile/
 neu = Ladeanzeige: „startet …“ und „arbeitet …“, solange ein Programm noch nichts zeigt
 neu = Platzhalter mit Kachel, bis eine App ihr Fenster hat
 neu = „reagiert nicht“ und „wacht auf …“ in der Leiste
