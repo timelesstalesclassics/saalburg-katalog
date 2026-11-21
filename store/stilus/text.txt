@@ -1,0 +1,9 @@
+Stilus ist die Textverarbeitung für Saalburg. Sie öffnet Word-Dateien (.docx), lässt sie bearbeiten und speichert sie wieder so, dass Word sie ohne Rückfrage öffnet. Einfache Textdateien (.txt) gehen ebenfalls.
+
+Die Seitenansicht zeigt das Dokument wie gedruckt, mit Zoom und Seitenumbrüchen. Formatvorlagen aus Word werden übernommen, ebenso Aufzählungen, Nummerierungen, Tabellen und eingebettete Bilder (PNG und JPEG).
+
+Formatieren lässt sich wie gewohnt: fett, kursiv, unterstrichen, durchgestrichen, hoch- und tiefgestellt, Schriftart, Größe, Farbe und Hervorhebung, dazu Überschriften, Ausrichtung mit Blocksatz, Listen mit Ebenen, Tabellen und Seitenumbrüche. Suchen und Ersetzen, Rückgängig und Kopieren mit anderen Apps sind dabei. Die Tastenkürzel entsprechen dem deutschen Word, F1 zeigt sie alle.
+
+Was Stilus nicht selbst anzeigt, etwa Kopf- und Fußzeilen, Fußnoten oder Kommentare, bleibt beim Speichern erhalten. Ungespeicherte Änderungen werden beim Ausschalten gesichert und beim nächsten Start wiederhergestellt.
+
+Die Dateien liegen in den Dokumenten der App und kommen über die Dateien-App hinein und hinaus. Stilus braucht kein Internet. Alte .doc-Dateien kann es nicht öffnen.
