@@ -1,10 +1,10 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: 2963c80cf606924d48ceb4b776b09990d225a02b7523796e0fda4821000b453fb2b58493cded9e23c7fb80a6714fbec8dec876aa4a07362a94fe0200f2a8d302
+signatur: 3c0098be8a527efe8a64f8cb4c6b7e2f19fc4bfc6d67aa3342b85c268a75452b57e3ee9f134a5bbec695f8548f6afc5fb4ed8619c55c3143381f2d954a582907
 
 katalog = Saalburg-Apps
-stand = 001795371713
-app = claude-web|1.0|Claude im Browser|2224|1bec794d0547c03606990c812b1831ad96de056aee573edd4910b715945a9109|pakete/claude-web-1.0.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
+stand = 001795375114
+app = claude-web|1.1|Claude im Browser|4272|9aadfe75f550320d01eb04c0581fd92d2da78c29edbdf558421993e233256381|pakete/claude-web-1.1.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
 app = mercurius|1.1|Mercurius|1310384|0cbd44fbfa433cde4b9064e096fc5c79fdd70f9b2ef81df537a0bec54b0a9166|pakete/mercurius-1.1.osapp|E-Mail über IMAP und SMTP, nur verschlüsselt (TLS/STARTTLS). Lesen, antworten, weiterleiten; Anhänge über Dokumente. n neu, a antworten, ? Hilfe.
@@ -15,7 +15,7 @@ app = stilus|1.0.1|Stilus|8206512|ed0cece6ce5e6ea755ed7ffb95f4375f034d9becce2b95
 app = tabula|1.0|Tabula|1385648|70da1328133ee2e97bd6af01b90be9c845732f946c71e5f38063b75a6f175f1d|pakete/tabula-1.0.osapp|Tabellenkalkulation: Excel-Mappen (.xlsx) und CSV öffnen, bearbeiten und Excel-lesbar speichern, Formeln wie im deutschen Excel. Dateien in den Dokumenten der App. F1 Hilfe.
 app = whatsapp|1.0|WhatsApp Web|2224|3bbede154a382d5aecfb1036821991ee777e8405a56bb37bc29f3730a4f15ed9|pakete/whatsapp-1.0.osapp|WhatsApp im eigenen Fenster: Chats, Gruppen, Fotos und Dateien. Einmal mit dem Handy koppeln (WhatsApp › Verknüpfte Geräte › QR-Code scannen). Downloads liegen in den Dokumenten der App.
 app = youtube|1.0|YouTube|9392|8c63cb77f57591e89999ac582729bf45d754122cee72d3724a20ccf384d280fe|pakete/youtube-1.0.osapp|YouTube im eigenen Fenster: suchen, ansehen, Kanäle, Playlists und Abos (mit Anmeldung). Im Saalburg-Aussehen. Vollbild mit f, Pause mit Leertaste.
-conf = claude-web|a2VubnVuZyAgICAgID0gY2xhdWRlLXdlYgp2ZXJzaW9uICAgICAgPSAxLjAKbmFtZSAgICAgICAgID0gQ2xhdWRlIGltIEJyb3dzZXIKYmVzY2hyZWlidW5nID0gY2xhdWRlLmFpIGltIGVpZ2VuZW4gRmVuc3Rlciwgei4gQi4gZsO8ciBQcm9qZWt0ZSwgQXJ0ZWZha3RlIHVuZCBEb2t1bWVudGUuCnN5bWJvbCAgICAgICA9IEMKZmFyYmUgICAgICAgID0gYzE1ZjNjCmFydCAgICAgICAgICA9IHdlYgp1cmwgICAgICAgICAgPSBodHRwczovL2NsYXVkZS5haS8K
+conf = claude-web|a2VubnVuZyAgICAgID0gY2xhdWRlLXdlYgp2ZXJzaW9uICAgICAgPSAxLjEKbmFtZSAgICAgICAgID0gQ2xhdWRlIGltIEJyb3dzZXIKYmVzY2hyZWlidW5nID0gY2xhdWRlLmFpIGltIGVpZ2VuZW4gRmVuc3Rlciwgei4gQi4gZsO8ciBQcm9qZWt0ZSwgQXJ0ZWZha3RlIHVuZCBEb2t1bWVudGUuCnN5bWJvbCAgICAgICA9IEMKZmFyYmUgICAgICAgID0gYzE1ZjNjCmFydCAgICAgICAgICA9IHdlYgp1cmwgICAgICAgICAgPSBodHRwczovL2NsYXVkZS5haS8K
 kategorie = claude-web|Web-Apps
 conf = eisen-und-blut|a2VubnVuZyAgICAgID0gZWlzZW4tdW5kLWJsdXQKdmVyc2lvbiAgICAgID0gMi4wCm5hbWUgICAgICAgICA9IEVpc2VuIHVuZCBCbHV0CmJlc2NocmVpYnVuZyA9IFJ1bmRlbnN0cmF0ZWdpZSBpbiBkZW4gRWluaWd1bmdza3JpZWdlbiAxODY0IMK3IDE4NjYgwrcgMTg3MC83MSBhdWYgZWluZW0gM0QtR2VmZWNodHNmZWxkLiBNYXVzIHfDpGhsdCB1bmQgemllaHQsIHJlY2h0ZSBUYXN0ZSBkcmVodCBkaWUgQW5zaWNodCwgRSBiZWVuZGV0IGRpZSBSdW5kZS4Kc3ltYm9sICAgICAgID0g4pqUCmZhcmJlICAgICAgICA9IDdhMWUxNAphcnQgICAgICAgICAgPSBwcm9ncmFtbQpzdGFydCAgICAgICAgPSBjZCAvZGF0ZW4vYXBwcy9laXNlbi11bmQtYmx1dC9ha3R1ZWxsICYmIGV4ZWMgLi9laXNlbi11bmQtYmx1dCAtLW1haW4tcGFjayBlaXNlbi11bmQtYmx1dC5wY2sgLS1kaXNwbGF5LWRyaXZlciB3YXlsYW5kIC0tcmVuZGVyaW5nLW1ldGhvZCBnbF9jb21wYXRpYmlsaXR5IC0tcmVuZGVyaW5nLWRyaXZlciBvcGVuZ2wzX2VzIC0tIC0tZmVuc3RlcgpuZXR6d2VyayAgICAgPSBuZWluCmdwdSAgICAgICAgICA9IGphCnRvbiAgICAgICAgICA9IGphCnJhbV9tYXggICAgICA9IDMwNzJNCg==
 kategorie = eisen-und-blut|Spiele
