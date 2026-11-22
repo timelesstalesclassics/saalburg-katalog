@@ -88,6 +88,7 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/sys`, `/dev` (Verzeichnisse), `/var/cache/fontconfig` | lesen |
 | `/proc` | lesen, eigene Einträge schreiben |
 | `/run/netz` (DNS) | lesen |
+| `/daten/system/schrift` (Schriftwahl, fontconfig) | lesen |
 | `/dev/null`, `zero`, `full`, `random`, `urandom`, `tty`, `ptmx`, `/dev/pts` | lesen, schreiben |
 | `/dev/shm` | lesen, schreiben, anlegen (ohne Ausführen) |
 | `/daten/apps/<kennung>` (Paket) | lesen, ausführen |
@@ -308,8 +309,9 @@ Verhalten:
   baut Saalburg daraus eine Erweiterung ohne Rechte, nur für den Host der Start-URL und seine
   Unterdomänen, geladen bei `document_start` in allen Frames.
   - **Abschalten**: Der Nutzer kann es in den Einstellungen („An Saalburg angleichen“)
-    abschalten. Die app.conf-Angabe `angleichen` wird von der App-Verwaltung noch nicht
-    angenommen (unbekannter Schlüssel) – noch nicht verwenden.
+    abschalten. Mit `angleichen = nein` in der app.conf ist es für die App aus und erscheint
+    dort nicht; Voreinstellung `ja`. Nur `ja`/`nein`, ab Saalburg 202611221956 (ältere
+    Versionen lehnen den Schlüssel als unbekannt ab, also `saalburg` mindestens so setzen).
   - **Regeln**: nur `var(--saalburg-…)`, keine eigenen Farbwerte oder Schriften (siehe
     `CLAUDE.md`).
   - **Variablen** aus `/usr/lib/osproto/aussehen/saalburg.css`:
@@ -324,7 +326,13 @@ Verhalten:
   | `--saalburg-akzent`, `--saalburg-akzent-hell`, `--saalburg-blau` | Akzent (Links, Knöpfe), Hover, Flächen-Akzent |
   | `--saalburg-gut`, `--saalburg-warn`, `--saalburg-fehler` | Erfolg, Warnung, Fehler |
   | `--saalburg-wasch`, `--saalburg-wasch-mehr`, `--saalburg-akzent-wasch` | halbdurchsichtige Hover- und Auswahlflächen |
-  | `--saalburg-schrift` | Fließtext-Schrift |
+  | `--saalburg-schrift-text` | Fließtext-Schrift (Nutzerwahl, über fontconfig `sans-serif`) |
+  | `--saalburg-schrift-fest` | feste Schrift für Code und Terminal (Nutzerwahl, `monospace`) |
+  | `--saalburg-schrift` | wie `--saalburg-schrift-text` (älterer Name, bleibt gültig) |
+
+  Die Schriftwahl des Nutzers (Einstellungen → Darstellung) steht in
+  `/daten/system/schrift/fonts.conf` und gilt für Web-Apps beim nächsten Start. Eigene
+  Schriftnamen oder `@font-face` in `aussehen.css` lehnt die Katalogprüfung ab.
 
   `saalburg.css` setzt außerdem `color-scheme: dark`, Bildlaufleisten, Markierung und
   Fokusrahmen.
@@ -348,7 +356,7 @@ Im System sind unter anderem diese Pakete (Alpine 3.24, Stand des Images):
 | Ton | alsa-lib 1.2 |
 | Medien | gstreamer 1.28 (Grundpaket), ffmpeg-Teile über Chromium |
 | Sonstiges | sqlite, zlib, libpng, libjpeg-turbo, libgomp (OpenMP), ca-certificates |
-| Schriften | DejaVu, Open Sans |
+| Schriften | DejaVu, Open Sans, Terminess (Nerd Font Mono, `monospace`); `fc-match monospace`/`sans-serif` folgt der Nutzerwahl |
 
 Prüfen lässt sich das auf Saalburg:
 - Paketliste: `apk info -v` im Systemabbild ist lesbar, `apk add` geht nicht;
@@ -410,6 +418,7 @@ nach dem Update.
 | 202611212226 | DNS und Ton bleiben nach Netz- und Gerätewechseln in laufenden Apps gültig |
 | 202611220151 | Web-Apps dunkel (`--force-dark-mode`) |
 | 202611221801 | Saalburg-Aussehen (`aussehen.css`/`.js`), Web-Zoom nach Schriftgröße, Zwischenablage mit `image/png` |
+| 202611221956 | Wählbare Schriften (`--saalburg-schrift-fest`/`-text`, fontconfig), app.conf `angleichen = ja\|nein` |
 
 ---
 
