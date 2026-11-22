@@ -50,10 +50,6 @@ Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `
 Systeme zeigen „Braucht Saalburg vom …“ und installieren erst nach dem System-Update),
 `kategorie` (wie in `store/`).
 
-Web-Apps können `aussehen.css` (optional `aussehen.js`) mitbringen: Saalburg legt sie mit seinen
-Farben (`--saalburg-*`) über die Seiten der App (nur Host der `url` und Unterdomänen), als
-Chromium-Erweiterung ohne Rechte. Ältere Saalburg-Versionen übergehen die Dateien.
-
 Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
 `info.conf` (`kategorie = Büro`, `empfohlen = ja`), `text.txt` (lange Beschreibung, höchstens
 1200 Zeichen) und bis zu 4 Bildschirmfotos `*.png` (je höchstens 2 MB, alphabetisch). Sie
