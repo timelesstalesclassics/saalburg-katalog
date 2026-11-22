@@ -1,0 +1,7 @@
+YouTube in Saalburg: die offizielle YouTube-Seite in einem eigenen Fenster ohne Browserleiste. Suchen, Videos ansehen, Kanäle und Playlists durchstöbern, Kommentare lesen und schreiben; mit Ihrem Google-Konto auch Abos, Verlauf und „Später ansehen“. Die Anmeldung bleibt nach einem Neustart erhalten.
+
+Saalburg-Aussehen: YouTube erscheint in Saalburgs eigenen Farben und Schrift, mit dem dunklen Grund, den Karten und dem Akzentblau der Saalburg-Seiten; YouTube wird dafür auf sein dunkles Design gestellt. Wer YouTube lieber im Original sieht, schaltet in den Einstellungen „An Saalburg angleichen“ aus.
+
+Bedienung wie gewohnt: Leertaste oder k für Pause, f für Vollbild, Pfeiltasten zum Spulen und für die Lautstärke, Strg+Plus und Strg+Minus für die Größe der Seite.
+
+Die App läuft wie jede Saalburg-App in ihrer eigenen Sandbox mit eigenem Browserprofil. Andere Apps und Claude sehen nicht, was Sie ansehen. Videos herunterladen geht nicht, Kommentare mit Sprachaufnahme auch nicht, weil Apps kein Mikrofon bekommen.

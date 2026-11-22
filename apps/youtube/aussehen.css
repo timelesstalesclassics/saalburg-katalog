@@ -1,0 +1,95 @@
+/* YouTube im Saalburg-Aussehen.
+ * Ordnet nur YouTubes eigene Design-Variablen und wenige Bausteine den
+ * Saalburg-Variablen (--saalburg-*, aus saalburg.css) zu; keine eigenen Farben,
+ * keine eigenen Schriften, keine Größen.
+ * Alles gilt nur, wenn YouTube im dunklen Design läuft (html[dark], dafür sorgt
+ * aussehen.js). Ändert YouTube etwas oder bleibt es hell, greifen die Regeln
+ * nicht und YouTube sieht aus wie gewohnt. */
+
+html[dark],
+html[dark] [dark],
+html[dark] ytd-app,
+html[dark] ytd-popup-container,
+html[dark] tp-yt-iron-dropdown {
+  /* Flächen */
+  --yt-sys-color-baseline--base-background: var(--saalburg-grund) !important;
+  --yt-sys-color-baseline--raised-background: var(--saalburg-karte) !important;
+  --yt-sys-color-baseline--menu-background: var(--saalburg-karte) !important;
+  --yt-sys-color-baseline--surface-container: var(--saalburg-karte) !important;
+  --yt-sys-color-baseline--additive-background: var(--saalburg-wasch) !important;
+  --yt-sys-color-baseline--tonal-background: var(--saalburg-wasch) !important;
+  --yt-sys-color-baseline--button-chip-background-hover: var(--saalburg-wasch-mehr) !important;
+  --yt-sys-color-baseline--mono-tonal-hover: var(--saalburg-wasch-mehr) !important;
+  --yt-sys-color-baseline--inverted-background: var(--saalburg-text) !important;
+  --yt-sys-color-baseline--mono-filled-hover: var(--saalburg-hell) !important;
+  --yt-sys-color-baseline--suggested-action: var(--saalburg-akzent-wasch) !important;
+  --yt-sys-color-baseline--outline: var(--saalburg-linie) !important;
+  --yt-sys-color-baseline--outline-opaque: var(--saalburg-linie) !important;
+
+  /* Text */
+  --yt-sys-color-baseline--text-primary: var(--saalburg-text) !important;
+  --yt-sys-color-baseline--text-secondary: var(--saalburg-leise) !important;
+  --yt-sys-color-baseline--text-disabled: var(--saalburg-aus) !important;
+  --yt-sys-color-baseline--text-primary-inverse: var(--saalburg-grund) !important;
+  --yt-sys-color-baseline--text-error: var(--saalburg-fehler) !important;
+  --yt-sys-color-baseline--error-indicator: var(--saalburg-fehler) !important;
+
+  /* Akzent: Links, Knöpfe, Fortschritt */
+  --yt-sys-color-baseline--call-to-action: var(--saalburg-akzent) !important;
+  --yt-sys-color-baseline--call-to-action-hover: var(--saalburg-akzent-hell) !important;
+
+  /* Ältere Namen, wo YouTube sie noch nutzt */
+  --yt-spec-base-background: var(--saalburg-grund) !important;
+  --yt-spec-raised-background: var(--saalburg-karte) !important;
+  --yt-spec-menu-background: var(--saalburg-karte) !important;
+  --yt-spec-brand-background-solid: var(--saalburg-grund) !important;
+  --yt-spec-text-primary: var(--saalburg-text) !important;
+  --yt-spec-text-secondary: var(--saalburg-leise) !important;
+  --yt-spec-call-to-action: var(--saalburg-akzent) !important;
+  --yt-spec-badge-chip-background: var(--saalburg-wasch) !important;
+  --yt-spec-10-percent-layer: var(--saalburg-linie) !important;
+
+  /* Suchfeld */
+  --ytd-searchbox-background: var(--saalburg-karte) !important;
+  --ytd-searchbox-border-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-text-color: var(--saalburg-text) !important;
+  --ytd-searchbox-legacy-border-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-legacy-button-border-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-legacy-button-color: var(--saalburg-karte-hell) !important;
+}
+
+/* Grundfläche und Fließtext-Schrift */
+html[dark],
+html[dark] body,
+html[dark] ytd-app {
+  background: var(--saalburg-grund) !important;
+}
+html[dark] ytd-app,
+html[dark] ytd-app *,
+html[dark] ytd-popup-container * {
+  font-family: var(--saalburg-schrift, sans-serif) !important;
+}
+
+/* Kopf- und Seitenleiste wie die Seitenleiste der Saalburg-Seiten */
+html[dark] [id="masthead-container"],
+html[dark] ytd-masthead [id="background"],
+html[dark] ytd-mini-guide-renderer,
+html[dark] tp-yt-app-drawer [id="contentContainer"] {
+  background: var(--saalburg-seite) !important;
+}
+
+/* Gewählter Filter und Abo-Knopf */
+html[dark] .ytChipShapeActive {
+  background: var(--saalburg-akzent) !important;
+  color: var(--saalburg-grund) !important;
+}
+html[dark] .ytSpecButtonShapeNextMono.ytSpecButtonShapeNextFilled {
+  background: var(--saalburg-text) !important;
+  color: var(--saalburg-grund) !important;
+}
+
+/* Fortschritt im Player */
+html[dark] .ytp-play-progress,
+html[dark] .ytp-swatch-background-color {
+  background: var(--saalburg-akzent) !important;
+}

@@ -25,6 +25,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 | `stilus` | Programm | Textverarbeitung: Word-Dateien (.docx) öffnen, bearbeiten und Word-lesbar speichern, auch .txt (Wayland, ohne Internet) |
 | `tabula` | Programm | Tabellenkalkulation: Excel-Mappen (.xlsx) und CSV öffnen, bearbeiten und Excel-lesbar speichern, Formeln wie im deutschen Excel (Wayland, ohne Internet) |
 | `whatsapp` | Web-App | WhatsApp Web im eigenen Fenster, Kopplung per QR-Code mit dem Handy; Downloads in den Dokumenten der App |
+| `youtube` | Web-App | YouTube im eigenen Fenster, mit Saalburg-Aussehen (`aussehen.css`, ab Saalburg mit Aussehen-Unterstützung) |
 
 ## Eine App hinzufügen oder ändern
 
