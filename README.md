@@ -25,6 +25,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 | `stilus` | Programm | Textverarbeitung: Word-Dateien (.docx) öffnen, bearbeiten und Word-lesbar speichern, auch .txt (Wayland, ohne Internet) |
 | `tabula` | Programm | Tabellenkalkulation: Excel-Mappen (.xlsx) und CSV öffnen, bearbeiten und Excel-lesbar speichern, Formeln wie im deutschen Excel (Wayland, ohne Internet) |
 | `whatsapp` | Web-App | WhatsApp Web im eigenen Fenster, Kopplung per QR-Code mit dem Handy; Downloads in den Dokumenten der App |
+| `youtube` | Web-App | YouTube im eigenen Fenster, mit Saalburg-Aussehen (`aussehen.css`, ab Saalburg mit Aussehen-Unterstützung) |
 
 ## Eine App hinzufügen oder ändern
 
@@ -48,6 +49,10 @@ Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `
 `saalburg = JJJJMMTTHHMM` (Mindestversion von Saalburg in UTC, z. B. `202611211629`; ältere
 Systeme zeigen „Braucht Saalburg vom …“ und installieren erst nach dem System-Update),
 `kategorie` (wie in `store/`).
+
+Web-Apps können `aussehen.css` (optional `aussehen.js`) mitbringen: Saalburg legt sie mit seinen
+Farben (`--saalburg-*`) über die Seiten der App (nur Host der `url` und Unterdomänen), als
+Chromium-Erweiterung ohne Rechte. Ältere Saalburg-Versionen übergehen die Dateien.
 
 Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
 `info.conf` (`kategorie = Büro`, `empfohlen = ja`), `text.txt` (lange Beschreibung, höchstens

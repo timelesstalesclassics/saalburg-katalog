@@ -1,0 +1,239 @@
+/* YouTube im Saalburg-Aussehen. Saalburg legt die Farben (--saalburg-*) in
+ * saalburg.css fest; hier werden YouTubes Design-Variablen darauf gelegt –
+ * für helles und dunkles YouTube-Design gleich, darum mit !important und auch
+ * für Bereiche, die ihr Design selbst setzen ([dark], [light]).
+ * Nur CSS: Saalburg lädt für Web-Apps keine Skripte. */
+
+:root, html[dark], [dark], [light], ytd-app, ytd-masthead, tp-yt-iron-dropdown, ytd-popup-container {
+  /* Flächen */
+  --yt-sys-color-baseline--base-background: var(--saalburg-grund) !important;
+  --yt-sys-color-baseline--raised-background: var(--saalburg-karte) !important;
+  --yt-sys-color-baseline--menu-background: var(--saalburg-karte) !important;
+  --yt-sys-color-baseline--surface-container: var(--saalburg-karte) !important;
+  --yt-sys-color-baseline--additive-background: var(--saalburg-wasch) !important;
+  --yt-sys-color-baseline--tonal-background: var(--saalburg-wasch) !important;
+  --yt-sys-color-baseline--button-chip-background-hover: var(--saalburg-wasch-mehr) !important;
+  --yt-sys-color-baseline--mono-tonal-hover: var(--saalburg-wasch-mehr) !important;
+  --yt-sys-color-baseline--tonal-state-layer: var(--saalburg-wasch) !important;
+  --yt-sys-color-baseline--state-mono-standard-hovered: var(--saalburg-wasch) !important;
+  --yt-sys-color-baseline--state-mono-standard-pressed: var(--saalburg-wasch-mehr) !important;
+  --yt-sys-color-baseline--inverted-background: var(--saalburg-text) !important;
+  --yt-sys-color-baseline--inverted-background-hover: var(--saalburg-hell) !important;
+  --yt-sys-color-baseline--mono-filled-hover: var(--saalburg-hell) !important;
+  --yt-sys-color-baseline--solid-background: var(--saalburg-text) !important;
+  --yt-sys-color-baseline--touch-response: var(--saalburg-text) !important;
+  --yt-sys-color-baseline--suggested-action: var(--saalburg-akzent-wasch) !important;
+  --yt-sys-color-baseline--suggested-action-hover: rgba(122, 162, 247, 0.26) !important;
+  --yt-sys-color-baseline--outline: var(--saalburg-linie) !important;
+  --yt-sys-color-baseline--outline-opaque: var(--saalburg-linie) !important;
+  --yt-sys-color-baseline--themed-overlay-background: rgba(11, 12, 17, 0.85) !important;
+  --yt-sys-color-baseline--background-warning: rgba(224, 175, 104, 0.15) !important;
+  --yt-sys-color-baseline--background-complete: rgba(158, 206, 106, 0.15) !important;
+
+  /* Text und Symbole */
+  --yt-sys-color-baseline--text-primary: var(--saalburg-text) !important;
+  --yt-sys-color-baseline--text-secondary: var(--saalburg-leise) !important;
+  --yt-sys-color-baseline--text-disabled: var(--saalburg-aus) !important;
+  --yt-sys-color-baseline--text-primary-inverse: var(--saalburg-grund) !important;
+  --yt-sys-color-baseline--text-secondary-inverse: var(--saalburg-aus) !important;
+  --yt-sys-color-baseline--wordmark-text: var(--saalburg-hell) !important;
+  --yt-sys-color-baseline--text-error: var(--saalburg-fehler) !important;
+  --yt-sys-color-baseline--text-warning: var(--saalburg-warn) !important;
+  --yt-sys-color-baseline--text-complete: var(--saalburg-gut) !important;
+  --yt-sys-color-baseline--icon-warning: var(--saalburg-warn) !important;
+  --yt-sys-color-baseline--themed-green: var(--saalburg-gut) !important;
+  --yt-sys-color-baseline--error-indicator: var(--saalburg-fehler) !important;
+  --yt-sys-color-baseline--brand-red-contrast: var(--saalburg-fehler) !important;
+
+  /* Akzent: Links, Knöpfe, Fortschritt */
+  --yt-sys-color-baseline--call-to-action: var(--saalburg-akzent) !important;
+  --yt-sys-color-baseline--call-to-action-hover: var(--saalburg-akzent-hell) !important;
+  --yt-sys-color-baseline--call-to-action-inverse: var(--saalburg-blau) !important;
+  --yt-sys-color-baseline--overlay-call-to-action: var(--saalburg-akzent) !important;
+  --yt-sys-color-baseline--static-brand-red: var(--saalburg-akzent) !important;
+
+  /* Ältere Namen (yt-spec), wo YouTube sie noch nutzt */
+  --yt-spec-base-background: var(--saalburg-grund) !important;
+  --yt-spec-raised-background: var(--saalburg-karte) !important;
+  --yt-spec-menu-background: var(--saalburg-karte) !important;
+  --yt-spec-general-background-a: var(--saalburg-grund) !important;
+  --yt-spec-general-background-b: var(--saalburg-grund) !important;
+  --yt-spec-general-background-c: var(--saalburg-seite) !important;
+  --yt-spec-brand-background-solid: var(--saalburg-grund) !important;
+  --yt-spec-brand-background-primary: rgba(17, 18, 24, 0.98) !important;
+  --yt-spec-brand-background-secondary: rgba(17, 18, 24, 0.95) !important;
+  --yt-spec-text-primary: var(--saalburg-text) !important;
+  --yt-spec-text-secondary: var(--saalburg-leise) !important;
+  --yt-spec-text-disabled: var(--saalburg-aus) !important;
+  --yt-spec-text-primary-inverse: var(--saalburg-grund) !important;
+  --yt-spec-icon-active-other: var(--saalburg-text) !important;
+  --yt-spec-icon-inactive: var(--saalburg-leise) !important;
+  --yt-spec-icon-disabled: var(--saalburg-aus) !important;
+  --yt-spec-call-to-action: var(--saalburg-akzent) !important;
+  --yt-spec-badge-chip-background: var(--saalburg-wasch) !important;
+  --yt-spec-button-chip-background-hover: var(--saalburg-wasch-mehr) !important;
+  --yt-spec-10-percent-layer: var(--saalburg-linie) !important;
+  --yt-spec-outline: var(--saalburg-linie) !important;
+  --yt-spec-additive-background: var(--saalburg-wasch) !important;
+  --yt-spec-inverted-background: var(--saalburg-text) !important;
+  --yt-spec-suggested-action: var(--saalburg-akzent-wasch) !important;
+  --yt-spec-static-brand-red: var(--saalburg-akzent) !important;
+  --yt-spec-wordmark-text: var(--saalburg-hell) !important;
+  --yt-spec-touch-response: var(--saalburg-text) !important;
+
+  /* Suchfeld */
+  --ytd-searchbox-background: var(--saalburg-karte) !important;
+  --ytd-searchbox-border-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-text-color: var(--saalburg-text) !important;
+  --ytd-searchbox-legacy-border-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-legacy-border-shadow-color: transparent !important;
+  --ytd-searchbox-legacy-button-border-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-legacy-button-color: var(--saalburg-karte-hell) !important;
+  --ytd-searchbox-legacy-button-hover-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-legacy-button-focus-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-legacy-button-hover-border-color: var(--saalburg-linie) !important;
+  --ytd-searchbox-legacy-button-icon-color: var(--saalburg-text) !important;
+
+  /* Live-Chat */
+  --yt-live-chat-background-color: var(--saalburg-grund) !important;
+  --yt-live-chat-header-background-color: var(--saalburg-seite) !important;
+  --yt-live-chat-action-panel-background-color: var(--saalburg-karte) !important;
+  --yt-live-chat-secondary-background-color: var(--saalburg-karte) !important;
+  --yt-live-chat-primary-text-color: var(--saalburg-text) !important;
+  --yt-live-chat-secondary-text-color: var(--saalburg-leise) !important;
+  --yt-live-chat-dialog-background-color: var(--saalburg-karte) !important;
+}
+
+/* Grundfläche und Schrift */
+html, body, ytd-app {
+  background: var(--saalburg-grund) !important;
+  color: var(--saalburg-text);
+}
+
+/* Kopfleiste und Seitenleiste wie die Seitenleiste der Saalburg-Seiten */
+#masthead-container #background,
+ytd-masthead #background,
+ytd-masthead div#background,
+#masthead-container,
+ytd-mini-guide-renderer,
+ytd-mini-guide-entry-renderer,
+#guide-content,
+tp-yt-app-drawer #contentContainer {
+  background: var(--saalburg-seite) !important;
+}
+#masthead-container {
+  border-bottom: 1px solid var(--saalburg-linie);
+}
+
+/* Suchfeld mit Saalburg-Fokus */
+ytd-searchbox #container.ytd-searchbox,
+.ytSearchboxComponentInputBox {
+  background: var(--saalburg-karte) !important;
+  border-color: var(--saalburg-linie) !important;
+}
+.ytSearchboxComponentInputBoxHasFocus,
+ytd-searchbox[has-focus] #container.ytd-searchbox {
+  border-color: var(--saalburg-akzent) !important;
+}
+.ytSearchboxComponentSearchButton {
+  background: var(--saalburg-karte-hell) !important;
+  border-color: var(--saalburg-linie) !important;
+}
+
+/* Filter-Chips: gewählt in Akzentblau wie die Saalburg-Kategorien */
+yt-chip-cloud-chip-renderer[selected] .ytChipShapeChip,
+.ytChipShapeActive {
+  background: var(--saalburg-akzent) !important;
+  color: var(--saalburg-grund) !important;
+}
+
+/* Player: Fortschritt und Lautstärke im Akzent */
+.ytp-play-progress,
+.ytp-swatch-background-color,
+.ytp-volume-slider-handle,
+.ytp-volume-slider-handle::before,
+.ytp-settings-button.ytp-hd-quality-badge::after,
+.ytp-chrome-controls .ytp-button[aria-pressed="true"]::after {
+  background: var(--saalburg-akzent) !important;
+}
+.ytp-scrubber-button,
+.ytp-swatch-color {
+  background: var(--saalburg-akzent) !important;
+  color: var(--saalburg-akzent) !important;
+}
+.ytp-popup,
+.ytp-settings-menu,
+.ytp-panel-menu {
+  background: rgba(17, 18, 24, 0.94) !important;
+}
+.ytp-menuitem[aria-checked="true"] .ytp-menuitem-toggle-checkbox {
+  background: var(--saalburg-akzent) !important;
+}
+
+/* Knöpfe (YouTube nutzt beide Schreibweisen der Klassen) */
+.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled,
+.ytSpecButtonShapeNextMono.ytSpecButtonShapeNextFilled {
+  background: var(--saalburg-text) !important;
+  color: var(--saalburg-grund) !important;
+}
+.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled:hover,
+.ytSpecButtonShapeNextMono.ytSpecButtonShapeNextFilled:hover {
+  background: var(--saalburg-hell) !important;
+}
+.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--tonal,
+.ytSpecButtonShapeNextMono.ytSpecButtonShapeNextTonal {
+  background: var(--saalburg-wasch-mehr) !important;
+}
+.yt-spec-button-shape-next--call-to-action.yt-spec-button-shape-next--filled,
+.ytSpecButtonShapeNextCallToAction.ytSpecButtonShapeNextFilled {
+  background: var(--saalburg-akzent) !important;
+  color: var(--saalburg-grund) !important;
+}
+.yt-spec-button-shape-next--call-to-action.yt-spec-button-shape-next--outline,
+.yt-spec-button-shape-next--call-to-action.yt-spec-button-shape-next--text,
+.ytSpecButtonShapeNextCallToAction.ytSpecButtonShapeNextOutline,
+.ytSpecButtonShapeNextCallToAction.ytSpecButtonShapeNextText {
+  color: var(--saalburg-akzent) !important;
+  border-color: var(--saalburg-linie) !important;
+}
+.ytChipShapeInactive {
+  background: var(--saalburg-karte-hell) !important;
+}
+ytd-feed-nudge-renderer #dismissible,
+ytd-feed-nudge-renderer > div,
+ytd-expandable-metadata-renderer {
+  background: var(--saalburg-karte) !important;
+  border-color: var(--saalburg-linie) !important;
+}
+
+/* Menüs und Dialoge als Saalburg-Karten */
+tp-yt-paper-dialog,
+ytd-menu-popup-renderer,
+ytd-multi-page-menu-renderer,
+yt-sheet-view-model,
+.ytContextualSheetLayoutHost,
+tp-yt-paper-listbox {
+  background: var(--saalburg-karte) !important;
+  border: 1px solid var(--saalburg-linie) !important;
+}
+
+/* Hervorhebung beim Überfahren und gewählter Eintrag der Seitenleiste */
+ytd-guide-entry-renderer[active] tp-yt-paper-item,
+ytd-mini-guide-entry-renderer[aria-selected="true"] {
+  background: var(--saalburg-akzent-wasch) !important;
+}
+ytd-guide-entry-renderer[active] yt-icon,
+ytd-guide-entry-renderer[active] .title {
+  color: var(--saalburg-akzent) !important;
+}
+
+/* Kommentare, Beschreibung: Karte statt Grau */
+ytd-watch-metadata #description.ytd-watch-metadata,
+#description.ytd-watch-metadata {
+  background: var(--saalburg-karte) !important;
+}
+
+/* Bildlaufleisten wie in Saalburg */
+::-webkit-scrollbar { width: 12px; height: 12px; background: var(--saalburg-grund); }
+::-webkit-scrollbar-thumb { background: var(--saalburg-linie); border-radius: 6px; border: 3px solid var(--saalburg-grund); }
+::-webkit-scrollbar-thumb:hover { background: var(--saalburg-leise); }
