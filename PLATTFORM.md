@@ -444,4 +444,91 @@ nach dem Update.
 - [ ] Web-Apps: `aussehen.css` nur mit `var(--saalburg-…)`.
 - [ ] Was Claude tun können soll, ist ein MCP-Werkzeug (`verbindung`, `steuerung = claude`);
       gefährliche Schritte fragen in der App selbst nach.
-- [ ] Store-Text und Bilder ohne private Daten; mit `saalburg-test` getestet.
+- [ ] Store-Text und Bilder ohne private Daten; mit `saalburg-test` getestet, bei Bedarf auch auf dem
+      Testplatz (Abschnitt 15).
+
+---
+
+## 15. Testplatz: auf dem echten Rechner testen
+
+Zusätzlich zur QEMU-Umgebung (`saalburg-test`) kann ein App-Chat seine App auf dem echten
+Rechner testen, in einem Fenster mit gelb-schwarzem TEST-Rahmen. Das geht nur, solange der
+Eigentümer den Testplatz am Bildschirm freigeschaltet hat (1, 4 oder 8 Stunden; die Leiste zeigt
+„TESTPLATZ h:mm“). Sonst lehnt Saalburg jeden Auftrag ab.
+
+**Ablauf**
+1. Im Pull Request dieses Repos `/testplatz` kommentieren, bei mehreren geänderten Apps
+   `/testplatz <kennung>`. Der Ablauf „Testpaket“ baut `apps/<kennung>/` aus dem PR, signiert
+   mit dem **Testschlüssel** und antwortet mit einer Zeile
+   `paket kennung=<k> pr=<n> sha256=<…>`. Angenommen werden nur Kommentare des
+   Eigentümer-Kontos und nur PRs aus diesem Repo.
+2. Im privaten Repo `timelesstalesclassics/saalburg-test` ein Issue mit dem Label
+   `testplatz` anlegen (Titel „Testplatz: <kennung> – saalburg-katalog PR #<n>“) und einen
+   Auftragsblock als Codeblock mit der Sprache `testplatz` schreiben, als Text des Issues oder
+   als Kommentar. Jeder Block läuft genau einmal.
+3. Nach einigen Sekunden antwortet der Testplatz als Kommentar: je Befehl `ok` oder `FEHLER: …`,
+   Messwerte, gefilterte Protokolle; Fotos als PNG im Zweig `testplatz-ergebnisse`, verlinkt.
+
+Beispiel:
+
+````
+```testplatz
+paket kennung=youtube pr=12 sha256=<aus dem PR-Kommentar>
+installieren
+starten
+foto start
+klicken 640 400
+tippen Suchbegriff
+taste Enter
+warten 2
+foto ergebnis
+messwerte
+protokoll 100
+beenden
+```
+````
+
+**Befehle** (höchstens 60 je Block, zusammen höchstens 3 Minuten):
+
+| Befehl | Wirkung |
+|---|---|
+| `paket kennung=<k> pr=<n> [sha256=<hex>]` | welche App; zuerst |
+| `installieren` | Testpaket prüfen (Testsignatur, Prüfsumme) und in den Testplatz legen |
+| `starten`, `beenden`, `neu-laden`, `warten-auf-fenster` | Lebenszyklus; `starten` wartet aufs Fenster |
+| `entfernen [daten]` | Test-App entfernen, mit `daten` auch ihre Testdaten |
+| `warten <s>` | höchstens 30 s |
+| `foto [name]` | Bild **nur des Testfensters** (ohne Rahmen, ohne Rest des Bildschirms) |
+| `klicken <x> <y> [rechts\|doppelt\|mitte]`, `ziehen <x1> <y1> <x2> <y2>`, `rad <x> <y> <n>` | Maus, Koordinaten im Testfenster |
+| `tippen <text>`, `taste <Name>` | Tastatur (deutsche Belegung); Namen: Enter, Tab, Esc, Rueck, Entf, Links/Rechts/Hoch/Runter, Pos1, Ende, BildAuf/BildAb, Leer, F1–F12, Buchstaben, mit `Strg+`, `Umschalt+`, `Alt+` |
+| `protokoll [zeilen]` | stdout/stderr der App (`$HOME/testplatz.log`), bei Web-Apps `chromium.log`, dazu `verbindung.log`; gefiltert |
+| `messwerte` | RAM, Spitze, Prozesse, CPU, Fenstergröße, Bilder je Sekunde |
+| `ton` | spielt die App gerade Ton ab? |
+| `mcp <methode> [json]` | an den MCP-Server der App (`tools/list`, `tools/call`, `resources/…`); Web-Apps: die Browser-Steuerung |
+
+Eingaben gehen nur an das Testfenster, nie an andere Fenster; Systemkürzel (Windows-Taste)
+gibt es nicht.
+
+**Die Test-App** läuft getrennt von echten Apps: eigene Kennung (UID ab 30000), Daten unter
+`/daten/testplatz/daten/<kennung>` statt `/daten/appdaten`, keine `ordner =`, kein Dateidienst,
+nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Mit Netz
+erreicht sie **nur das Internet**: lokale und private Adressen (LAN, `localhost`, Link-lokal,
+Multicast) sind gesperrt, Namensauflösung (Port 53) geht. Web-Apps bekommen die
+Browser-Steuerung immer (nur der Testplatz verbindet sich).
+
+**Anmeldung**: Je App stellt der Eigentümer eine Stufe ein.
+- *abgemeldet* (Standard): alles kommt beim Chat an.
+- *Testkonto*: Der Eigentümer meldet sich selbst im Testfenster an. Solange er dort tippt oder
+  klickt (und 15 s danach) oder den Knopf „Sichtschutz“ gedrückt hat, lehnt der Testplatz Fotos
+  und Eingaben ab – einfach später wiederholen.
+- *echtes Konto*: keine Fotos, nur Text (ok/Fehler, Messwerte, streng gefilterte Protokolle;
+  MCP-Antworten nur „erfolgreich“ oder „Fehler“). Ein `foto` landet beim Eigentümer zum
+  Schwärzen; erst nach seiner Freigabe kommt es als eigener Kommentar ins Issue.
+
+**Nie** (Saalburg lehnt ab): Passwörter oder Codes tippen (Ziffernfolgen mit 4–8 Stellen; bei
+Web-Apps nichts in Passwort- oder Code-Felder), Anmelde-QR-Codes weitergeben (jeder QR-Code
+im Foto wird geschwärzt), Zwei-Faktor-Abfragen bestätigen. Zugangsdaten gehören weder in
+Blöcke noch in Repos; Protokolle werden vor dem Senden gefiltert.
+
+**Öffentlich bleibt nur**: im PR die Zeile mit der Prüfsumme und höchstens
+„Getestet auf dem Testplatz, Bericht privat“. Store-Bilder dürfen aus Fotos der Stufe
+*abgemeldet* stammen, wenn sie nur Beispielinhalte zeigen.
