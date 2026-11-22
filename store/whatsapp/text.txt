@@ -1,0 +1,9 @@
+WhatsApp Web ist das offizielle WhatsApp für den Browser, in Saalburg in einem eigenen Fenster ohne Browserleiste.
+
+Zum Einrichten öffnen Sie auf dem Handy WhatsApp, tippen auf Verknüpfte Geräte und scannen den QR-Code im Fenster. Danach bleibt die Anmeldung erhalten, auch nach einem Neustart. Das Handy muss nicht dauerhaft online sein, sollte aber alle paar Wochen einmal WhatsApp öffnen, sonst trennt WhatsApp die Verknüpfung.
+
+Sie können Chats und Gruppen lesen und schreiben, Fotos, Videos und Dokumente ansehen, Sprachnachrichten anhören und Dateien verschicken. Was Sie herunterladen, landet in den Dokumenten der App; von dort kommt es über die Dateien-App zu anderen Apps. Zum Verschicken wählen Sie Dateien aus denselben Dokumenten.
+
+Die App läuft wie jede Saalburg-App in ihrer eigenen Sandbox mit eigenem Browserprofil. Andere Apps und Claude sehen Ihre Chats nicht.
+
+Sprachnachrichten aufnehmen und Anrufe sind in Saalburg nicht möglich, weil Apps kein Mikrofon bekommen.
