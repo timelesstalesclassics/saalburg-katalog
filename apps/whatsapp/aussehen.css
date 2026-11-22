@@ -1,0 +1,95 @@
+/* WhatsApp Web im Saalburg-Aussehen.
+ * Ordnet nur die Farbvariablen von WhatsApp (WDS) den Saalburg-Variablen
+ * (--saalburg-*, aus saalburg.css) zu; keine eigenen Farben, keine eigenen
+ * Schriften, keine Größen. Namen der WDS-Variablen wie in catppuccin/userstyles
+ * (styles/whatsapp-web, MIT).
+ * Alles gilt nur im dunklen Design von WhatsApp (body.dark). Ändert WhatsApp
+ * etwas oder bleibt es hell, greifen die Regeln nicht und WhatsApp sieht aus
+ * wie gewohnt. Die Anmeldeseite mit dem QR-Code hat ihre Farben fest
+ * eingebaut und bleibt daher im WhatsApp-Aussehen. */
+
+:root:has(> body.dark),
+body.dark,
+.dark .color-refresh,
+.dark .app-wrapper-web {
+  /* Akzent */
+  --WDS-accent: var(--saalburg-akzent) !important;
+  --WDS-accent-emphasized: var(--saalburg-akzent-hell) !important;
+  --WDS-accent-deemphasized: var(--saalburg-akzent-wasch) !important;
+  --WDS-content-action-default: var(--saalburg-akzent) !important;
+  --WDS-content-action-emphasized: var(--saalburg-akzent-hell) !important;
+  --WDS-content-external-link: var(--saalburg-akzent-hell) !important;
+  --WDS-content-read: var(--saalburg-akzent) !important;
+  --WDS-persistent-always-branded: var(--saalburg-akzent) !important;
+  --WDS-content-on-accent: var(--saalburg-seite) !important;
+
+  /* Meldungen */
+  --WDS-secondary-negative: var(--saalburg-fehler) !important;
+  --WDS-secondary-negative-emphasized: var(--saalburg-fehler) !important;
+  --WDS-secondary-positive: var(--saalburg-gut) !important;
+  --WDS-secondary-warning: var(--saalburg-warn) !important;
+  --WDS-persistent-activity-indicator: var(--saalburg-gut) !important;
+
+  /* Text */
+  --WDS-content-default: var(--saalburg-text) !important;
+  --WDS-content-deemphasized: var(--saalburg-leise) !important;
+  --WDS-content-disabled: var(--saalburg-aus) !important;
+  --WDS-content-inverse: var(--saalburg-grund) !important;
+  --WDS-systems-bubble-content-deemphasized: var(--saalburg-leise) !important;
+  --WDS-systems-status-seen: var(--saalburg-leise) !important;
+
+  /* Flächen */
+  --WDS-background-wash-plain: var(--saalburg-grund) !important;
+  --WDS-background-wash-inset: var(--saalburg-grund) !important;
+  --WDS-background-elevated-wash-plain: var(--saalburg-grund) !important;
+  --WDS-background-elevated-wash-inset: var(--saalburg-grund) !important;
+  --WDS-modal-backdrop-solid: var(--saalburg-grund) !important;
+  --WDS-app-wash: var(--saalburg-grund) !important;
+  --WDS-surface-default: var(--saalburg-karte) !important;
+  --WDS-surface-emphasized: var(--saalburg-karte-hell) !important;
+  --WDS-surface-elevated-default: var(--saalburg-karte-hell) !important;
+  --WDS-surface-elevated-emphasized: var(--saalburg-linie) !important;
+  --WDS-surface-highlight: var(--saalburg-wasch) !important;
+  --WDS-surface-pressed: var(--saalburg-wasch-mehr) !important;
+  --WDS-surface-inverse: var(--saalburg-text) !important;
+  --WDS-components-surface-nav-bar: var(--saalburg-seite) !important;
+  --background-default: var(--saalburg-karte) !important;
+  --search-container-background: var(--saalburg-karte) !important;
+
+  /* Linien */
+  --WDS-lines-divider: var(--saalburg-linie) !important;
+  --WDS-lines-outline-default: var(--saalburg-aus) !important;
+  --WDS-lines-outline-deemphasized: var(--saalburg-linie) !important;
+
+  /* Chat: Hintergrund ohne Muster, Blasen, Eingabe */
+  --WDS-systems-chat-background-wallpaper: var(--saalburg-grund) !important;
+  --WDS-systems-chat-foreground-wallpaper: var(--saalburg-grund) !important;
+  --WDS-systems-chat-surface-composer: var(--saalburg-karte-hell) !important;
+  --WDS-systems-chat-surface-tray: var(--saalburg-karte) !important;
+  --WDS-systems-bubble-surface-incoming: var(--saalburg-karte-hell) !important;
+  --WDS-systems-bubble-surface-outgoing: color-mix(in srgb, var(--saalburg-akzent) 22%, var(--saalburg-karte-hell)) !important;
+  --WDS-systems-bubble-surface-overlay: var(--saalburg-karte) !important;
+  --WDS-systems-bubble-surface-system: var(--saalburg-karte) !important;
+  --WDS-systems-bubble-surface-e2e: color-mix(in srgb, var(--saalburg-warn) 15%, var(--saalburg-karte)) !important;
+  --WDS-systems-bubble-content-e2e: var(--saalburg-warn) !important;
+  --WDS-systems-bubble-surface-business: color-mix(in srgb, var(--saalburg-gut) 15%, var(--saalburg-karte)) !important;
+
+  /* Ältere Namen, wo WhatsApp sie noch nutzt */
+  --toast-background: var(--saalburg-linie) !important;
+  --toast-text: var(--saalburg-text) !important;
+  --picker-background: var(--saalburg-karte-hell) !important;
+  --startup-background: var(--saalburg-grund) !important;
+  --progress-background: var(--saalburg-linie) !important;
+}
+
+/* Schriften: WhatsApp holt sie aus vier Variablen, die es an inneren Elementen
+ * setzt; deshalb hier an allen Elementen. Fließtext proportional (Namen und
+ * Vorschauen nicht abgeschnitten), Code in der festen Schrift. */
+body.dark,
+body.dark * {
+  --font-family-default: var(--saalburg-schrift-text, sans-serif) !important;
+  --font-family-segoe: var(--saalburg-schrift-text, sans-serif) !important;
+  --font-family-apple: var(--saalburg-schrift-text, sans-serif) !important;
+  --font-family-monospace: var(--saalburg-schrift-fest, monospace) !important;
+  --font-family-code: var(--saalburg-schrift-fest, monospace) !important;
+}
