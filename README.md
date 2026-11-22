@@ -34,7 +34,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 Bibliotheken, Mindestversion).
 
 **Nur öffentliche Apps.** Alles hier ist öffentlich – auch der Inhalt der fertigen Pakete
-(bei Python-Programmen also der Quelltext). Private Programme wie aimilling gehören nicht in
+(bei Python-Programmen also der Quelltext). Private Programme gehören nicht in
 dieses Repo: Sie baut Claude auf dem Mini-PC aus dem privaten Repo und legt sie in den lokalen
 Katalog (`/daten/claude/katalog`, `app katalog …`), den der App-Store zusätzlich liest.
 
