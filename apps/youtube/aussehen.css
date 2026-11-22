@@ -67,7 +67,7 @@ html[dark] ytd-app {
 html[dark] ytd-app,
 html[dark] ytd-app *,
 html[dark] ytd-popup-container * {
-  font-family: var(--saalburg-schrift-text, sans-serif) !important;
+  font-family: var(--saalburg-schrift, sans-serif) !important;
 }
 
 /* Kopf- und Seitenleiste wie die Seitenleiste der Saalburg-Seiten */
