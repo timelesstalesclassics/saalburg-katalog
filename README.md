@@ -50,6 +50,8 @@ Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `
 `art` (`terminal`, `web`, `programm`), `start` bzw. `url`, `reihe`, `netzwerk`, `gpu`, `ton`,
 `ram_max`, `ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server),
 `hintergrund = ja` (läuft weiter, wenn nicht zu sehen; abschaltbar in den Einstellungen),
+`drucken = ja` (darf über Saalburg drucken, jeder Auftrag mit Bestätigung am Bildschirm; erst
+ab der Saalburg-Version mit den App-Lücken, siehe `PLATTFORM.md` Abschnitt 13),
 `saalburg = JJJJMMTTHHMM` (Mindestversion von Saalburg in UTC, z. B. `202611211629`; ältere
 Systeme zeigen „Braucht Saalburg vom …“ und installieren erst nach dem System-Update),
 `kategorie` (wie in `store/`).
