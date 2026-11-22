@@ -301,7 +301,11 @@ Verhalten:
   Chromium im eigenen Speicher (`--password-store=basic`), einen Schlüsselbund gibt es nicht.
 - **Flags, die Saalburg setzt**:
   - `--force-dark-mode`: Seiten sehen `prefers-color-scheme: dark`;
-  - `--force-device-scale-factor` passend zur Schriftgröße der Oberfläche (28 px = 100 %);
+  - Grundzoom passend zur Schriftgröße der Oberfläche (28 px = 100 %), als **Seitenzoom** im
+    Profil (`partition.default_zoom_level`), nicht als erzwungener Gerätefaktor: Der Puffer
+    passt genau zum Fenster, `devicePixelRatio` folgt dem Zoom (z. B. 1,14). Eigene
+    Zoomstufen je Seite (Strg+Plus/Minus) bleiben erhalten. Seiten daher mit relativen Größen
+    und Media Queries bauen, nicht mit festen Pixelbreiten fürs Fenster;
   - `--disable-background-networking`, `--disable-component-update`;
   - Übersetzen und MediaRouter sind aus.
 - **Erweiterungen**: keine eigenen. Die einzige ist das Saalburg-Aussehen.
@@ -419,6 +423,7 @@ nach dem Update.
 | 202611220151 | Web-Apps dunkel (`--force-dark-mode`) |
 | 202611221801 | Saalburg-Aussehen (`aussehen.css`/`.js`), Web-Zoom nach Schriftgröße, Zwischenablage mit `image/png` |
 | 202611221956 | Wählbare Schriften (`--saalburg-schrift-fest`/`-text`, fontconfig), app.conf `angleichen = ja\|nein` |
+| 202611222058 | Web-Zoom als Seitenzoom statt erzwungenem Geräte-Faktor (Fenster nicht mehr abgeschnitten, `devicePixelRatio` folgt dem Zoom) |
 
 ---
 
