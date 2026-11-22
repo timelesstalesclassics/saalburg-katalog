@@ -45,6 +45,103 @@ def fehler(text):
     sys.exit(1)
 
 
+# --- Saalburg-Aussehen: aussehen.css darf nur Saalburgs Variablen verwenden ---
+# Farben und Schriften stehen zentral in saalburg.css (im System) als
+# var(--saalburg-…). Eine App ordnet nur ihre eigenen Elemente zu; eigene
+# Farbwerte und Schriften würden Saalburgs Aussehen unterlaufen.
+FARBNAMEN = set("""aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue
+blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan
+darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen
+darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey
+darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite
+forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink
+indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral
+lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen
+lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta
+maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue
+mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin
+navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen
+paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple rebeccapurple red
+rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue
+slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white
+whitesmoke yellow yellowgreen canvas canvastext linktext visitedtext activetext buttonface
+buttontext buttonborder field fieldtext highlight highlighttext selecteditem selecteditemtext mark
+marktext graytext accentcolor accentcolortext""".split())
+FARBFUNKTIONEN = re.compile(r"\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|light-dark)\s*\(", re.I)
+HEXFARBE = re.compile(r"#[0-9a-fA-F]{3,8}\b")
+SCHRIFT_GENERISCH = {"serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-serif",
+                     "ui-sans-serif", "ui-monospace", "ui-rounded", "math", "emoji", "fangsong",
+                     "inherit", "initial", "unset", "revert"}
+DEKLARATION = re.compile(r"([-\w]+)\s*:\s*([^;{}]*?)\s*(?=[;}])")
+
+
+def aussehen_pruefen(pfad):
+    """Fehlerliste (Zeile, Grund) für ein aussehen.css"""
+    roh = open(pfad, encoding="utf-8").read()
+    # Kommentare entfernen, Zeilenumbrüche behalten (für die Zeilennummern)
+    text = re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), roh, flags=re.S)
+    funde = []
+
+    def zeile(pos):
+        return text.count("\n", 0, pos) + 1
+
+    for m in re.finditer(r"@(font-face|import)\b", text, re.I):
+        funde.append((zeile(m.start()), f"@{m.group(1)} ist nicht erlaubt (Schriften und Stile kommen von Saalburg)"))
+    tiefe = 0
+    for i, z in enumerate(text):
+        if z == "{":
+            tiefe += 1
+        elif z == "}":
+            tiefe -= 1
+    if tiefe != 0:
+        funde.append((1, "Klammern { } stimmen nicht"))
+    for m in DEKLARATION.finditer(text):
+        # Nur Deklarationen in einem Block (davor ein „{“ oder „;“, kein Selektor)
+        vorher = text[:m.start()].rstrip()
+        if not vorher or vorher[-1] not in "{;":
+            continue
+        name, wert = m.group(1).lower(), m.group(2)
+        ohne_var = re.sub(r"var\(\s*--saalburg-[-\w]*\s*(,[^()]*(\([^()]*\))?[^()]*)?\)", "", wert)
+        nr = zeile(m.start())
+        if re.search(r"var\(\s*--(?!saalburg-)", wert):
+            # Variablen der Seite selbst sind erlaubt, aber keine eigenen Werte darin
+            pass
+        if HEXFARBE.search(ohne_var):
+            funde.append((nr, f"{name}: eigener Farbwert {HEXFARBE.search(ohne_var).group(0)} – nur var(--saalburg-…)"))
+        f = FARBFUNKTIONEN.search(ohne_var)
+        if f:
+            funde.append((nr, f"{name}: eigene Farbe {f.group(1)}(…) – nur var(--saalburg-…)"))
+        for w in re.findall(r"[A-Za-z][-A-Za-z]*", re.sub(r"var\([^()]*\)", "", ohne_var)):
+            if w.lower() in FARBNAMEN:
+                funde.append((nr, f"{name}: Farbname „{w}“ – nur var(--saalburg-…), transparent, currentColor"))
+                break
+        if name in ("font-family", "font"):
+            rest = ohne_var
+            if '"' in rest or "'" in rest:
+                funde.append((nr, f"{name}: eigene Schrift ({rest.strip()}) – nur var(--saalburg-schrift-…)"))
+            elif name == "font-family":
+                for teil in [t.strip().lower() for t in rest.split(",") if t.strip()]:
+                    if teil not in SCHRIFT_GENERISCH and not teil.startswith("!important"):
+                        funde.append((nr, f"font-family: eigene Schrift „{teil}“ – nur var(--saalburg-schrift-…)"))
+                        break
+            elif name == "font" and rest.strip() and rest.strip().lower() not in SCHRIFT_GENERISCH:
+                funde.append((nr, "font: Kurzform mit eigener Schrift – font-family: var(--saalburg-schrift-…) verwenden"))
+    return funde
+
+
+def aussehen_aller(apps):
+    """Alle apps/*/aussehen.css prüfen; True, wenn alles passt"""
+    gut = True
+    for kennung in sorted(os.listdir(apps)):
+        pfad = os.path.join(apps, kennung, "aussehen.css")
+        if not os.path.isfile(pfad):
+            continue
+        for nr, grund in aussehen_pruefen(pfad):
+            print(f"FEHLER: apps/{kennung}/aussehen.css Zeile {nr}: {grund}", file=sys.stderr)
+            gut = False
+    return gut
+
+
 def conf_lesen(text, ordnername):
     werte = {}
     for nr, roh in enumerate(text.splitlines(), 1):
@@ -191,8 +288,13 @@ def signiert(vorsatz, magie, name, inhalt, geheim):
 
 
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "--pruefen":
+        # Nur prüfen (ohne Schlüssel), z. B. vor einem Pull Request
+        sys.exit(0 if aussehen_aller(os.path.join(WURZEL, "apps")) else 1)
     if len(sys.argv) != 2:
-        fehler("Aufruf: katalog_bauen.py <ausgabe-ordner>")
+        fehler("Aufruf: katalog_bauen.py <ausgabe-ordner> | --pruefen")
+    if not aussehen_aller(os.path.join(WURZEL, "apps")):
+        fehler("aussehen.css verstößt gegen die Regeln (siehe oben)")
     aus = sys.argv[1]
     os.makedirs(os.path.join(aus, "pakete"), exist_ok=True)
     geheim, name = schluessel_laden()

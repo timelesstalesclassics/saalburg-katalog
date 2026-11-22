@@ -1,0 +1,14 @@
+name: Katalog prüfen
+on:
+  pull_request:
+    paths: ["apps/**", "werkzeug/**"]
+permissions:
+  contents: read
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install --quiet cryptography
+      - name: aussehen.css nach den Saalburg-Regeln
+        run: python3 werkzeug/katalog_bauen.py --pruefen

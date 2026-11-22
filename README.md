@@ -55,6 +55,23 @@ Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
 1200 Zeichen) und bis zu 4 Bildschirmfotos `*.png` (je höchstens 2 MB, alphabetisch). Sie
 kommen mit Prüfsumme in den signierten Katalog; ältere Saalburg-Versionen überspringen diese
 Zeilen.
+### Web-Apps im Saalburg-Aussehen (`aussehen.css`)
+
+Eine Web-App kann `aussehen.css` (optional `aussehen.js`) im Ordner `apps/<kennung>/`
+mitbringen. Saalburg legt es mit seinem zentralen `saalburg.css` als Erweiterung ohne Rechte
+über die Seiten der App (abschaltbar in den Einstellungen: „An Saalburg angleichen“).
+
+Regel, damit alle Apps gleich aussehen: **Farben und Schriften kommen nur von Saalburg.**
+`aussehen.css` ordnet die Elemente bzw. CSS-Variablen der Seite den Variablen aus
+`saalburg.css` zu (`var(--saalburg-grund)`, `--saalburg-karte`, `--saalburg-text`,
+`--saalburg-akzent` …; Schrift: `var(--saalburg-schrift-text)` für Fließtext,
+`var(--saalburg-schrift-fest)` für Code). Nicht erlaubt und vom Katalog abgewiesen:
+eigene Farbwerte (`#…`, `rgb()`, `hsl()`, Farbnamen), eigene Schriften (`font-family` mit
+Namen, `@font-face`) und `@import`. Erlaubt: `transparent`, `currentColor`, allgemeine
+Schriftfamilien als Rückfall in `var()`, `color-mix()` aus Saalburg-Variablen.
+Prüfen ohne Schlüssel: `python3 werkzeug/katalog_bauen.py --pruefen` (läuft auch bei jedem
+Pull Request).
+
 Jede App läuft in ihrer eigenen Sandbox (eigene Kennung, Landlock, cgroup, seccomp).
 Ist eine App 10 s nicht zu sehen, friert Saalburg sie ein und lagert sie später aus;
 beim Ausschalten bekommt sie SIGTERM und bis zu 12 s, um ihren Stand zu speichern.
