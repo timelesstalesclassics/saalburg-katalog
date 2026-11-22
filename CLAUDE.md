@@ -51,4 +51,9 @@ macht Bildschirmfotos). Anleitung in deren `README.md`/`CLAUDE.md`. Für Web-App
 Sitzung Netzwerkfreigabe für die Domains der App. Was ein Konto braucht (Anmelden), wird nur
 auf dem Mini-PC geprüft, nie mit Mathias’ Zugangsdaten in einer Testumgebung.
 
-Im PR kurz berichten: was geändert, wie getestet (Zahlen), Bildschirmfotos, offene Punkte.
+**Testergebnisse bleiben privat.** Aus Tests kommt in dieses öffentliche Repo nichts außer den
+Store-Bildern unter `store/<kennung>/`: keine Zahlen, Protokolle, Testberichte oder sonstigen
+Bildschirmfotos in PR-Texten oder Kommentaren. Den Testbericht als Issue im privaten Repo
+`timelesstalesclassics/saalburg-test` ablegen (Titel „Test: <kennung> – saalburg-katalog PR #<n>“,
+Format dort in `CLAUDE.md`). Im PR selbst nur: was geändert, offene Punkte, und der Satz
+„Getestet mit saalburg-test, Bericht privat“.
