@@ -87,9 +87,9 @@ body.dark,
  * Vorschauen nicht abgeschnitten), Code in der festen Schrift. */
 body.dark,
 body.dark * {
-  --font-family-default: var(--saalburg-schrift-text, sans-serif) !important;
-  --font-family-segoe: var(--saalburg-schrift-text, sans-serif) !important;
-  --font-family-apple: var(--saalburg-schrift-text, sans-serif) !important;
+  --font-family-default: var(--saalburg-schrift, sans-serif) !important;
+  --font-family-segoe: var(--saalburg-schrift, sans-serif) !important;
+  --font-family-apple: var(--saalburg-schrift, sans-serif) !important;
   --font-family-monospace: var(--saalburg-schrift-fest, monospace) !important;
   --font-family-code: var(--saalburg-schrift-fest, monospace) !important;
 }
