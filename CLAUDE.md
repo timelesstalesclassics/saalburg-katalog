@@ -2,7 +2,9 @@
 
 Öffentlicher App-Katalog von **Saalburg** (Mathias’ eigenes Linux-System mit Claude Code,
 Mini-PC Intel N100). Antworte auf Deutsch. Formate, `app.conf`-Angaben und der Bau stehen in
-`README.md` – zuerst lesen.
+`README.md` – zuerst lesen. Was eine App auf Saalburg vorfindet und darf (Umgebung, Sandbox,
+Wayland, GPU, Ton, Lebenszyklus, Claude-Anbindung, Bibliotheken, Mindestversion), steht in
+`PLATTFORM.md` – vor dem Bauen einer App lesen.
 
 ## Grundregeln
 
