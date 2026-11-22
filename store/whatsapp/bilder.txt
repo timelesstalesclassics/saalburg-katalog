@@ -1,0 +1,6 @@
+# Store-Bilder für WhatsApp Web – nur Ansichten ohne Anmeldung.
+# Verboten im Bild: QR-Code zum Anmelden, Namen, Telefonnummern, Chats.
+# Abgemeldet gibt es nur eine Ansicht, die das erfüllt; lieber ein gutes Bild als mehrere.
+# (Format an saalburg-test anpassen, sobald dessen Anleitung vorliegt.)
+
+1-telefonnummer: Anmeldeseite → „Mit Telefonnummer anmelden“ anklicken; Seite „Gib eine Telefonnummer ein“ mit leerem Nummernfeld, nichts eintippen, nicht auf „Weiter“
