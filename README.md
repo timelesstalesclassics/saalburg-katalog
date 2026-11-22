@@ -29,6 +29,10 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 
 ## Eine App hinzufügen oder ändern
 
+**Vor dem Bauen [`PLATTFORM.md`](PLATTFORM.md) lesen**: was eine App auf Saalburg vorfindet
+(Umgebung, Dateisystem, Sandbox, Wayland, GPU, Ton, Netz, Lebenszyklus, Claude-Anbindung,
+Bibliotheken, Mindestversion).
+
 **Nur öffentliche Apps.** Alles hier ist öffentlich – auch der Inhalt der fertigen Pakete
 (bei Python-Programmen also der Quelltext). Private Programme wie aimilling gehören nicht in
 dieses Repo: Sie baut Claude auf dem Mini-PC aus dem privaten Repo und legt sie in den lokalen
