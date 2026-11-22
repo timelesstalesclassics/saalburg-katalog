@@ -1,9 +1,9 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: e3315d282e5cb03827e9c8924a20f269af41421cfb46c20cca7a5e3441710cc29fb13a69ccbbb5c1850dfaf0815de26d2181becc0a04851a1616e4cfc98b5a07
+signatur: 8387fd264ee226ad7cbf26bbe0d4035ce9ed1e9e1e37a2f2fac88790eb5a32898ebf7517fa5e8b64dffcf747131b87304678d65cc43899cc4813a67dec105104
 
 katalog = Saalburg-Apps
-stand = 001795391070
+stand = 001795391112
 app = claude-web|1.2|Claude im Browser|4784|089c782f236b5fa08d8c9edd701a8c3257b49dba3036dabfa484820dedf80549|pakete/claude-web-1.2.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
@@ -51,4 +51,4 @@ bilder = whatsapp|bilder/whatsapp/2-telefonnummer.png:7d2c70c1d15bad960ecdb2fec8
 conf = youtube|a2VubnVuZyAgICAgID0geW91dHViZQp2ZXJzaW9uICAgICAgPSAxLjAKbmFtZSAgICAgICAgID0gWW91VHViZQpiZXNjaHJlaWJ1bmcgPSBZb3VUdWJlIGltIGVpZ2VuZW4gRmVuc3Rlcjogc3VjaGVuLCBhbnNlaGVuLCBLYW7DpGxlLCBQbGF5bGlzdHMgdW5kIEFib3MgKG1pdCBBbm1lbGR1bmcpLiBJbSBTYWFsYnVyZy1BdXNzZWhlbi4gVm9sbGJpbGQgbWl0IGYsIFBhdXNlIG1pdCBMZWVydGFzdGUuCnN5bWJvbCAgICAgICA9IOKWtgpmYXJiZSAgICAgICAgPSBjYzFmMmQKYXJ0ICAgICAgICAgID0gd2ViCnVybCAgICAgICAgICA9IGh0dHBzOi8vd3d3LnlvdXR1YmUuY29tLwprYXRlZ29yaWUgICAgPSBVbnRlcmhhbHR1bmcKc2FhbGJ1cmcgICAgID0gMjAyNjExMjIxODAxCg==
 kategorie = youtube|Unterhaltung
 text = youtube|YouTube in Saalburg: die offizielle YouTube-Seite in einem eigenen Fenster ohne Browserleiste. Suchen, Videos ansehen, Kanäle und Playlists durchstöbern, Kommentare lesen und schreiben; mit Ihrem Google-Konto auch Abos, Verlauf und „Später ansehen“. Die Anmeldung bleibt nach einem Neustart erhalten.\n\nSaalburg-Aussehen: YouTube erscheint in Saalburgs eigenen Farben und Schrift, mit dem dunklen Grund, den Karten und dem Akzentblau der Saalburg-Seiten; YouTube wird dafür auf sein dunkles Design gestellt. Wer YouTube lieber im Original sieht, schaltet in den Einstellungen „An Saalburg angleichen“ aus.\n\nBedienung wie gewohnt: Leertaste oder k für Pause, f für Vollbild, Pfeiltasten zum Spulen und für die Lautstärke, Strg+Plus und Strg+Minus für die Größe der Seite.\n\nDie App läuft wie jede Saalburg-App in ihrer eigenen Sandbox mit eigenem Browserprofil. Andere Apps und Claude sehen nicht, was Sie ansehen. Videos herunterladen geht nicht, Kommentare mit Sprachaufnahme auch nicht, weil Apps kein Mikrofon bekommen.
-bilder = youtube|bilder/youtube/1-suche.png:41701df224bd1a637478130c85692e975b29859690060446d19e2fb76d22e4ee,bilder/youtube/2-kanal.png:0efe4647edb579654925f6286e3b50be89d67c62fc1d73c34b7eee29ee5660c1
+bilder = youtube|bilder/youtube/1-start.png:85da0eaf7a6559e78ef26497cf2fd2a83fbe45a8c36a7130364b794f3f939fc4,bilder/youtube/2-suche.png:90c7979693d42f0a21cac9695de09a6c80481b2f2c27fb03bda7d8e5226e9abd
