@@ -54,7 +54,7 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
   | `HOME` | `/daten/appdaten/<kennung>` |
   | `USER`, `LOGNAME` | `<kennung>` |
   | `XDG_RUNTIME_DIR` | `/run/user/<uid>` |
-  | `TMPDIR` | `/daten/appdaten/<kennung>/tmp` |
+  | `TMPDIR` | `/tmp` (eigenes `/tmp` der App, siehe 3) ¹ |
   | `XDG_CACHE_HOME` | `$HOME/.cache` |
   | `PATH` | `/usr/local/bin:/usr/bin:/bin` |
   | `LANG` | `C.UTF-8` |
@@ -62,6 +62,10 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
   | `TERM` | `xterm-256color` |
   | `WAYLAND_DISPLAY` | `/run/wayland/wayland-0` (absoluter Pfad) |
   | `SHELL` | `/bin/sh` |
+  | `SAALBURG_DIENST` | `/run/wayland/saalburg-dienst`: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken, siehe 3) ¹ |
+  | `SAALBURG_APP_SOCKET` | `$XDG_RUNTIME_DIR/app.sock`: Kanal zwischen laufender App und ihrem MCP-Server (siehe 9) ¹ |
+
+  ¹ ab der Version mit den App-Lücken (Abschnitt 13); vorher `TMPDIR=/daten/appdaten/<kennung>/tmp`.
 
   Web-Apps setzen zusätzlich `XDG_CONFIG_HOME=$HOME/.config` und
   `DBUS_SESSION_BUS_ADDRESS=disabled:`, ihre Downloads und Dokumente zeigen auf
@@ -94,15 +98,21 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/daten/apps/<kennung>` (Paket) | lesen, ausführen |
 | `$HOME` = `/daten/appdaten/<kennung>` | alles außer Gerätedateien |
 | `$XDG_RUNTIME_DIR` = `/run/user/<uid>` | alles außer Gerätedateien |
+| `/tmp` (eigenes, siehe unten) | alles außer Gerätedateien |
 | `/dev/dri` | nur mit Recht `gpu` |
 | `/dev/snd`, `/daten/system/ton` | nur mit Recht `ton` (siehe 6) |
 | `ordner = /daten/x, /daten/y (lesen)` | schreiben bzw. lesen; nur unter `/daten`, nie unter `/daten/claude`, `/daten/system`, `/daten/appdaten`, `/daten/apps`; höchstens 4 |
 
-**Nicht** erreichbar sind unter anderem `/tmp` (stattdessen `$TMPDIR`), `/daten/claude`, die
-Daten anderer Apps und der Rest von `/run`.
+**Nicht** erreichbar sind unter anderem das `/tmp` des Systems, `/daten/claude`, die Daten
+anderer Apps und der Rest von `/run`.
+
+**Eigenes `/tmp`**: Jede App hat einen eigenen Mount-Namensraum, in dem `$HOME/tmp` über `/tmp`
+liegt (`nosuid`, `nodev`). App und ihr MCP-Server (Abschnitt 9) sehen dasselbe `/tmp`. Es wird
+geleert, wenn die App startet und nichts von ihr läuft. Einhängungen des Systems (z. B.
+USB-Sticks) kommen im Namensraum weiter an; was die App sieht, ändert sich sonst nicht.
 
 Feste Unterordner in `$HOME`, die die Oberfläche anlegt (Rechte 0700):
-- `tmp/` für `$TMPDIR`;
+- `tmp/`: liegt als `/tmp` vor der App;
 - `Dokumente/`: **der einzige Ordner, der geteilt werden kann** (siehe unten).
 
 ### Dateien zwischen Apps, Claude und Nutzer
@@ -113,13 +123,54 @@ Saalburg folgt iOS: Jede App teilt nur `$HOME/Dokumente`, der Rest bleibt privat
 - **Claude** sieht die Dokumente einer App nur, wenn der Nutzer sie in den Einstellungen
   freigibt (Spalte „Dokumente“). Ohne Freigabe fragt Saalburg bei jedem Zugriff am Bildschirm.
 - **Downloads** von Web-Apps landen in `Dokumente`. Zum Hochladen wählt man im Dateidialog
-  `Dokumente`.
-- **Für eigene Programme gibt es keine Schnittstelle**, mit der eine App den Nutzer eine Datei
-  außerhalb ihres Bereichs auswählen lassen kann. Kein Portal, kein D-Bus. Eine App öffnet und
-  speichert in ihren `Dokumenten`, der Nutzer bringt Dateien mit der Dateien-App hinein und
-  heraus. Ein Auswahldialog wäre am besten ein eigener Dialog der App über `Dokumente`.
+  `Dokumente` (dort als Lesezeichen); Dateien von anderswo holt der Nutzer mit
+  Windows-Taste+O in die Dokumente der App mit Fokus.
+- **Öffnen und Speichern** für eigene Programme: über den Dienst der Oberfläche (unten). Der
+  Nutzer wählt in Saalburgs Dateien-Seite, übertragen wird über den Dateidienst. Die App sieht
+  nie fremde Pfade, nur ihre Kopie in `Dokumente`.
 - **Gelöscht** wird in `.Papierkorb` des Bereichs, erst das Leeren des Papierkorbs ist
   endgültig.
+
+### Dienst der Oberfläche: Öffnen, Speichern, Meldungen, Drucken
+
+Ein Unix-Socket unter `$SAALBURG_DIENST` (nur für Apps in der Sandbox; die Oberfläche erkennt
+die App an ihrem Prozess). Kein xdg-desktop-portal: Saalburg hat keinen D-Bus, und das Portal
+gäbe Apps Pfade außerhalb ihrer `Dokumente`.
+
+Am einfachsten über den Befehl `saalburg` oder das Python-Modul:
+
+```sh
+pfad=$(saalburg oeffnen "Bild wählen")        # Kopie in ~/Dokumente; Rückgabe 1 = abgebrochen
+saalburg speichern export.pdf "Export sichern" # Datei aus ~/Dokumente an einen gewählten Ort
+saalburg melden "Fertig" "Export abgeschlossen"
+saalburg drucken ~/Dokumente/bericht.pdf       # Recht drucken, Bestätigung am Bildschirm
+notify-send "Titel" "Text"                     # geht als Meldung (Optionen werden übergangen)
+```
+
+```python
+import sys; sys.path.insert(0, "/usr/lib/osproto")
+import saalburg_dienst as sb   # oeffnen(titel), speichern(datei, titel), melden(titel, text), drucken(pfad)
+```
+
+Rückgabe von `saalburg`: 0 = OK (Pfad bzw. Ziel auf stdout), 1 = abgebrochen, 2 = Fehler
+(Grund auf stderr). Das Protokoll für andere Sprachen: **eine Verbindung = eine Anfrage**, eine
+UTF-8-Zeile mit `\n`, die Antwort ist eine Zeile (`OK …`, `ABBRUCH`, `FEHLER <Grund>`).
+
+| Anfrage | Was passiert | Antwort |
+|---|---|---|
+| `OEFFNEN [Titel]` | Die Dateien-Seite geht auf; der Nutzer wählt eine Datei (Enter). Der Dateidienst kopiert sie nach `$HOME/Dokumente/<Name>` (eine gleichnamige alte Kopie wandert in deren `.Papierkorb`). Wählt er eine Datei aus den eigenen Dokumenten, wird nichts kopiert. | `OK <Pfad>` oder `ABBRUCH` |
+| `SPEICHERN <Datei>[\t<Titel>]` | `<Datei>` ist ein Pfad relativ zu `Dokumente` und muss dort liegen. Der Nutzer öffnet den Zielordner und drückt F5. Gibt es das Ziel schon, bleibt die Auswahl offen (nie überschreiben). | `OK <Ort>/<Name>` oder `ABBRUCH` |
+| `MELDEN <Titel>\t<Text>` | Meldung kurz in der Leiste (8 s, ohne Ton, höchstens eine je Sekunde und App) | `OK` |
+| `DRUCKEN <Name>` + Datei als Deskriptor (`SCM_RIGHTS`) | nur PDF, JPEG, PNG bis 100 MB, Recht `drucken`; der Nutzer bestätigt am Bildschirm. Die Datei geht unverändert an den Drucker (keine Umwandlung); nimmt der Drucker das Format nicht direkt, ist es ein Fehler. | `OK`, `ABBRUCH` oder `FEHLER …` |
+
+- **Warten**: Öffnen und Speichern antworten erst, wenn der Nutzer gewählt hat (auch nach
+  Minuten). Die App sollte dabei ihre Ereignisschleife weiterlaufen lassen (Thread), sonst zeigt
+  die Oberfläche „reagiert nicht“. Es ist immer nur eine Auswahl offen; eine zweite bekommt
+  `FEHLER beschäftigt`.
+- **Ton**: Meldungen sind stumm. Wer einen Ton will, spielt ihn selbst (Recht `ton`).
+- **Drucken** braucht `drucken = ja` in `app.conf`; der Nutzer kann es in den Einstellungen
+  (Spalte „Drucken“) abschalten, das gilt sofort. Einen Drucker richtet der Nutzer mit Claude
+  ein (`drucken --drucker …`); fehlt er, antwortet der Dienst mit einem Fehler.
 
 ### Zwischenablage, Ziehen und Ablegen
 
@@ -162,8 +213,8 @@ Jede installierte App läuft eingesperrt. Das lässt sich nicht abschalten.
   keine Kamera, **kein Mikrofon**.
 - **Fremde Prozesse**: Andere Apps und claude laufen unter anderen UIDs und sind tabu.
 
-Der Nutzer kann jedes Recht in den Einstellungen abschalten (Netzwerk, GPU, Ton, Hintergrund,
-Aussehen) und die Steuerung durch Claude einschalten. Eine App muss damit leben, dass ein
+Der Nutzer kann jedes Recht in den Einstellungen abschalten (Netzwerk, GPU, Ton, Drucken,
+Hintergrund, Aussehen) und die Steuerung durch Claude einschalten. Eine App muss damit leben, dass ein
 Recht fehlt.
 
 ---
@@ -187,21 +238,44 @@ Recht fehlt.
 | `zxdg_decoration_manager_v1` | 1 | Den Rahmen zeichnet die Oberfläche (serverseitig) |
 | `wl_data_device_manager` | 3 | Zwischenablage, Ziehen und Ablegen |
 | `zwp_linux_dmabuf_v1` | 3 | GPU-Puffer |
+| `wp_viewporter` | 1 | Ausschnitt und Zielgröße einer Fläche ² |
+| `wp_fractional_scale_manager_v1` | 1 | bevorzugte Skalierung immer 120 (= 1,0) ² |
+| `zwp_pointer_constraints_v1` | 1 | Zeiger sperren oder auf die Fläche begrenzen ² |
+| `zwp_relative_pointer_manager_v1` | 1 | relative Mausbewegung (Spiele, 3D-Ansichten) ² |
+| `wp_cursor_shape_manager_v1` | 1 | Zeigerformen ohne eigenes Bild ² |
+| `zwp_idle_inhibit_manager_v1` | 1 | Bildschirm wach halten ² |
+
+² ab der Version mit den App-Lücken (Abschnitt 13).
 
 Verhalten:
 - **Fenster** bekommen per `configure` die Größe ihres Platzes und die Zustände „maximiert“
   und „an allen Rändern angelegt“, „aktiv“ nur mit Fokus.
-- **`wm_capabilities`** ist leer: Kein Vollbild-, Maximieren- oder Minimieren-Wunsch der App
-  wird umgesetzt, die Oberfläche entscheidet.
+- **`wm_capabilities`**: Vollbild und Minimieren ². `set_fullscreen` gibt dem Fenster den ganzen
+  Bildschirm (auch über der Leiste, Zustand `fullscreen`), solange es den Fokus hat; wechselt der
+  Fokus, steht es wieder in seinem Platz, mit Fokus wieder im Vollbild, bis `unset_fullscreen`.
+  `set_minimized` nimmt das Fenster vom Platz; es läuft weiter (und schläft nach 10 s, siehe 8)
+  und steht in der Übersicht. Maximieren ist immer; ein Fenstermenü gibt es nicht.
 - **Ping/Pong**: Antwortet eine App 5 s lang nicht auf `xdg_wm_base.ping`, zeigt die Oberfläche
   „reagiert nicht“. Deshalb die Ereignisschleife nie lange blockieren.
-- **Mauszeiger**: Eigene Zeiger über `wl_pointer.set_cursor` sind erlaubt.
+- **Mauszeiger**: Eigene Zeiger über `wl_pointer.set_cursor` sind erlaubt. Mit
+  `wp_cursor_shape` zeigt Saalburg eigene Bilder für Text, Hand (pointer), Kreuz, Bewegen und
+  waagrechtes/senkrechtes Ändern; alle anderen Formen als normalen Pfeil.
+- **Zeigersperre**: aktiv, solange der Zeiger über der Fläche steht (`locked`/`confined`).
+  Gesperrt bleibt der Zeiger stehen, die App bekommt nur relative Bewegung. Regionen werden
+  übergangen (gilt die ganze Fläche), `set_cursor_position_hint` ebenso. Die Windows-Taste
+  löst jede Sperre sofort (einmalige Sperren enden damit, dauerhafte greifen erst wieder, wenn
+  der Zeiger die Fläche verlassen und neu betreten hat).
+- **Viewport und Skalierung**: Saalburg skaliert nicht (`wl_output` Skalierung 1, bevorzugt
+  120/120). Der Viewport streckt Puffer auf die Zielgröße; Eingaben kommen in Koordinaten der
+  Zielgröße.
+- **Wach halten**: wird angenommen; Saalburg schaltet den Bildschirm bisher nie ab. Sichtbare
+  Apps schlafen ohnehin nicht (siehe 8).
 
 **Nicht vorhanden** (nicht darauf verlassen):
-- Layer-Shell, xdg-activation, Fractional Scale und Viewporter;
-- Text-Input bzw. Eingabemethoden, Primary Selection;
-- Pointer-Constraints und Relative-Pointer (kein Maus-Einfangen für Spiele);
-- Idle-Inhibit, Cursor-Shape, Screencopy.
+- Layer-Shell, xdg-activation;
+- Text-Input bzw. Eingabemethoden (`zwp_text_input_v3`; Saalburg hat keine Eingabemethode,
+  Text kommt über die Tastatur mit xkb), Primary Selection;
+- Screencopy, Unterflächen-Synchronisation.
 
 ### GPU
 
@@ -272,8 +346,19 @@ Verhalten:
     Er ist ein eigener Prozess, getrennt von der laufenden App.
   - Arbeitsordner ist `$HOME`, die Umgebung wie in Abschnitt 2, stderr geht nach
     `$HOME/verbindung.log`.
-  - Mit der laufenden App spricht der Server über die gemeinsamen Ordner: `$HOME` oder ein
-    Socket in `$XDG_RUNTIME_DIR`, beide gehören derselben UID.
+  - **Kanal zur laufenden App**: `$SAALBURG_APP_SOCKET` (= `$XDG_RUNTIME_DIR/app.sock`). Die
+    laufende App hört dort (Unix-Socket, Rechte 0600), der MCP-Server verbindet sich bei jedem
+    Werkzeugaufruf neu. Das Protokoll wählt die App (z. B. eine JSON-Zeile hin, eine zurück).
+    Beide Prozesse haben dieselbe Kennung; claude und andere Apps kommen nicht an den Socket.
+    Über `127.0.0.1` geht es **nicht**: App und MCP-Server haben ohne Netzrecht je einen eigenen
+    Netz-Namensraum, abstrakte Unix-Sockets trennt Landlock.
+  - Läuft die App nicht, soll das Werkzeug das klar sagen („… läuft gerade nicht – bitte
+    öffnen“), statt zu warten. Der Server übersteht Neustarts der App, weil er je Aufruf neu
+    verbindet.
+  - Warum ein fester Socket und nicht „die laufende App ist selbst der MCP-Server“: Der
+    MCP-Server lebt so lange wie die Sitzung in Claude Code, die App nicht. Schließt der Nutzer
+    die App, bliebe Claude sonst mit einer toten Verbindung zurück (`/mcp` neu verbinden); so
+    meldet das Werkzeug nur, dass die App zu ist, und klappt nach dem Öffnen wieder.
 - **`steuerung = claude`**: Die App bietet Claude die Steuerung an. Wirksam wird sie erst, wenn
   der Nutzer sie in den Einstellungen einschaltet; bis dahin ist sie aus.
   - Claude erreicht den Server dann als `app verbinden <kennung>`.
@@ -341,8 +426,10 @@ Verhalten:
   `saalburg.css` setzt außerdem `color-scheme: dark`, Bildlaufleisten, Markierung und
   Fokusrahmen.
 - **Einschränkungen**:
-  - Ein Dateidialog öffnet nur die Ordner der App, praktisch `Dokumente`.
-  - Keine Benachrichtigungen ans System, kein Teilen-Dialog, keine Kamera, kein Mikrofon.
+  - Ein Dateidialog öffnet nur die Ordner der App, praktisch `Dokumente` (Lesezeichen in der
+    Seitenleiste). Andere Dateien holt der Nutzer mit Windows-Taste+O dorthin.
+  - Keine Web-Benachrichtigungen ans System (Chromium kennt den Dienst nicht), kein
+    Teilen-Dialog, keine Kamera, kein Mikrofon.
   - Keine Erweiterungen aus dem Web Store.
 
 ---
@@ -396,7 +483,8 @@ Diese Befehle laufen als claude (oder ein anderer Benutzer), ohne root:
 | `app verbindungen`, `app verbinden <k>` | MCP-Verbindungen zu Apps |
 | `app datei …` | Dateidienst (siehe 3) |
 | `app system version` | laufende Saalburg-Version |
-| `ton …`, `drucken …`, `webfenster <url>` | Ton, Drucken per IPP (nur claude), Web-Fenster neben Claude |
+| `ton …`, `drucken …`, `webfenster <url>` | Ton, Drucken per IPP (claude; Apps über den Dienst), Web-Fenster neben Claude |
+| `saalburg oeffnen\|speichern\|melden\|drucken …`, `notify-send` | Dienst der Oberfläche (nur in der Sandbox einer App, siehe 3) |
 
 Einem neuen Herausgeber vertraut das System erst nach `app schluessel-vertrauen <name.pub>`
 und einer Bestätigung am Bildschirm. Der öffentliche Katalog ist mit dem mitgelieferten
@@ -424,16 +512,18 @@ nach dem Update.
 | 202611221801 | Saalburg-Aussehen (`aussehen.css`/`.js`), Web-Zoom nach Schriftgröße, Zwischenablage mit `image/png` |
 | 202611221956 | Wählbare Schriften (`--saalburg-schrift-fest`/`-text`, fontconfig), app.conf `angleichen = ja\|nein` |
 | 202611222058 | Web-Zoom als Seitenzoom statt erzwungenem Geräte-Faktor (Fenster nicht mehr abgeschnitten, `devicePixelRatio` folgt dem Zoom) |
+| *folgt mit dem Update* | App-Lücken: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken mit `drucken = ja`), eigenes `/tmp`, `SAALBURG_APP_SOCKET`, Wayland: Vollbild, Minimieren, Viewporter, Fractional Scale, Pointer-Constraints, Relative-Pointer, Cursor-Shape, Idle-Inhibit |
 
 ---
 
 ## 14. Checkliste: eine App, die sich gut einfügt
 
 - [ ] Kennung aus Kleinbuchstaben, Ziffern, Bindestrich; `version` bei jeder Änderung erhöht.
-- [ ] Nur die Rechte, die nötig sind (`netzwerk`, `gpu`, `ton`, `ordner`, `hintergrund`).
+- [ ] Nur die Rechte, die nötig sind (`netzwerk`, `gpu`, `ton`, `drucken`, `ordner`, `hintergrund`).
 - [ ] Läuft unter musl, ohne glibc, ohne X11, ohne D-Bus und ohne Tondienst.
 - [ ] Schreibt nur nach `$HOME`, `$TMPDIR` und `$XDG_RUNTIME_DIR`. Was der Nutzer sehen oder
-      weitergeben soll, kommt nach `$HOME/Dokumente`.
+      weitergeben soll, kommt nach `$HOME/Dokumente`; Öffnen/Speichern woanders über
+      `saalburg oeffnen|speichern`.
 - [ ] Nimmt jede Fenstergröße an, die `configure` vorgibt, und blockiert die
       Ereignisschleife nie lange (Ping/Pong).
 - [ ] Speichert auf `SIGTERM` und `xdg_toplevel.close` binnen weniger Sekunden und stellt den
@@ -443,5 +533,6 @@ nach dem Update.
 - [ ] Ton über ALSA `default`, nie über feste Hardware-Geräte.
 - [ ] Web-Apps: `aussehen.css` nur mit `var(--saalburg-…)`.
 - [ ] Was Claude tun können soll, ist ein MCP-Werkzeug (`verbindung`, `steuerung = claude`);
-      gefährliche Schritte fragen in der App selbst nach.
+      gefährliche Schritte fragen in der App selbst nach. Der MCP-Server spricht mit der
+      laufenden App über `$SAALBURG_APP_SOCKET` und meldet, wenn sie nicht läuft.
 - [ ] Store-Text und Bilder ohne private Daten; mit `saalburg-test` getestet.
