@@ -1,28 +1,39 @@
-/* Claude im Browser im Saalburg-Aussehen (nur Darstellung).
- * claude.ai beschreibt seine Farben mit CSS-Variablen als HSL-Tripel
- * („H S% L%“); hier werden sie auf Saalburgs Farben gesetzt (Grund #1a1b26,
- * Karten #24283b, Linien #2a2e42, Text #c0caf5, leise #8089b0).
- * Ändert claude.ai die Namen, greift nur noch die letzte Regel (Hintergrund)
- * – die Seite bleibt sonst, wie sie ist. Schrift: claude.ai behält seine
- * Proportionalschrift; Terminus würde Tabellen und Code-Blöcke verschieben. */
-:root, :root.dark, html[data-mode="dark"], html[data-theme="dark"], .dark {
-  --bg-000: 235 19% 13% !important;
-  --bg-100: 235 19% 13% !important;
-  --bg-200: 234 19% 11% !important;
-  --bg-300: 232 18% 16% !important;
-  --bg-400: 229 24% 19% !important;
-  --bg-500: 229 22% 23% !important;
-  --text-000: 229 73% 86% !important;
-  --text-100: 229 73% 86% !important;
-  --text-200: 229 35% 74% !important;
-  --text-300: 229 24% 60% !important;
-  --text-400: 229 20% 52% !important;
-  --text-500: 229 18% 45% !important;
-  --border-100: 229 24% 22% !important;
-  --border-200: 229 24% 22% !important;
-  --border-300: 229 24% 26% !important;
-  color-scheme: dark;
+/* Claude im Browser im Saalburg-Aussehen (nur Farben, Schrift bleibt).
+ *
+ * claude.ai (Startseite, Chats, claude.ai/code) malt seine Flächen über das
+ * Design-System „cds“: CSS-Variablen mit gewöhnlichen Farbwerten (Hex,
+ * color-mix), gesetzt auf html.cds-root bzw. .cds-dark-scope. Auch die
+ * älteren Klassen (bg-bg-000 …) und der Seitenhintergrund der Rahmen-Ebene
+ * (--df-bg-page-hsl: „from var(--cds-surface-1) h s l“) leiten sich daraus
+ * ab. Deshalb genügt es, diese Variablen auf Saalburgs Farben zu setzen.
+ *
+ * Gemessen am 23.11.2026 (data-color-version="v2"). Benennt claude.ai die
+ * Variablen um, greifen die Zuordnungen nicht mehr und die Seite zeigt ihre
+ * eigenen dunklen Farben – sie bleibt bedienbar. */
+:root, .cds-root, .cds-dark-scope {
+  /* Seite und Flächen */
+  --cds-page-bg: var(--saalburg-karte) !important;
+  --cds-surface-0: var(--saalburg-grund) !important;
+  --cds-surface-1: var(--saalburg-karte) !important;
+  --cds-surface-2: var(--saalburg-karte-hell) !important;
+  --cds-surface-3: var(--saalburg-karte-hell) !important;
+  --cds-surface-panel: var(--saalburg-karte-hell) !important;
+  --cds-surface-popover: var(--saalburg-karte-hell) !important;
+  --cds-surface-sidebar: var(--saalburg-grund) !important;
+  /* Anmeldeseite und bg-bg-300 */
+  --cds-neutral-0: var(--saalburg-grund) !important;
+  --cds-neutral-30: var(--saalburg-grund) !important;
+  /* Linien */
+  --cds-border: var(--saalburg-linie) !important;
+  --cds-border-line: var(--saalburg-linie) !important;
+  --cds-border-line-muted: var(--saalburg-linie) !important;
+  /* Text */
+  --cds-text-primary: var(--saalburg-text) !important;
+  --cds-text-secondary: var(--saalburg-leise) !important;
+  --cds-text-muted: var(--saalburg-leise) !important;
 }
+
+/* Rückfall unter allem, falls eine Fläche durchscheint */
 html, body {
   background-color: var(--saalburg-karte) !important;
 }
