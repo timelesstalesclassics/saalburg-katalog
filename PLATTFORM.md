@@ -313,6 +313,9 @@ Verhalten:
 - **TLS**: Die Wurzelzertifikate liegen in `/etc/ssl/certs/ca-certificates.crt`
   (Paket ca-certificates).
 - **Kein mDNS oder Avahi**, keine Firewall-Regeln pro App: Mit Netzrecht ist das Netz offen.
+- **Begrenztes Netz**: Ohne `netzwerk = ja` kann eine App einzelne LAN-Ziele bekommen
+  (`netz_ziele`, `netzwerk = lan:<adresse>:<port>`); sie erreicht dann nur diese
+  (Abschnitt 16).
 
 ---
 
@@ -540,6 +543,8 @@ nach dem Update.
 - [ ] Was Claude tun können soll, ist ein MCP-Werkzeug (`verbindung`, `steuerung = claude`);
       gefährliche Schritte fragen in der App selbst nach. Der MCP-Server spricht mit der
       laufenden App über `$SAALBURG_APP_SOCKET` und meldet, wenn sie nicht läuft.
+- [ ] Fernzugriff nur über `$SAALBURG_FERN_SOCKET`, relative Links, Steuerfunktionen in
+      `fernzugriff_sicher`; LAN-Ziele über `netz_ziele`, nie eine Adresse raten (Abschnitt 16).
 - [ ] Store-Text und Bilder ohne private Daten; mit `saalburg-test` getestet, bei Bedarf auch auf dem
       Testplatz (Abschnitt 15).
 
@@ -619,6 +624,8 @@ bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
   sind gesperrt. Namensauflösung geht über den DNS-Server des Rechners (nur Port 53 an genau
   dieser Adresse).
 - Ohne `netzwerk = ja`: nur die eigene Schleife, kein Weg nach außen.
+- LAN-Ziele (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke und Fernzugriff (Abschnitt 16)
+  bekommen Test-Apps nie, auch wenn ihre `app.conf` sie nennt.
 
 **Private oder große Testpakete** (keine Katalog-App, private App, Paket über 100 MB): im
 privaten `saalburg-test` einen Zweig `testpaket/<name>` pushen mit `testpaket.conf`
@@ -654,3 +661,125 @@ Blöcke noch in Repos; Protokolle werden vor dem Senden gefiltert.
 **Öffentlich bleibt nur**: im PR die Zeile mit der Prüfsumme und höchstens
 „Getestet auf dem Testplatz, Bericht privat“. Store-Bilder dürfen aus Fotos der Stufe
 *abgemeldet* stammen, wenn sie nur Beispielinhalte zeigen.
+
+---
+
+## 16. Fernzugriff, begrenztes Netz, Netzlaufwerke
+
+### Fernzugriff (gekoppelte Geräte im LAN)
+
+Ein mit Saalburg gekoppeltes Gerät (gedacht: iPhone mit Safari) erreicht im lokalen Netz die
+Web-Oberfläche einer App. Der Nutzer schaltet den Fernzugriff in den Einstellungen ein (Standard:
+aus), koppelt Geräte per QR-Code (Einmalcode, danach ein Gerätetoken) und kann sie jederzeit
+entfernen. Saalburg spricht HTTPS auf **einem Port** (8443): Startseite unter `/`, jede App unter
+`/apps/<kennung>/`.
+
+- **app.conf**:
+  - `fernzugriff = /, /api` – Pfade, die gekoppelte Geräte erreichen dürfen (Präfixe; `/` = alles).
+  - `fernzugriff_sicher = /werkstatt` – heikle Pfade: brauchen je Gerät eine eigene Freigabe am
+    Bildschirm (Standard: aus). Heikle Pfade gehen vor: was darunter liegt, ist heikel, auch
+    wenn `fernzugriff = /` gesetzt ist. Höchstens 8 Pfade je Zeile, nur `A–Z a–z 0–9 / - _ .`,
+    kein `..`, kein `//`, kein `/` am Ende. Beides erscheint im Installationsdialog.
+- **Verbindung zur App**: Saalburg setzt `SAALBURG_FERN_SOCKET=$XDG_RUNTIME_DIR/fern.sock`.
+  Die App betreibt dort einen **HTTP/1.1-Server am Unix-Socket** (kein Netzrecht nötig, kein
+  Port, kein 127.0.0.1). Socket beim Start anlegen (alte Datei vorher löschen). Jede Anfrage
+  kommt auf einer **eigenen Verbindung** mit `Connection: close`; kurze Anfragen warten also nie
+  hinter langen (Longpoll, große Downloads).
+- **Pfade**: Das Gerät ruft `https://<adresse>:8443/apps/<kennung>/<pfad>` auf; die App
+  bekommt `/<pfad>` (ohne Präfix) und dazu `X-Forwarded-Prefix: /apps/<kennung>`. Am besten
+  **relative Links** benutzen (`api/x`, `../werkstatt/`); wer absolute Pfade braucht, setzt das
+  Präfix davor. Weiterleitungen der App (`Location: /x`) legt Saalburg unter das Präfix.
+  `fernzugriff`/`fernzugriff_sicher` beziehen sich auf die Pfade ohne Präfix.
+- **Kopfzeilen** (vom Gerät gesendete gleichnamige werden immer entfernt):
+
+  | Kopf | Inhalt |
+  |---|---|
+  | `X-Saalburg-Geraet` | feste ID des Geräts (8 Hex-Zeichen) |
+  | `X-Saalburg-Geraet-Name` | Name, den der Nutzer beim Koppeln gab (UTF-8, Prozent-kodiert) |
+  | `X-Saalburg-Bereich` | `normal` oder `sicher` (Anfrage liegt in `fernzugriff_sicher`) |
+  | `X-Forwarded-Prefix` | `/apps/<kennung>` |
+  | `X-Forwarded-Proto`, `-For`, `-Host` | `https`, Adresse des Geräts, Host der Anfrage |
+
+  Die Anmeldung macht Saalburg: Kommt eine Anfrage an, ist das Gerät gekoppelt und für diesen
+  Bereich freigegeben. Eigene Passwörter braucht die App nicht.
+- **Cookies**: Alle Apps teilen sich einen Ursprung. Saalburg setzt deshalb vor jeden
+  Cookie-Namen der App ihre Kennung, legt `Path` unter `/apps/<kennung>/`, entfernt `Domain` und
+  gibt ihr nur ihre eigenen zurück (für die App unsichtbar). `__Host-` wird zu `__Secure-`.
+- **Was Saalburg ablehnt**: Anfragen fremder Seiten (`Sec-Fetch-Site` same-site/cross-site außer
+  Navigation, fremder `Origin` bei POST/PUT/…), Abrufe aus der Seite einer anderen App (Referer
+  unter `/apps/<andere>/`, außer Navigation), Pfade mit `..`, `%2F`, `%00`. Die App bekommt sie
+  nie zu sehen. Eine vollständige Trennung wie zwischen fremden Websites ist das nicht (gleicher
+  Ursprung): Fernzugriff nur für Apps, denen der Nutzer vertraut; Steuerfunktionen immer in
+  `fernzugriff_sicher`.
+- **Fehler, die das Gerät sieht** (Seite plus Kopf `X-Saalburg-Fehler`): `401` nicht gekoppelt,
+  `403` Bereich nicht freigegeben bzw. heikel ohne Freigabe, `404` App ohne Fernzugriff, `502`
+  App läuft nicht (oder kein `fern.sock`), `503` Fernzugriff aus, `504` App antwortet 300 s nicht.
+- **Längen**: Longpoll bis 300 s je Antwortkopf; danach wird gestreamt, ohne Puffern und ohne
+  Größengrenze (große Binärdateien gehen). Hochladen ebenso (Content-Length oder chunked).
+  WebSocket (`Upgrade: websocket`) wird durchgereicht.
+- **Schlaf**: Eine App, die aus der Ferne benutzt wird, bleibt wach (40 s nach der letzten
+  Anfrage); eine schlafende wird bei einer Anfrage aufgetaut.
+- **Grenzen** (in der eigenen Oberfläche deutlich sagen): Ein Stopp über das Netz ersetzt
+  **nie den physischen Not-Halt** an der Maschine (WLAN, Akku, Ruhezustand des Telefons).
+  Bestätigungen am Bildschirm (Installationen, Rechte) gibt es aus der Ferne nicht. Nur
+  Gegenstellen mit privaten Adressen (LAN, auch über ein VPN wie WireGuard ins Heimnetz); kein offener Port ins Internet.
+
+### Begrenztes Netz (`netz_ziele`, `netzwerk = lan:…`)
+
+Für Apps ohne Internet, die einzelne Rechner im LAN brauchen (z. B. eine Maschinensteuerung).
+Die App lebt dann in einem eigenen Netz-Raum (Netz-Namensraum mit veth-Paar zum System,
+nftables-Regel), den alle ihre Prozesse (Fenster, MCP-Server) teilen.
+
+- **app.conf**: `netz_ziele = steuerung (Maschinensteuerung), pc2` – nur Namen
+  (`a–z 0–9 -`, höchstens 4), optional mit Beschreibung in Klammern. Die Adresse steht nicht im
+  Paket: der Nutzer trägt sie in den Einstellungen ein (`192.168.1.50:8080`, nur private
+  IPv4-Adressen). Erscheint im Installationsdialog.
+- **Feste Ziele**: `netzwerk = lan:192.168.1.50:8080, lan:192.168.1.51:502` – nur private
+  IPv4-Adressen, höchstens 4; erscheinen im Installationsdialog. Nur für Ziele, deren Adresse
+  wirklich feststeht; sonst `netz_ziele`. Zusammen höchstens 4 Ziele.
+- **In der App**: `SAALBURG_ZIEL_STEUERUNG=192.168.1.50:8080` (Name groß, `-` wird `_`), feste
+  Ziele als `SAALBURG_ZIEL_LAN1`, `…_LAN2`. Die App verbindet sich ganz normal per TCP mit genau
+  dieser Adresse und diesem Port. Alles andere (andere Ports, Internet, DNS, UDP, IPv6, Saalburg
+  selbst) geht nicht. Fehlt die Variable, ist kein Ziel eingetragen: der App-Oberfläche einen
+  Hinweis zeigen („in den Einstellungen eintragen“), nie eine Adresse raten.
+- Die Prozesse der App teilen sich im Raum ihre eigene Schleife (`127.0.0.1`); für Fenster und
+  MCP-Server trotzdem `$SAALBURG_APP_SOCKET` nehmen (Abschnitt 9), das geht immer.
+- Änderungen gelten beim nächsten Start der App. Nur TCP/IPv4.
+
+### Netzlaufwerke (`netzlaufwerk`)
+
+Saalburg verbindet Windows-Freigaben (SMB) selbst; Zugangsdaten gibt nur der Nutzer am
+Bildschirm ein, sie sind für Apps und Claude unsichtbar.
+
+- **app.conf**: `netzlaufwerk = gcode (G-Code-Ablage)` – ein Name. Der Nutzer richtet das
+  Laufwerk mit diesem Namen in den Einstellungen ein und gibt es der App frei („darf schreiben“,
+  Standard: aus).
+- **In der App**: `SAALBURG_NETZLAUFWERK=/daten/netz/<name>` (nur gesetzt, wenn freigegeben
+  und eingerichtet). Lesen und schreiben, nichts ausführen. Zusätzlich die Gruppe des Laufwerks.
+- **Fehlt das Laufwerk** (Rechner aus, Netz weg), schlagen Zugriffe fehl (`EACCES`, `EIO`,
+  `EHOSTDOWN`). Die App sagt das klar und versucht es später wieder; Saalburg verbindet von
+  selbst neu. Erst schreiben, dann umbenennen (`datei.tmp` → `datei.nc`), damit die Gegenseite
+  nie halbe Dateien sieht.
+- Claude sieht ein Laufwerk nur, wenn der Nutzer „Claude darf schreiben“ einschaltet (eigener
+  Schalter, unabhängig von dem der App). Ohne Freigabe ist es für Claude bzw. die App unsichtbar.
+
+### Beispiel: Maschinen-App mit Werkstatt-Monitor
+
+1. app.conf: `fernzugriff = /` (bzw. die Seiten), `fernzugriff_sicher = /werkstatt` (Monitor mit
+   Notstop/Stop/Pause und alles, was die Maschine betrifft), `netz_ziele = steuerung
+   (Maschinensteuerung)`, `netzlaufwerk = gcode (G-Code für die Steuerung)`, `hintergrund = ja`,
+   `saalburg = <Version mit diesen Fähigkeiten>`. Kein `netzwerk = ja`.
+2. Den lokalen Server statt an `127.0.0.1:<port>` an `$SAALBURG_FERN_SOCKET` binden (Unix-Socket;
+   z. B. `socketserver.UnixStreamServer` oder `aiohttp.web.UnixSite`). Für das eigene Fenster
+   kann er zusätzlich weiter auf 127.0.0.1 hören.
+3. Alle Links und `fetch`-Pfade relativ (oder mit `X-Forwarded-Prefix` davor); die Seite liegt
+   am Gerät unter `https://<Saalburg>:8443/apps/<kennung>/`.
+4. Gerät aus `X-Saalburg-Geraet`/`-Name` anzeigen (z. B. „Stopp vom iPhone“), Bereich
+   aus `X-Saalburg-Bereich` prüfen: Steuerknöpfe nur bei `sicher`.
+5. Notstop/Stop/Pause: kurze POST-Anfrage, sofort antworten (`200` mit Ergebnis, nicht erst nach
+   der Maschine), Zeitstempel zurückgeben; die Seite zeigt Erfolg/Fehler sofort. Start, Resume,
+   Open und Close nie über den Fernzugriff anbieten.
+6. Steuerung über `$SAALBURG_ZIEL_STEUERUNG` (nur Notstop, Stop, Pause), G-Code ins
+   `$SAALBURG_NETZLAUFWERK` (erst `.tmp`, dann umbenennen) – nur geprüften G-Code; ungeprüfter
+   bleibt in einem Entwurfsordner.
+7. Auf der Monitorseite gut sichtbar: „Ersetzt nie den Not-Halt an der Maschine.“
