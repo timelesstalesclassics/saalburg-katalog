@@ -56,3 +56,8 @@ Bildschirmfotos in PR-Texten oder Kommentaren. Den Testbericht als Issue im priv
 `timelesstalesclassics/saalburg-test` ablegen (Titel „Test: <kennung> – saalburg-katalog PR #<n>“,
 Format dort in `CLAUDE.md`). Im PR selbst nur: was geändert, offene Punkte, und der Satz
 „Getestet mit saalburg-test, Bericht privat“.
+
+**Testplatz (echter Rechner):** `/testplatz` im eigenen PR kommentieren, dann den Auftragsblock
+im privaten Repo `saalburg-test` als Issue mit Label `testplatz` (Ablauf und Befehle:
+`PLATTFORM.md`, Abschnitt 15). Geht nur, solange der Eigentümer den Testplatz freigeschaltet
+hat. Im PR höchstens „Getestet auf dem Testplatz, Bericht privat“.

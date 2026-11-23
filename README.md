@@ -96,3 +96,12 @@ Programme, keine Quelltexte; der Quelltext von Saalburg bleibt privat.
 Der geheime Schlüssel liegt nur als GitHub-Secret `OSAPP_SCHLUESSEL` im Repo; der Ablauf prüft,
 dass er zu `schluessel/saalburg-katalog.pub` passt. System-Updates signiert er mit eigenem
 Vorsatz; Saalburg nimmt sie nur mit diesem mitgelieferten Schlüssel an, nie mit später vertrauten. Formate: `werkzeug/katalog_bauen.py`.
+
+## Testpakete für den Testplatz
+
+Der Ablauf „Testpaket“ (`.github/workflows/testplatz.yml`) baut auf den Kommentar `/testplatz`
+im Pull Request ein Testpaket (`.ostest`, Kopf `OSTEST1`) und legt es im Zweig `testplatz` ab.
+Signiert wird mit dem eigenen Secret `TESTPLATZ_SCHLUESSEL`; den Schlüssel erzeugt Saalburg
+selbst (Übersicht → Testplatz → Testschlüssel). Saalburg vertraut ihm nur auf dem Testplatz, nie
+für Installationen. Nur Kommentare des Eigentümer-Kontos, keine Forks; aus dem PR wird nichts
+ausgeführt. Werkzeug: `werkzeug/testpaket.py`. Nutzung für App-Chats: `PLATTFORM.md`, Abschnitt 15.

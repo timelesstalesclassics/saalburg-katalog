@@ -1,0 +1,143 @@
+# Testpaket für den Testplatz von Saalburg: Ein Kommentar „/testplatz“ (oder
+# „/testplatz <kennung>“) im Pull Request baut aus apps/<kennung>/ des PR ein
+# Testpaket, signiert es mit dem Testschlüssel und legt es im Zweig „testplatz“
+# ab (pakete/pr-<n>/<kennung>.ostest). Der Rechner mit dem Testplatz holt es
+# dort ab, wenn ein Chat im privaten Test-Repo einen Auftrag schreibt.
+#
+# Sicherheit (der Katalog ist öffentlich, kommentieren kann jeder):
+#   - nur Kommentare des Eigentümer-Kontos, nur Pull Requests aus diesem Repo (keine Forks);
+#   - aus dem PR wird nichts ausgeführt: das Werkzeug kommt aus main, der PR-Stand
+#     wird nur als Daten gelesen (ohne Zugangsdaten ausgecheckt);
+#   - das Secret ist nur im Signierschritt gesetzt;
+#   - Saalburg vertraut dem Testschlüssel nur auf dem Testplatz, nie für echte Installationen.
+# Im PR erscheint nur die Prüfsumme – Testergebnisse bleiben privat.
+name: Testpaket
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: testplatz
+  cancel-in-progress: false
+
+jobs:
+  testpaket:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == 'timelesstalesclassics' &&
+      github.event.comment.author_association == 'OWNER' &&
+      startsWith(github.event.comment.body, '/testplatz')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull Request prüfen (kein Fork)
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMMER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$REPO/pulls/$NUMMER" > "$RUNNER_TEMP/pr.json"
+          kopf_repo=$(jq -r .head.repo.full_name "$RUNNER_TEMP/pr.json")
+          if [ "$kopf_repo" != "$REPO" ]; then
+            echo "Pull Request aus einem Fork ($kopf_repo) – kein Testpaket." >&2
+            exit 1
+          fi
+          if [ "$(jq -r .state "$RUNNER_TEMP/pr.json")" != open ]; then
+            echo "Pull Request ist nicht offen." >&2
+            exit 1
+          fi
+          echo "sha=$(jq -r .head.sha "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+          gh api --paginate "repos/$REPO/pulls/$NUMMER/files" --jq '.[].filename' > "$RUNNER_TEMP/dateien.txt"
+
+      - name: Werkzeug aus main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+          persist-credentials: false
+
+      - name: Stand des Pull Requests (nur Daten)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+          path: pr
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Werkzeug
+        run: pip install cryptography==44.0.0
+
+      - name: Kennung bestimmen
+        id: kennung
+        env:
+          KOMMENTAR: ${{ github.event.comment.body }}
+        run: |
+          # „/testplatz <kennung>“ oder die eine App, die der PR ändert
+          angegeben=$(printf '%s\n' "$KOMMENTAR" | head -n1 | sed -n 's|^/testplatz[[:space:]]\{1,\}\([a-z0-9-]\{1,31\}\)[[:space:]]*$|\1|p')
+          if [ -n "$angegeben" ]; then
+            kennung="$angegeben"
+          else
+            kennung=$(python3 -I main/werkzeug/testpaket.py --kennung "$RUNNER_TEMP/dateien.txt")
+          fi
+          echo "kennung=$kennung" >> "$GITHUB_OUTPUT"
+
+      - name: Bauen und mit dem Testschlüssel signieren
+        id: paket
+        env:
+          TESTPLATZ_SCHLUESSEL: ${{ secrets.TESTPLATZ_SCHLUESSEL }}
+          KENNUNG: ${{ steps.kennung.outputs.kennung }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/aus"
+          python3 -I main/werkzeug/testpaket.py pr/apps "$KENNUNG" "$RUNNER_TEMP/aus/$KENNUNG.ostest" | tee "$RUNNER_TEMP/paket.txt"
+          cat "$RUNNER_TEMP/paket.txt" >> "$GITHUB_OUTPUT"
+
+      - name: Im Zweig testplatz ablegen
+        env:
+          KENNUNG: ${{ steps.kennung.outputs.kennung }}
+          NUMMER: ${{ github.event.issue.number }}
+        run: |
+          cd main
+          git config user.name "Testplatz"
+          git config user.email "testplatz@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          if git fetch --depth 1 origin testplatz; then
+            git worktree add "$RUNNER_TEMP/zweig" FETCH_HEAD
+            cd "$RUNNER_TEMP/zweig" && git checkout -B testplatz
+          else
+            git worktree add --orphan -b testplatz "$RUNNER_TEMP/zweig"
+            cd "$RUNNER_TEMP/zweig"
+            printf 'Testpakete für den Testplatz von Saalburg (signiert mit dem Testschlüssel, nicht installierbar als App).\n' > LIESMICH.txt
+          fi
+          mkdir -p "pakete/pr-$NUMMER"
+          cp "$RUNNER_TEMP/aus/$KENNUNG.ostest" "pakete/pr-$NUMMER/$KENNUNG.ostest"
+          git add -A
+          git commit -qm "Testpaket $KENNUNG für PR #$NUMMER"
+          git push origin testplatz
+
+      - name: Im Pull Request melden (nur Prüfsumme)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMMER: ${{ github.event.issue.number }}
+          KENNUNG: ${{ steps.kennung.outputs.kennung }}
+          VERSION: ${{ steps.paket.outputs.version }}
+          SHA: ${{ steps.paket.outputs.sha256 }}
+          FINGER: ${{ steps.paket.outputs.fingerabdruck }}
+        run: |
+          {
+            echo "Testpaket \`$KENNUNG\` $VERSION signiert (Testschlüssel \`$FINGER\`)."
+            echo
+            echo "Auftragszeile für den Testplatz:"
+            echo '```'
+            echo "paket kennung=$KENNUNG pr=$NUMMER sha256=$SHA"
+            echo '```'
+          } > "$RUNNER_TEMP/kommentar.md"
+          gh api "repos/$REPO/issues/$NUMMER/comments" -F body=@"$RUNNER_TEMP/kommentar.md" > /dev/null
