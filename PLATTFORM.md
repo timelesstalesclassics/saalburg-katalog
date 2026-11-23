@@ -325,9 +325,13 @@ Verhalten:
 | Unsichtbar seit 2 min oder Speicher knapp | Speicher wird ausgelagert (`memory.reclaim`, verschlüsselte Auslagerung auf der SSD) | nichts, die Seiten kommen bei Bedarf zurück |
 | Wieder sichtbar | sofort aufgetaut | |
 | Fenster schließen (Windows-Taste+Q, Entf in der Übersicht) | `xdg_toplevel.close` bzw. `SIGHUP` beim Terminal; reagiert die App nach 3 s nicht, endet ihre cgroup hart (`cgroup.kill`) | `close` beachten, Stand speichern, beenden |
+| Entfernen (Store-Seite³ oder `app entfernen`) | Der Nutzer wählt „Daten behalten“ (Standard) oder „Auch Daten löschen“. Läuft die App, wird sie vorher wie beim Schließen beendet (erst freundlich, nach 3 s hart); nach der Bestätigung am Bildschirm wird `/daten/apps/<kennung>` gelöscht, `$HOME` bleibt bzw. wird mit gelöscht | Daten so in `$HOME` ablegen, dass eine Neuinstallation sie wieder nutzen kann (Version mitspeichern, ältere Stände lesen können) |
 | Ausschalten oder Neustart | `SIGTERM`, bis zu **12 s** Frist, danach hart | auf `SIGTERM` speichern und enden |
 | Nach dem Neustart | Saalburg öffnet die App wieder auf ihrem Platz (Web-Apps mit der letzten Seite derselben Herkunft) | Stand beim Start wiederherstellen |
 | Speichermangel | Der Kernel beendet zuerst schlafende Apps (oom_score_adj 800), dann wache (300), dann Claude (-500); Dienste haben -900 | regelmäßig speichern |
+
+³ Knopf „Entfernen“ auf der Store-Seite ab Saalburg 202611230257 (Abschnitt 13); in der Übersicht öffnet
+Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf.
 
 **Wach bleiben** Apps, wenn:
 - ein Platz sie zeigt;
@@ -478,7 +482,7 @@ Diese Befehle laufen als claude (oder ein anderer Benutzer), ohne root:
 | `app katalog <ordner> <name.key> [titel]` | lokalen Katalog bauen (mit `store/<kennung>/` für die Store-Seite) |
 | `app store liste` bzw. `app store daten` | Kataloge lesen (lesbar bzw. maschinenlesbar) |
 | `app installieren <paket.osapp>`, `app store installieren <k>` | installieren; **der Nutzer bestätigt am Bildschirm** |
-| `app liste`, `app zurueck <k>`, `app entfernen <k>` | installierte Apps; Änderungen nur mit Bestätigung |
+| `app liste`, `app zurueck <k>`, `app entfernen <k> [--daten]` | installierte Apps; Änderungen nur mit Bestätigung (`--daten` löscht auch `$HOME` der App) |
 | `app einstellung [<k> <recht> ja\|nein]` | Rechte ansehen; Änderungen nur mit Bestätigung |
 | `app verbindungen`, `app verbinden <k>` | MCP-Verbindungen zu Apps |
 | `app datei …` | Dateidienst (siehe 3) |
@@ -513,6 +517,7 @@ nach dem Update.
 | 202611221956 | Wählbare Schriften (`--saalburg-schrift-fest`/`-text`, fontconfig), app.conf `angleichen = ja\|nein` |
 | 202611222058 | Web-Zoom als Seitenzoom statt erzwungenem Geräte-Faktor (Fenster nicht mehr abgeschnitten, `devicePixelRatio` folgt dem Zoom) |
 | 202611230126 | App-Lücken: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken mit `drucken = ja`), eigenes `/tmp`, `SAALBURG_APP_SOCKET`, Wayland: Vollbild, Minimieren, Viewporter, Fractional Scale, Pointer-Constraints, Relative-Pointer, Cursor-Shape, Idle-Inhibit |
+| 202611230257 | Entfernen auf der Store-Seite (Wahl: Daten behalten oder `$HOME` mitlöschen; laufende App wird vorher wie beim Schließen beendet), Strg+I in der Übersicht öffnet die Store-Seite einer App |
 
 ---
 
