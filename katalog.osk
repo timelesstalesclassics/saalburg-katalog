@@ -1,9 +1,9 @@
 OSKAT1
 schluessel: saalburg-katalog
-signatur: b2da67a11f86783fe6ba945438448630f772a8a1feef1c24f47e6f7b612bc7c0273d65faffc016a1de05a60f2bb233223876f301ad18e8198867d3ba7117d50e
+signatur: bad87fc25d3dfb189a527bb853b3fa93a5e547179caf6502c118962e14f3b0af83d7059365b1ffab17453fa738915cc6a5572009e4e7d4ec61cc3198d64a3801
 
 katalog = Saalburg-Apps
-stand = 001795452341
+stand = 001795459585
 app = claude-web|1.2|Claude im Browser|4784|089c782f236b5fa08d8c9edd701a8c3257b49dba3036dabfa484820dedf80549|pakete/claude-web-1.2.osapp|claude.ai im eigenen Fenster, z. B. für Projekte, Artefakte und Dokumente.
 app = eisen-und-blut|2.0|Eisen und Blut|77057712|bf0940029494d923a4e08b2533fdaaec9564d23999e1fffb81278f9d6ee29e62|pakete/eisen-und-blut-2.0.osapp|Rundenstrategie in den Einigungskriegen 1864 · 1866 · 1870/71 auf einem 3D-Gefechtsfeld. Maus wählt und zieht, rechte Taste dreht die Ansicht, E beendet die Runde.
 app = github|1.0|GitHub|2224|8b5270db3b3af1f6198c2cadfa07141a25e6f3c970da5dacbb3987cbb6920d24|pakete/github-1.0.osapp|GitHub im eigenen Fenster (Repositories, Issues, Pull Requests).
