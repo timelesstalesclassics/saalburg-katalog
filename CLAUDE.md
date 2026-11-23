@@ -36,6 +36,17 @@ Wayland, GPU, Ton, Lebenszyklus, Claude-Anbindung, Bibliotheken, Mindestversion)
 - Wenige, robuste Regeln: Ändert die Seite etwas, soll sie normal aussehen, nicht kaputt.
 - `aussehen.js` minimal, ohne Netz, liest oder verschickt keine Inhalte der Seite.
 
+## Native Apps: Saalburg-Aussehen
+
+- Grundflächen, Text, Rahmen, Akzent, Auswahl, Meldungsfarben, Schriften der Bedienelemente und
+  die Größe kommen aus `/daten/system/aussehen/saalburg.conf` (Rückfall
+  `/usr/lib/osproto/aussehen/saalburg.conf`, dann eingebaute Ausweichwerte) – keine eigenen
+  Werte dafür. Eigene Farben und Schriften nur für Inhalte (Dokument, Zellen, Diagramme,
+  Spielgrafik); Spiele gleichen nur Menüs, Dialoge und Rahmen an.
+- Einlesen mit `beispiele/saalburg_aussehen.zig`; inotify auf den Ordner, wenn Änderungen
+  sofort wirken sollen. Rollen und Regeln: `PLATTFORM.md`, Abschnitt 5 „Aussehen für native Apps“.
+- Wer die Datei nutzt, setzt `saalburg = @VERSION@` (oder neuer).
+
 ## Store-Seite
 
 `store/<kennung>/`: `info.conf` (`kategorie`, `empfohlen` nur nach Absprache), `text.txt`
