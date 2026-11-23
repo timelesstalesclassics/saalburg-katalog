@@ -160,6 +160,8 @@ def conf_lesen(text, ordnername):
         werte[k] = w
     if werte.get("kennung") != ordnername or not NAME_RE.match(ordnername):
         fehler(f"{ordnername}: kennung muss dem Ordnernamen entsprechen")
+    if ordnername == "browser":
+        fehler("browser: Kennung ist für den mitgelieferten Browser von Saalburg reserviert")
     if not VERSION_RE.match(werte.get("version", "")):
         fehler(f"{ordnername}: version fehlt oder ungültig")
     if len(text.encode()) > 4000:
