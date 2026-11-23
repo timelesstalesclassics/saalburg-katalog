@@ -65,7 +65,7 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
   | `SAALBURG_DIENST` | `/run/wayland/saalburg-dienst`: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken, siehe 3) ¹ |
   | `SAALBURG_APP_SOCKET` | `$XDG_RUNTIME_DIR/app.sock`: Kanal zwischen laufender App und ihrem MCP-Server (siehe 9) ¹ |
 
-  ¹ ab der Version mit den App-Lücken (Abschnitt 13); vorher `TMPDIR=/daten/appdaten/<kennung>/tmp`.
+  ¹ ab Saalburg 202611230126 (Abschnitt 13); vorher `TMPDIR=/daten/appdaten/<kennung>/tmp`.
 
   Web-Apps setzen zusätzlich `XDG_CONFIG_HOME=$HOME/.config` und
   `DBUS_SESSION_BUS_ADDRESS=disabled:`, ihre Downloads und Dokumente zeigen auf
@@ -161,7 +161,7 @@ UTF-8-Zeile mit `\n`, die Antwort ist eine Zeile (`OK …`, `ABBRUCH`, `FEHLER <
 | `OEFFNEN [Titel]` | Die Dateien-Seite geht auf; der Nutzer wählt eine Datei (Enter). Der Dateidienst kopiert sie nach `$HOME/Dokumente/<Name>` (eine gleichnamige alte Kopie wandert in deren `.Papierkorb`). Wählt er eine Datei aus den eigenen Dokumenten, wird nichts kopiert. | `OK <Pfad>` oder `ABBRUCH` |
 | `SPEICHERN <Datei>[\t<Titel>]` | `<Datei>` ist ein Pfad relativ zu `Dokumente` und muss dort liegen. Der Nutzer öffnet den Zielordner und drückt F5. Gibt es das Ziel schon, bleibt die Auswahl offen (nie überschreiben). | `OK <Ort>/<Name>` oder `ABBRUCH` |
 | `MELDEN <Titel>\t<Text>` | Meldung kurz in der Leiste (8 s, ohne Ton, höchstens eine je Sekunde und App) | `OK` |
-| `DRUCKEN <Name>` + Datei als Deskriptor (`SCM_RIGHTS`) | nur PDF, JPEG, PNG bis 100 MB, Recht `drucken`; der Nutzer bestätigt am Bildschirm. Die Datei geht unverändert an den Drucker (keine Umwandlung); nimmt der Drucker das Format nicht direkt, ist es ein Fehler. | `OK`, `ABBRUCH` oder `FEHLER …` |
+| `DRUCKEN <Name>` + Datei als Deskriptor (`SCM_RIGHTS`) | nur PDF, JPEG, PNG bis 100 MB, Recht `drucken`; der Nutzer bestätigt am Bildschirm (passt der Inhalt nicht zur Endung, gleich `FEHLER`, ohne Frage). Die Datei geht unverändert an den Drucker (keine Umwandlung); nimmt der Drucker das Format nicht direkt, ist es ein Fehler. | `OK`, `ABBRUCH` oder `FEHLER …` |
 
 - **Warten**: Öffnen und Speichern antworten erst, wenn der Nutzer gewählt hat (auch nach
   Minuten). Die App sollte dabei ihre Ereignisschleife weiterlaufen lassen (Thread), sonst zeigt
@@ -245,7 +245,7 @@ Recht fehlt.
 | `wp_cursor_shape_manager_v1` | 1 | Zeigerformen ohne eigenes Bild ² |
 | `zwp_idle_inhibit_manager_v1` | 1 | Bildschirm wach halten ² |
 
-² ab der Version mit den App-Lücken (Abschnitt 13).
+² ab Saalburg 202611230126 (Abschnitt 13).
 
 Verhalten:
 - **Fenster** bekommen per `configure` die Größe ihres Platzes und die Zustände „maximiert“
@@ -512,7 +512,7 @@ nach dem Update.
 | 202611221801 | Saalburg-Aussehen (`aussehen.css`/`.js`), Web-Zoom nach Schriftgröße, Zwischenablage mit `image/png` |
 | 202611221956 | Wählbare Schriften (`--saalburg-schrift-fest`/`-text`, fontconfig), app.conf `angleichen = ja\|nein` |
 | 202611222058 | Web-Zoom als Seitenzoom statt erzwungenem Geräte-Faktor (Fenster nicht mehr abgeschnitten, `devicePixelRatio` folgt dem Zoom) |
-| *folgt mit dem Update* | App-Lücken: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken mit `drucken = ja`), eigenes `/tmp`, `SAALBURG_APP_SOCKET`, Wayland: Vollbild, Minimieren, Viewporter, Fractional Scale, Pointer-Constraints, Relative-Pointer, Cursor-Shape, Idle-Inhibit |
+| 202611230126 | App-Lücken: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken mit `drucken = ja`), eigenes `/tmp`, `SAALBURG_APP_SOCKET`, Wayland: Vollbild, Minimieren, Viewporter, Fractional Scale, Pointer-Constraints, Relative-Pointer, Cursor-Shape, Idle-Inhibit |
 
 ---
 
