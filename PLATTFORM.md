@@ -492,7 +492,8 @@ beenden
 
 | Befehl | Wirkung |
 |---|---|
-| `paket kennung=<k> pr=<n> [sha256=<hex>]` | welche App; zuerst |
+| `paket kennung=<k> pr=<n> [sha256=<hex>]` | welche App, Quelle Katalog-PR; zuerst |
+| `paket kennung=<k> quelle=privat release=<tag> [sha256=<hex>]` | Quelle: privates Testpaket (siehe unten) |
 | `installieren` | Testpaket prüfen (Testsignatur, Prüfsumme) und in den Testplatz legen |
 | `starten`, `beenden`, `neu-laden`, `warten-auf-fenster` | Lebenszyklus; `starten` wartet aufs Fenster |
 | `entfernen [daten]` | Test-App entfernen, mit `daten` auch ihre Testdaten |
@@ -503,17 +504,41 @@ beenden
 | `protokoll [zeilen]` | stdout/stderr der App (`$HOME/testplatz.log`), bei Web-Apps `chromium.log`, dazu `verbindung.log`; gefiltert |
 | `messwerte` | RAM, Spitze, Prozesse, CPU, Fenstergröße, Bilder je Sekunde |
 | `ton` | spielt die App gerade Ton ab? |
-| `mcp <methode> [json]` | an den MCP-Server der App (`tools/list`, `tools/call`, `resources/…`); Web-Apps: die Browser-Steuerung |
+| `mcp <methode> [json]` | an den MCP-Server der App (`tools/list`, `tools/call`, `resources/…`); Web-Apps: die Browser-Steuerung. Gleiche Schutzregeln wie `foto`/Eingaben/`protokoll` (unten) |
 
 Eingaben gehen nur an das Testfenster, nie an andere Fenster; Systemkürzel (Windows-Taste)
 gibt es nicht.
 
 **Die Test-App** läuft getrennt von echten Apps: eigene Kennung (UID ab 30000), Daten unter
 `/daten/testplatz/daten/<kennung>` statt `/daten/appdaten`, keine `ordner =`, kein Dateidienst,
-nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Mit Netz
-erreicht sie **nur das Internet**: lokale und private Adressen (LAN, `localhost`, Link-lokal,
-Multicast) sind gesperrt, Namensauflösung (Port 53) geht. Web-Apps bekommen die
-Browser-Steuerung immer (nur der Testplatz verbindet sich).
+nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Web-Apps
+bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
+
+**Netz der Test-App** (`netzwerk = ja`): eigener Netz-Namensraum.
+- `127.0.0.1`/`::1` sind die eigene Schleife der App: Ein Server der App auf 127.0.0.1 (z. B.
+  WebDriver einer eingebauten Browser-Engine) ist für die App und ihren MCP-Server erreichbar,
+  für niemanden sonst. Dienste des Rechners (SSH …) sind von dort nicht zu erreichen – weder
+  über 127.0.0.1 noch über seine LAN-Adresse.
+- Nach außen nur **Internet** (IPv4, NAT). LAN, private, Link-lokale und Multicast-Adressen
+  sind gesperrt. Namensauflösung geht über den DNS-Server des Rechners (nur Port 53 an genau
+  dieser Adresse).
+- Ohne `netzwerk = ja`: nur die eigene Schleife, kein Weg nach außen.
+
+**Private oder große Testpakete** (keine Katalog-App, private App, Paket über 100 MB): im
+privaten `saalburg-test` einen Zweig `testpaket/<name>` pushen mit `testpaket.conf`
+(`kennung = <k>`, `sha256 = <sha256 von app.tar>`) und dem App-Ordner als tar in Teilen:
+`tar -cf app.tar -C <app-ordner> . && split -b 50M app.tar teile/app.tar.` Der Ablauf dort
+prüft wie dieser Katalog, signiert mit dem Testschlüssel, legt ein Release mit Anhang
+`<k>.ostest` (bis 1 GB) an, löscht den Zweig und schreibt die Auftragszeile
+`paket kennung=<k> quelle=privat release=<tag> sha256=<…>` in den Release-Text
+(`gh api repos/timelesstalesclassics/saalburg-test/releases/tags/<tag>`).
+
+**MCP** unterliegt denselben Regeln wie `foto`, Eingaben und `protokoll`: im Sichtschutz
+abgelehnt; Argumente mit 4–8-stelligen Ziffernfolgen werden nicht übergeben (bei Web-Apps
+auch keine Eingabe in Passwort-/Code-Felder); in Antworten werden Bilder, Ton und
+Binärdaten entfernt (für Bilder `foto` benutzen), Werte unter `cookie`, `token`, `password`,
+`authorization`, `session` u. Ä. ersetzt und alle Texte gefiltert; was kein JSON ist, kommt
+nicht an.
 
 **Anmeldung**: Je App stellt der Eigentümer eine Stufe ein.
 - *abgemeldet* (Standard): alles kommt beim Chat an.
@@ -521,11 +546,12 @@ Browser-Steuerung immer (nur der Testplatz verbindet sich).
   klickt (und 15 s danach) oder den Knopf „Sichtschutz“ gedrückt hat, lehnt der Testplatz Fotos
   und Eingaben ab – einfach später wiederholen.
 - *echtes Konto*: keine Fotos, nur Text (ok/Fehler, Messwerte, streng gefilterte Protokolle;
-  MCP-Antworten nur „erfolgreich“ oder „Fehler“). Ein `foto` landet beim Eigentümer zum
+  MCP-Antworten nur „erfolgreich“ oder „Fehler“, außer `tools/list`). Ein `foto` landet beim Eigentümer zum
   Schwärzen; erst nach seiner Freigabe kommt es als eigener Kommentar ins Issue.
 
-**Nie** (Saalburg lehnt ab): Passwörter oder Codes tippen (Ziffernfolgen mit 4–8 Stellen; bei
-Web-Apps nichts in Passwort- oder Code-Felder), Anmelde-QR-Codes weitergeben (jeder QR-Code
+**Nie** (Saalburg lehnt ab): Passwörter oder Codes tippen (Ziffernfolgen mit 4–8 Stellen, auch
+über MCP; bei Web-Apps nichts in Passwort- oder Code-Felder; bei anderen Engines kann Saalburg
+Passwortfelder nicht erkennen – Anmeldefelder dort nicht ansteuern), Anmelde-QR-Codes weitergeben (jeder QR-Code
 im Foto wird geschwärzt), Zwei-Faktor-Abfragen bestätigen. Zugangsdaten gehören weder in
 Blöcke noch in Repos; Protokolle werden vor dem Senden gefiltert.
 
