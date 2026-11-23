@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611221801.**
+**Stand: Saalburg 202611231841.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -36,6 +36,9 @@ er **nur lesbar**.
 | `terminal` | `start` per `/bin/sh -c` in einem Terminal der Oberfläche | Pseudo-Terminal, `TERM=xterm-256color` |
 | `programm` | `start` per `/bin/sh -c`, eigenes Wayland-Fenster | stdin, stdout und stderr auf `/dev/null`; Protokoll bitte selbst nach `$HOME` schreiben |
 | `web` | Chromium im App-Modus mit `url` (nur `https://` oder lokal `http://127.0.0.1`, `http://localhost`) | eigenes Chromium-Profil je App |
+
+Eine weitere Art, `browser`, gibt es nur für den mitgelieferten Browser (Abschnitt 10); die
+Kennung `browser` ist für ihn reserviert, Pakete damit lehnt die App-Verwaltung ab (ab Saalburg 202611231841).
 
 `start` und `verbindung` dürfen höchstens 255 Zeichen lang sein. Programmdateien adressiert
 man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
@@ -255,6 +258,9 @@ Verhalten:
   Fokus, steht es wieder in seinem Platz, mit Fokus wieder im Vollbild, bis `unset_fullscreen`.
   `set_minimized` nimmt das Fenster vom Platz; es läuft weiter (und schläft nach 10 s, siehe 8)
   und steht in der Übersicht. Maximieren ist immer; ein Fenstermenü gibt es nicht.
+- **Tastaturfokus**: Bekommt ein Fenster den Fokus, bevor es sein erstes Bild zeigt, meldet
+  Saalburg ihn mit dem ersten Puffer noch einmal (`wl_keyboard.leave`, dann `enter`; ab Saalburg 202611231841). Eine App
+  sollte beides jederzeit vertragen.
 - **Ping/Pong**: Antwortet eine App 5 s lang nicht auf `xdg_wm_base.ping`, zeigt die Oberfläche
   „reagiert nicht“. Deshalb die Ereignisschleife nie lange blockieren.
 - **Mauszeiger**: Eigene Zeiger über `wl_pointer.set_cursor` sind erlaubt. Mit
@@ -388,7 +394,8 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
 ## 10. Web-Apps
 
 - **Chromium 158** im App-Modus (ohne Browserleiste), Wayland, GPU-Beschleunigung, Sprache
-  Deutsch.
+  Deutsch (Oberfläche und `Accept-Language`; vor Saalburg 202611231841 fehlte die deutsche
+  Sprachdatei, Chromium war englisch).
 - **Profil je App** in `$HOME/.cache/profil`, mit getrennten Anmeldungen. Passwörter speichert
   Chromium im eigenen Speicher (`--password-store=basic`), einen Schlüsselbund gibt es nicht.
 - **Flags, die Saalburg setzt**:
@@ -438,6 +445,34 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
   - Keine Web-Benachrichtigungen ans System (Chromium kennt den Dienst nicht), kein
     Teilen-Dialog, keine Kamera, kein Mikrofon.
   - Keine Erweiterungen aus dem Web Store.
+
+### Mitgelieferter Browser (ab Saalburg 202611231841)
+
+Saalburg bringt einen allgemeinen Browser mit (Kachel „Browser“): Chromium mit Tabs und
+Adressleiste, kein App-Modus. Er ist Teil des Systems und wird mit dem System-Update
+aktualisiert, nicht über den Katalog.
+- **Sandbox wie eine Web-App**: Kennung `browser`, Daten `/daten/appdaten/browser`, eigenes
+  Profil; kein Zugriff auf die Profile und Anmeldungen der Web-Apps, auf Claudes Dateien oder auf
+  den Rest von `/daten`. Rechte (Netz, GPU, Ton, Hintergrund, Dokumente für Claude) wie bei
+  Web-Apps in den Einstellungen.
+- **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über DuckDuckGo ohne Vorschläge,
+  kein Passwortspeicher und kein Autofill, Drittanbieter-Cookies gesperrt, keine Telemetrie,
+  kein Hintergrundbetrieb, keine Komponenten-Updates, keine Erweiterungen, Benachrichtigungen,
+  Standort, Kamera und Mikrofon gesperrt, `file://` nur für die Startseite und die eigenen
+  Dokumente. Die Web-Apps behalten ihre bisherigen Richtlinien.
+- **Darstellung**: dunkel (`--force-dark-mode`, Seiten sehen `prefers-color-scheme: dark`),
+  Oberfläche in Saalburg-Blau, Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
+  bleiben unverändert (kein Saalburg-Aussehen).
+- **Startseite und Neuer Tab**: lokale Seite ohne Skript und ohne Netz. Nach einem Neustart
+  öffnet er die Tabs der letzten Sitzung.
+- **Downloads** landen in `/daten/appdaten/browser/Dokumente`; weitergegeben wird wie bei allen
+  Apps über den Dateidienst.
+- **Steuerung durch Claude**: angeboten, aus, bis der Nutzer sie einschaltet. Dann wie bei
+  Web-Apps (Abschnitt 9), die Werkzeuge wirken auf den sichtbaren Tab; dazu `tabs`,
+  `tab_wechseln`, `tab_neu`, `tab_schliessen`.
+- Apps können den Browser nicht aufrufen (kein `xdg-open`); Links für den Nutzer als Text
+  zeigen oder in die Zwischenablage legen.
+
 
 ---
 
@@ -522,6 +557,7 @@ nach dem Update.
 | 202611230126 | App-Lücken: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken mit `drucken = ja`), eigenes `/tmp`, `SAALBURG_APP_SOCKET`, Wayland: Vollbild, Minimieren, Viewporter, Fractional Scale, Pointer-Constraints, Relative-Pointer, Cursor-Shape, Idle-Inhibit |
 | 202611230257 | Entfernen auf der Store-Seite (Wahl: Daten behalten oder `$HOME` mitlöschen; laufende App wird vorher wie beim Schließen beendet), Strg+I in der Übersicht öffnet die Store-Seite einer App |
 | 202611231526 | Fernzugriff (`fernzugriff`, `fernzugriff_sicher`, `$SAALBURG_FERN_SOCKET`, Abschnitt 16), begrenztes Netz (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke (`netzlaufwerk`), Testplatz (Abschnitt 15) |
+| 202611231841 | Mitgelieferter Browser (Tabs, eigene Sandbox und Richtlinien, Kennung `browser` reserviert); Wayland: Tastaturfokus wird mit dem ersten Bild eines Fensters noch einmal gemeldet; Chromium-Oberfläche und Accept-Language deutsch (Browser und Web-Apps) |
 
 ---
 
