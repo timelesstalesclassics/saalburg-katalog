@@ -567,16 +567,18 @@ aktualisiert, nicht über den Katalog.
   den Rest von `/daten`. Rechte (Netz, GPU, Ton, Hintergrund, Dokumente für Claude) wie bei
   Web-Apps in den Einstellungen.
 - **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über Google (deutsch) ohne
-  Vorschläge beim Tippen (vor Saalburg @VERSION@: DuckDuckGo), Safe Browsing mit Standardschutz
-  (Stufe 1, nicht „erweitert“; die Listen lädt Chromium selbst, ab Saalburg @VERSION@),
-  Übersetzen nur auf Anfrage (Chromium bietet es an, Rechtsklick → „Übersetzen“; nie
-  automatisch, ab Saalburg @VERSION@), kein Passwortspeicher und kein Autofill,
+  Vorschläge beim Tippen (vor Saalburg @VERSION@: DuckDuckGo), Übersetzen nur auf Anfrage
+  (Chromium bietet es an, Rechtsklick → „Übersetzen“; nie automatisch, ab Saalburg @VERSION@),
+  Safe Browsing auf Standardschutz eingestellt (Stufe 1, nicht „erweitert“) – derzeit ohne
+  Wirkung, weil Google dem mitgelieferten Chromium die Listen nicht gibt, kein Passwortspeicher
+  und kein Autofill,
   Drittanbieter-Cookies gesperrt, keine Telemetrie,
   kein Hintergrundbetrieb, keine Komponenten-Updates, keine Erweiterungen, Benachrichtigungen,
   Standort, Kamera und Mikrofon gesperrt, `file://` nur für die Startseite und die eigenen
   Dokumente. Die Web-Apps behalten ihre bisherigen Richtlinien.
 - **Darstellung**: dunkel (`--force-dark-mode`, Seiten sehen `prefers-color-scheme: dark`),
-  Oberfläche in Saalburg-Blau, Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
+  Oberfläche in Saalburg-Blau, Systemtitelleiste (Rahmen von Saalburg, keine eigenen Knöpfe für
+  Minimieren, Maximieren, Schließen; ab Saalburg @VERSION@), Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
   bleiben unverändert (kein Saalburg-Aussehen).
 - **Startseite und Neuer Tab**: lokale Seite ohne Skript und ohne Netz. Nach einem Neustart
   öffnet er die Tabs der letzten Sitzung.
@@ -769,6 +771,13 @@ gibt es nicht.
 `/daten/testplatz/daten/<kennung>` statt `/daten/appdaten`, keine `ordner =`, kein Dateidienst,
 nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Web-Apps
 bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
+**Pfade wie bei echter Installation** (ab Saalburg @VERSION@): Das Testpaket liegt auf dem
+Rechner unter `/daten/testplatz/apps/<kennung>`, erscheint für die Test-App und ihren MCP-Server
+aber unter `/daten/apps/<kennung>/aktuell` (nur lesbar). Eine `app.conf` mit absoluten Pfaden
+wie im Katalog (`start = exec /daten/apps/<kennung>/aktuell/<datei>`, ebenso `verbindung`) läuft
+damit unverändert. Andere installierte Apps sieht die Test-App dort nicht; ist dieselbe Kennung
+echt installiert, sieht sie nur ihr Testpaket, die echte Installation bleibt unberührt. Vorher
+fand die Test-App solche Pfade nicht („not found“).
 
 **Netz der Test-App** (`netzwerk = ja`): eigener Netz-Namensraum.
 - `127.0.0.1`/`::1` sind die eigene Schleife der App: Ein Server der App auf 127.0.0.1 (z. B.
