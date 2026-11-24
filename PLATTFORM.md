@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611241046.**
+**Stand: Saalburg 202611241934.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -165,7 +165,7 @@ UTF-8-Zeile mit `\n`, die Antwort ist eine Zeile (`OK …`, `ABBRUCH`, `FEHLER <
 | `OEFFNEN [Titel]` | Die Dateien-Seite geht auf; der Nutzer wählt eine Datei (Enter). Der Dateidienst kopiert sie nach `$HOME/Dokumente/<Name>` (eine gleichnamige alte Kopie wandert in deren `.Papierkorb`). Wählt er eine Datei aus den eigenen Dokumenten, wird nichts kopiert. | `OK <Pfad>` oder `ABBRUCH` |
 | `SPEICHERN <Datei>[\t<Titel>]` | `<Datei>` ist ein Pfad relativ zu `Dokumente` und muss dort liegen. Der Nutzer öffnet den Zielordner und drückt F5. Gibt es das Ziel schon, bleibt die Auswahl offen (nie überschreiben). | `OK <Ort>/<Name>` oder `ABBRUCH` |
 | `MELDEN <Titel>\t<Text>` | Meldung kurz in der Leiste (8 s, ohne Ton, höchstens eine je Sekunde und App) | `OK` |
-| `DRUCKEN <Name>` + Datei als Deskriptor (`SCM_RIGHTS`) | nur PDF, JPEG, PNG bis 100 MB, Recht `drucken`; der Nutzer bestätigt am Bildschirm (passt der Inhalt nicht zur Endung, gleich `FEHLER`, ohne Frage). Die Datei geht unverändert an den Drucker (keine Umwandlung); nimmt der Drucker das Format nicht direkt, ist es ein Fehler. | `OK`, `ABBRUCH` oder `FEHLER …` |
+| `DRUCKEN <Name>` + Datei als Deskriptor (`SCM_RIGHTS`) | nur PDF, JPEG, PNG bis 100 MB, Recht `drucken`; der Nutzer bestätigt am Bildschirm (passt der Inhalt nicht zur Endung, gleich `FEHLER`, ohne Frage). Nimmt der Drucker das Format direkt an, geht die Datei unverändert hin; sonst wandelt Saalburg PDF und PNG in einem eingesperrten Prozess (ohne Netz, nur eigener Arbeitsordner, Zeit- und Speichergrenzen) in JPEG-Seiten um (300 dpi, höchstens 100 Seiten; ab Saalburg 202611241934, vorher Fehler). Geht die Umwandlung nicht, antwortet der Dienst mit `FEHLER`. | `OK`, `ABBRUCH` oder `FEHLER …` |
 
 - **Warten**: Öffnen und Speichern antworten erst, wenn der Nutzer gewählt hat (auch nach
   Minuten). Die App sollte dabei ihre Ereignisschleife weiterlaufen lassen (Thread), sonst zeigt
@@ -175,6 +175,8 @@ UTF-8-Zeile mit `\n`, die Antwort ist eine Zeile (`OK …`, `ABBRUCH`, `FEHLER <
 - **Drucken** braucht `drucken = ja` in `app.conf`; der Nutzer kann es in den Einstellungen
   (Spalte „Drucken“) abschalten, das gilt sofort. Einen Drucker richtet der Nutzer mit Claude
   ein (`drucken --drucker …`); fehlt er, antwortet der Dienst mit einem Fehler.
+- **Test-Apps auf dem Testplatz** (ab Saalburg 202611241934): `MELDEN` und `DRUCKEN` (mit
+  `drucken = ja`) gehen, `OEFFNEN`/`SPEICHERN` nicht (Abschnitt 15).
 
 ### Zwischenablage, Ziehen und Ablegen
 
@@ -182,7 +184,10 @@ Beides läuft über das Wayland-Protokoll `wl_data_device` (Version 3, siehe 5):
 - **Zwischenablage** zwischen Programmen: beliebige MIME-Typen, höchstens 8 je Quelle.
 - **Mit Terminals**: Text, also `text/plain;charset=utf-8`, `text/plain`, `UTF8_STRING`.
 - **Bildschirmfotos** des Nutzers (Druck-Taste) bietet die Ablage als `image/png` an, als Text
-  den Pfad.
+  den Pfad. Jedes neue Foto ist ein neues Angebot (`wl_data_device.selection`) an das Fenster
+  mit Fokus, auch mehrere Fotos in derselben Sekunde (eigene Datei je Foto). Fragt eine App
+  nach einem anderen Typ (z. B. `text/uri-list`, `text/html`), bekommt sie nichts (ab Saalburg
+  202611241934; vorher den Pfad als Text).
 - **Ziehen und Ablegen**: Text aus Terminals, und von Programmen `text/uri-list` bzw. Text;
   Dateien erscheinen als Pfade.
 
@@ -248,8 +253,10 @@ Recht fehlt.
 | `zwp_relative_pointer_manager_v1` | 1 | relative Mausbewegung (Spiele, 3D-Ansichten) ² |
 | `wp_cursor_shape_manager_v1` | 1 | Zeigerformen ohne eigenes Bild ² |
 | `zwp_idle_inhibit_manager_v1` | 1 | Bildschirm wach halten ² |
+| `zxdg_exporter_v2`, `zxdg_importer_v2` | 1 | xdg-foreign: Elternfenster über Verbindungen hinweg (z. B. GTK-Dialog von Chromium) ³ |
+| `zxdg_exporter_v1`, `zxdg_importer_v1` | 1 | dasselbe in Version 1 (GTK 3 importiert nur darüber); Griffe gelten für beide ³ |
 
-² ab Saalburg 202611230126 (Abschnitt 13).
+² ab Saalburg 202611230126 (Abschnitt 13). ³ ab Saalburg 202611241934.
 
 Verhalten:
 - **Fenster** bekommen per `configure` die Größe ihres Platzes und die Zustände „maximiert“
@@ -262,6 +269,12 @@ Verhalten:
 - **Tastaturfokus**: Bekommt ein Fenster den Fokus, bevor es sein erstes Bild zeigt, meldet
   Saalburg ihn mit dem ersten Puffer noch einmal (`wl_keyboard.leave`, dann `enter`; ab Saalburg 202611231841). Eine App
   sollte beides jederzeit vertragen.
+- **Dialoge** ³: Ein Fenster mit Elternfenster (`xdg_toplevel.set_parent` oder xdg-foreign
+  `set_parent_of`) erscheint auf dem Platz seines Elternfensters und bekommt den Tastaturfokus;
+  das Elternfenster wartet darunter und kommt zurück, wenn der Dialog zugeht. Holt der Nutzer
+  das Elternfenster über die Übersicht zurück, steht dort wieder der Dialog; ein Klick ins
+  Elternfenster (z. B. bei 1:1 auf dem anderen Platz) gibt dem Dialog den Fokus und erreicht
+  die App nicht. Gilt nur innerhalb derselben App; xdg-foreign-Griffe sind zufällig.
 - **Ping/Pong**: Antwortet eine App 5 s lang nicht auf `xdg_wm_base.ping`, zeigt die Oberfläche
   „reagiert nicht“. Deshalb die Ereignisschleife nie lange blockieren.
 - **Mauszeiger**: Eigene Zeiger über `wl_pointer.set_cursor` sind erlaubt. Mit
@@ -567,7 +580,9 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
   Fokusrahmen.
 - **Einschränkungen**:
   - Ein Dateidialog öffnet nur die Ordner der App, praktisch `Dokumente` (Lesezeichen in der
-    Seitenleiste). Andere Dateien holt der Nutzer mit Windows-Taste+O dorthin.
+    Seitenleiste). Andere Dateien holt der Nutzer mit Windows-Taste+O dorthin. Ab Saalburg
+    202611241934 erscheint der Dialog (GTK) sofort auf dem Platz der Web-App, hat die Tastatur und ist
+    deutsch.
   - Keine Web-Benachrichtigungen ans System (Chromium kennt den Dienst nicht), kein
     Teilen-Dialog, keine Kamera, kein Mikrofon.
   - Keine Erweiterungen aus dem Web Store.
@@ -693,6 +708,7 @@ nach dem Update.
 | 202611231841 | Mitgelieferter Browser (Tabs, eigene Sandbox und Richtlinien, Kennung `browser` reserviert); Wayland: Tastaturfokus wird mit dem ersten Bild eines Fensters noch einmal gemeldet; Chromium-Oberfläche und Accept-Language deutsch (Browser und Web-Apps) |
 | 202611240808 | Aussehen für native Apps (`/daten/system/aussehen/saalburg.conf`, Vorgaben in `/usr/lib/osproto/aussehen/`, Abschnitt 5; neue CSS-Variablen `--saalburg-akzent-text`, `-auswahl`, `-info`, `-abstand`, `-rundung`); Testplatz: Testpaket unter `/daten/apps/<kennung>/aktuell` (Katalog-Pfade laufen); Browser: Google-Suche, Übersetzen auf Anfrage, Systemtitelleiste |
 | 202611241046 | DNS über Quad9 (Schutz vor Schadseiten, Standard an; lokale Namen lösen nicht mehr auf, Abschnitt 7); Netzlaufwerke mit Rechnernamen; linux-dmabuf Version 4 mit Rückmeldung (native Apps mit `gpu = ja` finden die GPU über Mesa/EGL auf Wayland), `gpu` gibt nur die Render-Knoten frei; Browser ohne Safe Browsing und ohne Netz im Hintergrund; Store-Beschreibung bis 1200 Zeichen statt Bytes (Umlaute zählen einfach) |
+| 202611241934 | Dialoge (`xdg_toplevel.set_parent`, xdg-foreign v1/v2) auf dem Platz ihres Elternfensters mit Fokus, GTK-Dateidialog der Web-Apps deutsch; Bildschirmfotos: jedes Foto ein neues Ablage-Angebot, andere Typen als `image/png`/Text liefern nichts; Testplatz: Test-Apps dürfen melden und (mit `drucken = ja`) drucken; Drucken: PDF/PNG für Drucker ohne diese Formate eingesperrt in JPEG-Seiten umgewandelt, ipps:// wenn der Drucker TLS verlangt |
 
 ---
 
@@ -787,8 +803,14 @@ gibt es nicht.
 
 **Die Test-App** läuft getrennt von echten Apps: eigene Kennung (UID ab 30000), Daten unter
 `/daten/testplatz/daten/<kennung>` statt `/daten/appdaten`, keine `ordner =`, kein Dateidienst,
-nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Web-Apps
+nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton, Drucken). Web-Apps
 bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
+**Dienst der Oberfläche** (`$SAALBURG_DIENST`, ab Saalburg 202611241934): `MELDEN` erscheint in der
+Leiste als „TEST <Name>: …“. `DRUCKEN` geht mit `drucken = ja`; der Bestätigungsdialog heißt
+„TEST: <Name> möchte drucken“, bestätigen kann nur der Nutzer am Bildschirm (Antwort `OK`,
+`ABBRUCH` oder `FEHLER …` wie bei echten Apps). `OEFFNEN` und `SPEICHERN` antworten
+`FEHLER auf dem Testplatz nicht verfügbar`. Vorher bekam jede Anfrage einer Test-App
+`FEHLER Nur für Apps in der Sandbox`.
 **Pfade wie bei echter Installation** (ab Saalburg 202611240808): Das Testpaket liegt auf dem
 Rechner unter `/daten/testplatz/apps/<kennung>`, erscheint für die Test-App und ihren MCP-Server
 aber unter `/daten/apps/<kennung>/aktuell` (nur lesbar). Eine `app.conf` mit absoluten Pfaden
