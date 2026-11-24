@@ -34,7 +34,9 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BEKANNT = {"kennung", "version", "beschreibung", "name", "symbol", "farbe", "art", "start", "url", "reihe",
            "netzwerk", "gpu", "ton", "ram_max", "ordner", "steuerung", "verbindung",
-           "hintergrund", "kategorie", "saalburg"}
+           "hintergrund", "kategorie", "saalburg",
+           # wie BEKANNT in Saalburgs app.conf-Leser (Werte prüft Saalburg beim Installieren)
+           "angleichen", "drucken", "fernzugriff", "fernzugriff_sicher", "netz_ziele", "netzlaufwerk"}
 NAME_RE = re.compile(r"^[a-z0-9-]{1,31}$")
 VERSION_RE = re.compile(r"^[0-9][0-9a-z.-]{0,30}$")
 PFAD_RE = re.compile(r"^[A-Za-z0-9._+-]+$")
