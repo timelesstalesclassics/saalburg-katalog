@@ -45,7 +45,7 @@ Wayland, GPU, Ton, Lebenszyklus, Claude-Anbindung, Bibliotheken, Mindestversion)
   Spielgrafik); Spiele gleichen nur Menüs, Dialoge und Rahmen an.
 - Einlesen mit `beispiele/saalburg_aussehen.zig`; inotify auf den Ordner, wenn Änderungen
   sofort wirken sollen. Rollen und Regeln: `PLATTFORM.md`, Abschnitt 5 „Aussehen für native Apps“.
-- Wer die Datei nutzt, setzt `saalburg = @VERSION@` (oder neuer).
+- Wer die Datei nutzt, setzt `saalburg = 202611240808` (oder neuer).
 
 ## Store-Seite
 

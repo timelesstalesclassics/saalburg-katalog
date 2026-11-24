@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611231841.**
+**Stand: Saalburg 202611240808.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -96,7 +96,7 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/proc` | lesen, eigene Einträge schreiben |
 | `/run/netz` (DNS) | lesen |
 | `/daten/system/schrift` (Schriftwahl, fontconfig) | lesen |
-| `/daten/system/aussehen` (Aussehen für native Apps, Abschnitt 5; ab Saalburg @VERSION@) | lesen |
+| `/daten/system/aussehen` (Aussehen für native Apps, Abschnitt 5; ab Saalburg 202611240808) | lesen |
 | `/dev/null`, `zero`, `full`, `random`, `urandom`, `tty`, `ptmx`, `/dev/pts` | lesen, schreiben |
 | `/dev/shm` | lesen, schreiben, anlegen (ohne Ausführen) |
 | `/daten/apps/<kennung>` (Paket) | lesen, ausführen |
@@ -293,7 +293,7 @@ Verhalten:
   von Chromium mit.
 - **Ohne Recht `gpu`**: Programme zeichnen per Software in `wl_shm`-Puffer.
 
-### Aussehen für native Apps (ab Saalburg @VERSION@)
+### Aussehen für native Apps (ab Saalburg 202611240808)
 
 Native Apps (`art = programm`, eigene Fenster) zeichnen selbst. Damit sie wie Saalburg aussehen,
 legt Saalburg Farben, Schriften und Maße in eine einfache Datei. Sie kommt aus derselben Quelle
@@ -541,8 +541,8 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
   | `--saalburg-schrift-text` | Fließtext-Schrift (Nutzerwahl, über fontconfig `sans-serif`) |
   | `--saalburg-schrift-fest` | feste Schrift für Code und Terminal (Nutzerwahl, `monospace`) |
   | `--saalburg-schrift` | wie `--saalburg-schrift-text` (älterer Name, bleibt gültig) |
-  | `--saalburg-akzent-text`, `--saalburg-auswahl`, `--saalburg-info` | Text auf Akzentfläche, Markierung, Hinweis (ab Saalburg @VERSION@) |
-  | `--saalburg-abstand`, `--saalburg-rundung` | Abstand-Grundmaß und Eckenradius bei 100 % (der Seitenzoom skaliert sie; ab Saalburg @VERSION@) |
+  | `--saalburg-akzent-text`, `--saalburg-auswahl`, `--saalburg-info` | Text auf Akzentfläche, Markierung, Hinweis (ab Saalburg 202611240808) |
+  | `--saalburg-abstand`, `--saalburg-rundung` | Abstand-Grundmaß und Eckenradius bei 100 % (der Seitenzoom skaliert sie; ab Saalburg 202611240808) |
 
   Die Schriftwahl des Nutzers (Einstellungen → Darstellung) steht in
   `/daten/system/schrift/fonts.conf` und gilt für Web-Apps beim nächsten Start. Eigene
@@ -567,8 +567,8 @@ aktualisiert, nicht über den Katalog.
   den Rest von `/daten`. Rechte (Netz, GPU, Ton, Hintergrund, Dokumente für Claude) wie bei
   Web-Apps in den Einstellungen.
 - **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über Google (deutsch) ohne
-  Vorschläge beim Tippen (vor Saalburg @VERSION@: DuckDuckGo), Übersetzen nur auf Anfrage
-  (Chromium bietet es an, Rechtsklick → „Übersetzen“; nie automatisch, ab Saalburg @VERSION@),
+  Vorschläge beim Tippen (vor Saalburg 202611240808: DuckDuckGo), Übersetzen nur auf Anfrage
+  (Chromium bietet es an, Rechtsklick → „Übersetzen“; nie automatisch, ab Saalburg 202611240808),
   Safe Browsing auf Standardschutz eingestellt (Stufe 1, nicht „erweitert“) – derzeit ohne
   Wirkung, weil Google dem mitgelieferten Chromium die Listen nicht gibt, kein Passwortspeicher
   und kein Autofill,
@@ -578,7 +578,7 @@ aktualisiert, nicht über den Katalog.
   Dokumente. Die Web-Apps behalten ihre bisherigen Richtlinien.
 - **Darstellung**: dunkel (`--force-dark-mode`, Seiten sehen `prefers-color-scheme: dark`),
   Oberfläche in Saalburg-Blau, Systemtitelleiste (Rahmen von Saalburg, keine eigenen Knöpfe für
-  Minimieren, Maximieren, Schließen; ab Saalburg @VERSION@), Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
+  Minimieren, Maximieren, Schließen; ab Saalburg 202611240808), Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
   bleiben unverändert (kein Saalburg-Aussehen).
 - **Startseite und Neuer Tab**: lokale Seite ohne Skript und ohne Netz. Nach einem Neustart
   öffnet er die Tabs der letzten Sitzung.
@@ -675,6 +675,7 @@ nach dem Update.
 | 202611230257 | Entfernen auf der Store-Seite (Wahl: Daten behalten oder `$HOME` mitlöschen; laufende App wird vorher wie beim Schließen beendet), Strg+I in der Übersicht öffnet die Store-Seite einer App |
 | 202611231526 | Fernzugriff (`fernzugriff`, `fernzugriff_sicher`, `$SAALBURG_FERN_SOCKET`, Abschnitt 16), begrenztes Netz (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke (`netzlaufwerk`), Testplatz (Abschnitt 15) |
 | 202611231841 | Mitgelieferter Browser (Tabs, eigene Sandbox und Richtlinien, Kennung `browser` reserviert); Wayland: Tastaturfokus wird mit dem ersten Bild eines Fensters noch einmal gemeldet; Chromium-Oberfläche und Accept-Language deutsch (Browser und Web-Apps) |
+| 202611240808 | Aussehen für native Apps (`/daten/system/aussehen/saalburg.conf`, Vorgaben in `/usr/lib/osproto/aussehen/`, Abschnitt 5; neue CSS-Variablen `--saalburg-akzent-text`, `-auswahl`, `-info`, `-abstand`, `-rundung`); Testplatz: Testpaket unter `/daten/apps/<kennung>/aktuell` (Katalog-Pfade laufen); Browser: Google-Suche, Übersetzen auf Anfrage, Systemtitelleiste |
 
 ---
 
@@ -771,7 +772,7 @@ gibt es nicht.
 `/daten/testplatz/daten/<kennung>` statt `/daten/appdaten`, keine `ordner =`, kein Dateidienst,
 nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Web-Apps
 bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
-**Pfade wie bei echter Installation** (ab Saalburg @VERSION@): Das Testpaket liegt auf dem
+**Pfade wie bei echter Installation** (ab Saalburg 202611240808): Das Testpaket liegt auf dem
 Rechner unter `/daten/testplatz/apps/<kennung>`, erscheint für die Test-App und ihren MCP-Server
 aber unter `/daten/apps/<kennung>/aktuell` (nur lesbar). Eine `app.conf` mit absoluten Pfaden
 wie im Katalog (`start = exec /daten/apps/<kennung>/aktuell/<datei>`, ebenso `verbindung`) läuft
