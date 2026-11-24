@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611231841.**
+**Stand: Saalburg 202611240808.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -96,6 +96,7 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/proc` | lesen, eigene Einträge schreiben |
 | `/run/netz` (DNS) | lesen |
 | `/daten/system/schrift` (Schriftwahl, fontconfig) | lesen |
+| `/daten/system/aussehen` (Aussehen für native Apps, Abschnitt 5; ab Saalburg 202611240808) | lesen |
 | `/dev/null`, `zero`, `full`, `random`, `urandom`, `tty`, `ptmx`, `/dev/pts` | lesen, schreiben |
 | `/dev/shm` | lesen, schreiben, anlegen (ohne Ausführen) |
 | `/daten/apps/<kennung>` (Paket) | lesen, ausführen |
@@ -292,6 +293,114 @@ Verhalten:
   von Chromium mit.
 - **Ohne Recht `gpu`**: Programme zeichnen per Software in `wl_shm`-Puffer.
 
+### Aussehen für native Apps (ab Saalburg 202611240808)
+
+Native Apps (`art = programm`, eigene Fenster) zeichnen selbst. Damit sie wie Saalburg aussehen,
+legt Saalburg Farben, Schriften und Maße in eine einfache Datei. Sie kommt aus derselben Quelle
+wie die Farben der Oberfläche und `saalburg.css` der Web-Apps, die drei können nicht
+auseinanderlaufen.
+
+| Pfad | Inhalt |
+|---|---|
+| `/daten/system/aussehen/saalburg.conf` | **zuerst lesen**: aktuelle Werte mit Schrift und Schriftgröße aus den Einstellungen; von der Oberfläche geschrieben, für jede App lesbar (Landlock) |
+| `/usr/lib/osproto/aussehen/saalburg.conf` | Vorgaben ab Werk im selben Format, falls die erste Datei fehlt |
+
+**Format**: UTF-8, eine Angabe je Zeile `schluessel = wert`, `#` leitet Kommentarzeilen ein.
+Unbekannte Schlüssel überspringen (neue Rollen kommen ohne neue Formatnummer dazu). Beispiel
+(Schriftgröße 32, Vorgabe):
+
+```
+format = 1
+farbschema = dunkel
+schrift_fest = Terminess Nerd Font Mono
+schrift_fest_datei = /usr/share/fonts/saalburg/Terminess-Regular.ttf
+schrift_fest_fett_datei = /usr/share/fonts/saalburg/Terminess-Bold.ttf
+schrift_text = DejaVu Sans
+schrift_text_datei = /usr/share/fonts/dejavu/DejaVuSans.ttf
+schrift_text_fett_datei = /usr/share/fonts/dejavu/DejaVuSans-Bold.ttf
+zeilenhoehe = 32
+skalierung = 1.14
+abstand = 8
+rundung = 10
+grund = #111218
+karte = #1a1b26
+…
+```
+
+| Schlüssel | Bedeutung |
+|---|---|
+| `format` | Formatnummer, derzeit `1`. Ändert sich nur, wenn sich die Bedeutung vorhandener Schlüssel ändert |
+| `farbschema` | `dunkel` (derzeit immer) |
+| `schrift_fest`, `schrift_text` | Familienname der festen Schrift (Code, Tabellenraster, Terminal) bzw. der Fließtext-Schrift, wie der Nutzer sie gewählt hat; dieselben Namen liefert fontconfig für `monospace` bzw. `sans-serif` |
+| `schrift_…_datei`, `schrift_…_fett_datei` | TTF-Dateien dazu (normal, fett) für FreeType, ohne fontconfig |
+| `zeilenhoehe` | Schriftgröße der Oberfläche als Zeilenhöhe in Pixeln (20, 24, 28, 32). Die Oberfläche wählt die Pixelgröße der Schrift so, dass Ober- plus Unterlänge genau eine Zeile füllen |
+| `skalierung` | `zeilenhoehe / 28`, zwei Nachkommastellen (28 px = 1.00, 32 px = 1.14), wie der Seitenzoom der Web-Apps. Feste Pixelmaße der App damit malnehmen |
+| `abstand` | Abstand-Grundmaß in Pixeln, schon skaliert (7 bei 100 %); Ränder und Lücken als Vielfache |
+| `rundung` | Eckenradius von Karten und Knöpfen in Pixeln, schon skaliert (9 bei 100 %) |
+
+**Farbrollen** (`#rrggbb`, deckend):
+
+| Rolle | Bedeutung | Vorgabe |
+|---|---|---|
+| `grund` | Hintergrund des Fensters | `#111218` |
+| `seite` | Seitenleisten, dunkler als der Grund | `#0b0c11` |
+| `karte` | Flächen: Karten, Eingabefelder, Werkzeugleisten | `#1a1b26` |
+| `flaeche_hoch` | hervorgehobene Fläche: unter dem Zeiger, gewählt, Menüs | `#24283b` |
+| `rahmen` | Trennlinien, Ränder | `#2a2e42` |
+| `text` | Text | `#c0caf5` |
+| `text_hell` | betonter Text, Überschriften | `#f2f4fb` |
+| `text_gedaempft` | leiser Text, Hinweise, Tastenkürzel | `#8089b0` |
+| `text_aus` | deaktiviert | `#565f89` |
+| `akzent` | Fokus, Links, Hauptknopf, Fortschritt | `#7aa2f7` |
+| `akzent_hell` | Akzent unter dem Zeiger | `#9db8fa` |
+| `akzent_flaeche` | große Akzentflächen (Titel, Symbol), Saalburg-Blau | `#3d59a1` |
+| `akzent_text` | Text auf `akzent` (Hauptknopf, Fokuszeile) | `#0c0d13` |
+| `auswahl` | markierter Text, gewählte Zeile (Hintergrund) | `#364466` |
+| `erfolg`, `warnung`, `fehler` | Erfolg, Warnung/Rückfrage, Fehler/Löschen | `#9ece6a`, `#e0af68`, `#f7768e` |
+| `info` | Hinweis, läuft gerade | `#7dcfff` |
+| `terminal_grund`, `terminal_text` | Standardfarben im Terminal (Terminal-Apps: dort nichts übermalen) | `#1a1b26`, `#c0caf5` |
+
+Dieselben Farben haben Web-Apps unter `--saalburg-…` (Abschnitt 10): `grund` = `--saalburg-grund`,
+`karte` = `--saalburg-karte`, `flaeche_hoch` = `--saalburg-karte-hell`, `rahmen` =
+`--saalburg-linie`, `text_gedaempft` = `--saalburg-leise`, `erfolg`/`warnung` = `--saalburg-gut`/`-warn` usw.
+
+**Regeln**
+- **Aus Saalburg kommen**: Grundflächen (`grund`, `seite`, `karte`, `flaeche_hoch`), Text,
+  Rahmen, Akzent und Auswahl, Meldungsfarben, die Schriften der Bedienelemente und die Größe
+  (`zeilenhoehe`/`skalierung`). Keine eigene Hintergrundfarbe fürs Fenster, kein eigenes
+  Farbschema, keine eigene Schriftgröße.
+- **Eigene Farben erlaubt** für Inhalte: Dokument- und Seitenfarben (Stilus), Zellen- und
+  Diagrammfarben (Tabula), Spielgrafik, Bilder, Syntaxfarben, Farben, die der Nutzer selbst
+  wählt. Ebenso eigene Schriften für erzeugten Inhalt (z. B. Dokumentschriften).
+- **Spiele**: Menüs, Dialoge und Rahmen um das Spielfeld nach Saalburg; die Spielgrafik bleibt.
+- Die `farbe` in `app.conf` ist nur die Kachelfarbe der Übersicht, kein Aussehen der App.
+
+**Ausweichwerte**: Fehlt `/daten/system/aussehen/saalburg.conf` (älteres Saalburg, noch nicht
+geschrieben), die Vorgaben aus `/usr/lib/osproto/…` lesen; fehlt auch die oder ein Schlüssel,
+die Vorgaben aus den Tabellen oben verwenden. Eine App muss ohne beide Dateien laufen.
+
+**Änderungen**: Die Oberfläche schreibt die Datei beim Start und bei jeder Änderung von Schrift
+oder Schriftgröße neu, immer als neue Datei (`saalburg.conf.neu`, dann `rename`): Eine App sieht
+nie eine halbe Datei. Mindestens beim nächsten Start der App gilt der neue Stand. Wer laufend
+mitgehen will, beobachtet den **Ordner** `/daten/system/aussehen` mit inotify (`IN_MOVED_TO`,
+Name `saalburg.conf`; nicht die Datei selbst, sie wird ersetzt), liest neu und zeichnet neu.
+Die Farben ändern sich nur mit einem System-Update.
+
+**Baustein zum Einlesen**: `beispiele/saalburg_aussehen.zig` in diesem Repo (Zig 0.16, nur
+Systemaufrufe, mit Test): Laufzeit-Datei, Vorgaben, Ausweichwerte, inotify. Kurzform:
+
+```zig
+const aussehen = @import("saalburg_aussehen.zig");
+
+var a = aussehen.laden();                    // a.farben.grund, a.zeilenhoehe, a.schrift_text_datei.t() …
+const beobachter = aussehen.beobachten();    // ?i32, mit poll() in die Ereignisschleife
+// bei POLLIN: if (aussehen.geaendert(fd)) { a = aussehen.laden(); neu_zeichnen(); }
+```
+
+Terminal-Apps (`art = terminal`) lesen dieselbe Datei. Sie lassen den Standardhintergrund des
+Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben als 24-Bit-Farben
+(`ESC[38;2;r;g;bm`).
+
 ---
 
 ## 6. Ton
@@ -432,6 +541,8 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
   | `--saalburg-schrift-text` | Fließtext-Schrift (Nutzerwahl, über fontconfig `sans-serif`) |
   | `--saalburg-schrift-fest` | feste Schrift für Code und Terminal (Nutzerwahl, `monospace`) |
   | `--saalburg-schrift` | wie `--saalburg-schrift-text` (älterer Name, bleibt gültig) |
+  | `--saalburg-akzent-text`, `--saalburg-auswahl`, `--saalburg-info` | Text auf Akzentfläche, Markierung, Hinweis (ab Saalburg 202611240808) |
+  | `--saalburg-abstand`, `--saalburg-rundung` | Abstand-Grundmaß und Eckenradius bei 100 % (der Seitenzoom skaliert sie; ab Saalburg 202611240808) |
 
   Die Schriftwahl des Nutzers (Einstellungen → Darstellung) steht in
   `/daten/system/schrift/fonts.conf` und gilt für Web-Apps beim nächsten Start. Eigene
@@ -455,13 +566,19 @@ aktualisiert, nicht über den Katalog.
   Profil; kein Zugriff auf die Profile und Anmeldungen der Web-Apps, auf Claudes Dateien oder auf
   den Rest von `/daten`. Rechte (Netz, GPU, Ton, Hintergrund, Dokumente für Claude) wie bei
   Web-Apps in den Einstellungen.
-- **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über DuckDuckGo ohne Vorschläge,
-  kein Passwortspeicher und kein Autofill, Drittanbieter-Cookies gesperrt, keine Telemetrie,
+- **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über Google (deutsch) ohne
+  Vorschläge beim Tippen (vor Saalburg 202611240808: DuckDuckGo), Übersetzen nur auf Anfrage
+  (Chromium bietet es an, Rechtsklick → „Übersetzen“; nie automatisch, ab Saalburg 202611240808),
+  Safe Browsing auf Standardschutz eingestellt (Stufe 1, nicht „erweitert“) – derzeit ohne
+  Wirkung, weil Google dem mitgelieferten Chromium die Listen nicht gibt, kein Passwortspeicher
+  und kein Autofill,
+  Drittanbieter-Cookies gesperrt, keine Telemetrie,
   kein Hintergrundbetrieb, keine Komponenten-Updates, keine Erweiterungen, Benachrichtigungen,
   Standort, Kamera und Mikrofon gesperrt, `file://` nur für die Startseite und die eigenen
   Dokumente. Die Web-Apps behalten ihre bisherigen Richtlinien.
 - **Darstellung**: dunkel (`--force-dark-mode`, Seiten sehen `prefers-color-scheme: dark`),
-  Oberfläche in Saalburg-Blau, Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
+  Oberfläche in Saalburg-Blau, Systemtitelleiste (Rahmen von Saalburg, keine eigenen Knöpfe für
+  Minimieren, Maximieren, Schließen; ab Saalburg 202611240808), Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
   bleiben unverändert (kein Saalburg-Aussehen).
 - **Startseite und Neuer Tab**: lokale Seite ohne Skript und ohne Netz. Nach einem Neustart
   öffnet er die Tabs der letzten Sitzung.
@@ -558,6 +675,7 @@ nach dem Update.
 | 202611230257 | Entfernen auf der Store-Seite (Wahl: Daten behalten oder `$HOME` mitlöschen; laufende App wird vorher wie beim Schließen beendet), Strg+I in der Übersicht öffnet die Store-Seite einer App |
 | 202611231526 | Fernzugriff (`fernzugriff`, `fernzugriff_sicher`, `$SAALBURG_FERN_SOCKET`, Abschnitt 16), begrenztes Netz (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke (`netzlaufwerk`), Testplatz (Abschnitt 15) |
 | 202611231841 | Mitgelieferter Browser (Tabs, eigene Sandbox und Richtlinien, Kennung `browser` reserviert); Wayland: Tastaturfokus wird mit dem ersten Bild eines Fensters noch einmal gemeldet; Chromium-Oberfläche und Accept-Language deutsch (Browser und Web-Apps) |
+| 202611240808 | Aussehen für native Apps (`/daten/system/aussehen/saalburg.conf`, Vorgaben in `/usr/lib/osproto/aussehen/`, Abschnitt 5; neue CSS-Variablen `--saalburg-akzent-text`, `-auswahl`, `-info`, `-abstand`, `-rundung`); Testplatz: Testpaket unter `/daten/apps/<kennung>/aktuell` (Katalog-Pfade laufen); Browser: Google-Suche, Übersetzen auf Anfrage, Systemtitelleiste |
 
 ---
 
@@ -577,6 +695,9 @@ nach dem Update.
       neu.
 - [ ] Ton über ALSA `default`, nie über feste Hardware-Geräte.
 - [ ] Web-Apps: `aussehen.css` nur mit `var(--saalburg-…)`.
+- [ ] Native Apps: Grundflächen, Text, Rahmen, Akzent, Schrift und Größe aus
+      `saalburg.conf` (Abschnitt 5, „Aussehen für native Apps“), mit Ausweichwerten; eigene
+      Farben nur für Inhalte.
 - [ ] Was Claude tun können soll, ist ein MCP-Werkzeug (`verbindung`, `steuerung = claude`);
       gefährliche Schritte fragen in der App selbst nach. Der MCP-Server spricht mit der
       laufenden App über `$SAALBURG_APP_SOCKET` und meldet, wenn sie nicht läuft.
@@ -651,6 +772,13 @@ gibt es nicht.
 `/daten/testplatz/daten/<kennung>` statt `/daten/appdaten`, keine `ordner =`, kein Dateidienst,
 nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Web-Apps
 bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
+**Pfade wie bei echter Installation** (ab Saalburg 202611240808): Das Testpaket liegt auf dem
+Rechner unter `/daten/testplatz/apps/<kennung>`, erscheint für die Test-App und ihren MCP-Server
+aber unter `/daten/apps/<kennung>/aktuell` (nur lesbar). Eine `app.conf` mit absoluten Pfaden
+wie im Katalog (`start = exec /daten/apps/<kennung>/aktuell/<datei>`, ebenso `verbindung`) läuft
+damit unverändert. Andere installierte Apps sieht die Test-App dort nicht; ist dieselbe Kennung
+echt installiert, sieht sie nur ihr Testpaket, die echte Installation bleibt unberührt. Vorher
+fand die Test-App solche Pfade nicht („not found“).
 
 **Netz der Test-App** (`netzwerk = ja`): eigener Netz-Namensraum.
 - `127.0.0.1`/`::1` sind die eigene Schleife der App: Ein Server der App auf 127.0.0.1 (z. B.
