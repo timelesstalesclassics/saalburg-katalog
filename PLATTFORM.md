@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611240808.**
+**Stand: Saalburg 202611241046.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -103,7 +103,7 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `$HOME` = `/daten/appdaten/<kennung>` | alles außer Gerätedateien |
 | `$XDG_RUNTIME_DIR` = `/run/user/<uid>` | alles außer Gerätedateien |
 | `/tmp` (eigenes, siehe unten) | alles außer Gerätedateien |
-| `/dev/dri` | nur mit Recht `gpu` |
+| `/dev/dri/renderD*` (Render-Knoten; nie `card*`/KMS) | nur mit Recht `gpu` (vor 202611241046: ganz `/dev/dri`, `card*` gehört aber der Gruppe video) |
 | `/dev/snd`, `/daten/system/ton` | nur mit Recht `ton` (siehe 6) |
 | `ordner = /daten/x, /daten/y (lesen)` | schreiben bzw. lesen; nur unter `/daten`, nie unter `/daten/claude`, `/daten/system`, `/daten/appdaten`, `/daten/apps`; höchstens 4 |
 
@@ -241,7 +241,7 @@ Recht fehlt.
 | `xdg_wm_base` | 5 | Fenster und Popups, Ping/Pong |
 | `zxdg_decoration_manager_v1` | 1 | Den Rahmen zeichnet die Oberfläche (serverseitig) |
 | `wl_data_device_manager` | 3 | Zwischenablage, Ziehen und Ablegen |
-| `zwp_linux_dmabuf_v1` | 3 | GPU-Puffer |
+| `zwp_linux_dmabuf_v1` | 4 | GPU-Puffer; Rückmeldung (`get_default_feedback`/`get_surface_feedback`) mit Render-Knoten als `main_device` und Formattabelle (ab 202611241046; vorher 3) |
 | `wp_viewporter` | 1 | Ausschnitt und Zielgröße einer Fläche ² |
 | `wp_fractional_scale_manager_v1` | 1 | bevorzugte Skalierung immer 120 (= 1,0) ² |
 | `zwp_pointer_constraints_v1` | 1 | Zeiger sperren oder auf die Fläche begrenzen ² |
@@ -291,6 +291,13 @@ Verhalten:
 - **Schnittstellen**: EGL und OpenGL ES (`mesa-egl`, `mesa-gles`), dazu GBM.
 - **Vulkan**: Ein Vulkan-Treiber ist nicht installiert. Der Lader kommt nur als Abhängigkeit
   von Chromium mit.
+- **Gerät finden**: Die Oberfläche nennt ihren Render-Knoten über linux-dmabuf Version 4
+  (`main_device` der Rückmeldung); daran erkennt Mesa (EGL auf Wayland) die GPU, Apps müssen
+  nichts tun. Vor Saalburg 202611241046 fehlte diese Angabe: native Apps mit `gpu = ja` (EGL über
+  `wl_display`) fanden kein Gerät und zeichneten per Software (im Protokoll
+  „libEGL warning: failed to get driver name for fd -1“). Web-Apps waren nicht betroffen.
+  Wer EGL direkt auf GBM oder `EGL_PLATFORM_DEVICE` nutzt, öffnet `/dev/dri/renderD128`.
+- **Nur Render-Knoten**: zeichnen und rechnen ja, Anzeige (`card*`, KMS, Modus) nie.
 - **Ohne Recht `gpu`**: Programme zeichnen per Software in `wl_shm`-Puffer.
 
 ### Aussehen für native Apps (ab Saalburg 202611240808)
@@ -424,7 +431,15 @@ Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben
 
 - Nur mit Recht `netzwerk` (Web-Apps: Standard an), sonst nur `lo`.
 - **DNS**: `/etc/resolv.conf` zeigt auf `/run/netz/resolv.conf`. Die Datei kann sich im
-  Betrieb ändern (DHCP), deshalb nicht dauerhaft zwischenspeichern.
+  Betrieb ändern (Netzwechsel, Schalter), deshalb nicht dauerhaft zwischenspeichern.
+- **Schutz vor Schadseiten** (ab Saalburg 202611241046, Standard an, nur der Nutzer schaltet ihn
+  ab): Saalburg fragt Quad9 (9.9.9.9, 149.112.112.112, mit IPv6 auch 2620:fe::fe/::9), das
+  bekannte Schad- und Betrugsseiten nicht auflöst (NXDOMAIN). Sperrt ein Netz Quad9, gelten
+  die DNS-Server des Netzes. Folgen für Apps: Namen aus dem lokalen Netz (`fritz.box`,
+  Rechnernamen ohne Punkt, `.local`) lösen in der Regel nicht auf – Geräte im LAN über ihre
+  IP-Adresse ansprechen (wie bei `netz_ziele`); Netzlaufwerke mit Rechnernamen löst Saalburg
+  selbst auf (Abschnitt 16). Zustand lesbar in `/run/netz/schutz`
+  (`zustand aktiv|rueckfall|aus|wartet`), nur zur Anzeige.
 - **TLS**: Die Wurzelzertifikate liegen in `/etc/ssl/certs/ca-certificates.crt`
   (Paket ca-certificates).
 - **Kein mDNS oder Avahi**, keine Firewall-Regeln pro App: Mit Netzrecht ist das Netz offen.
@@ -569,9 +584,10 @@ aktualisiert, nicht über den Katalog.
 - **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über Google (deutsch) ohne
   Vorschläge beim Tippen (vor Saalburg 202611240808: DuckDuckGo), Übersetzen nur auf Anfrage
   (Chromium bietet es an, Rechtsklick → „Übersetzen“; nie automatisch, ab Saalburg 202611240808),
-  Safe Browsing auf Standardschutz eingestellt (Stufe 1, nicht „erweitert“) – derzeit ohne
-  Wirkung, weil Google dem mitgelieferten Chromium die Listen nicht gibt, kein Passwortspeicher
-  und kein Autofill,
+  kein Safe Browsing (ab Saalburg 202611241046 abgeschaltet und ohne Netz im Hintergrund wie bei
+  Web-Apps: Google gibt dem mitgelieferten Chromium die Listen nicht, die Schnittstelle ist nur
+  nicht-kommerziell frei; vor Schadseiten schützt der DNS-Schutz, Abschnitt 7), kein
+  Passwortspeicher und kein Autofill,
   Drittanbieter-Cookies gesperrt, keine Telemetrie,
   kein Hintergrundbetrieb, keine Komponenten-Updates, keine Erweiterungen, Benachrichtigungen,
   Standort, Kamera und Mikrofon gesperrt, `file://` nur für die Startseite und die eigenen
@@ -676,6 +692,7 @@ nach dem Update.
 | 202611231526 | Fernzugriff (`fernzugriff`, `fernzugriff_sicher`, `$SAALBURG_FERN_SOCKET`, Abschnitt 16), begrenztes Netz (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke (`netzlaufwerk`), Testplatz (Abschnitt 15) |
 | 202611231841 | Mitgelieferter Browser (Tabs, eigene Sandbox und Richtlinien, Kennung `browser` reserviert); Wayland: Tastaturfokus wird mit dem ersten Bild eines Fensters noch einmal gemeldet; Chromium-Oberfläche und Accept-Language deutsch (Browser und Web-Apps) |
 | 202611240808 | Aussehen für native Apps (`/daten/system/aussehen/saalburg.conf`, Vorgaben in `/usr/lib/osproto/aussehen/`, Abschnitt 5; neue CSS-Variablen `--saalburg-akzent-text`, `-auswahl`, `-info`, `-abstand`, `-rundung`); Testplatz: Testpaket unter `/daten/apps/<kennung>/aktuell` (Katalog-Pfade laufen); Browser: Google-Suche, Übersetzen auf Anfrage, Systemtitelleiste |
+| 202611241046 | DNS über Quad9 (Schutz vor Schadseiten, Standard an; lokale Namen lösen nicht mehr auf, Abschnitt 7); Netzlaufwerke mit Rechnernamen; linux-dmabuf Version 4 mit Rückmeldung (native Apps mit `gpu = ja` finden die GPU über Mesa/EGL auf Wayland), `gpu` gibt nur die Render-Knoten frei; Browser ohne Safe Browsing und ohne Netz im Hintergrund; Store-Beschreibung bis 1200 Zeichen statt Bytes (Umlaute zählen einfach) |
 
 ---
 
@@ -786,8 +803,8 @@ fand die Test-App solche Pfade nicht („not found“).
   für niemanden sonst. Dienste des Rechners (SSH …) sind von dort nicht zu erreichen – weder
   über 127.0.0.1 noch über seine LAN-Adresse.
 - Nach außen nur **Internet** (IPv4, NAT). LAN, private, Link-lokale und Multicast-Adressen
-  sind gesperrt. Namensauflösung geht über den DNS-Server des Rechners (nur Port 53 an genau
-  dieser Adresse).
+  sind gesperrt. Namensauflösung geht über die DNS-Server des Rechners aus
+  `/run/netz/resolv.conf` (Quad9 oder die des Netzes; nur Port 53 an genau diesen Adressen).
 - Ohne `netzwerk = ja`: nur die eigene Schleife, kein Weg nach außen.
 - LAN-Ziele (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke und Fernzugriff (Abschnitt 16)
   bekommen Test-Apps nie, auch wenn ihre `app.conf` sie nennt.
@@ -921,6 +938,9 @@ Bildschirm ein, sie sind für Apps und Claude unsichtbar.
   Standard: aus).
 - **In der App**: `SAALBURG_NETZLAUFWERK=/daten/netz/<name>` (nur gesetzt, wenn freigegeben
   und eingerichtet). Lesen und schreiben, nichts ausführen. Zusätzlich die Gruppe des Laufwerks.
+- **Rechnernamen** (`//RECHNER/freigabe`, `nas.fritz.box`, `pc.local`) löst Saalburg selbst im
+  LAN auf (DNS-Server des Routers, NetBIOS, mDNS), auch wenn der DNS-Schutz aktiv ist (ab
+  202611241046). Findet es den Rechner nicht, steht das in den Einstellungen; dann die IP eintragen.
 - **Fehlt das Laufwerk** (Rechner aus, Netz weg), schlagen Zugriffe fehl (`EACCES`, `EIO`,
   `EHOSTDOWN`). Die App sagt das klar und versucht es später wieder; Saalburg verbindet von
   selbst neu. Erst schreiben, dann umbenennen (`datei.tmp` → `datei.nc`), damit die Gegenseite
