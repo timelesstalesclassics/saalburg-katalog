@@ -2,7 +2,7 @@ Stilus ist die Textverarbeitung für Saalburg. Sie öffnet Word-Dateien (.docx),
 
 Die Seitenansicht zeigt das Dokument wie gedruckt, mit Zoom und Seitenumbrüchen. Formatvorlagen aus Word werden übernommen, ebenso Aufzählungen, Nummerierungen, Tabellen und eingebettete Bilder (PNG und JPEG).
 
-Formatieren geht wie gewohnt: fett, kursiv, unterstrichen, hoch- und tiefgestellt, Schriftart, Größe, Farbe und Hervorhebung, dazu Überschriften, Blocksatz, Listen mit Ebenen, Tabellen und Seitenumbrüche. Suchen und Ersetzen, Rückgängig und Kopieren mit anderen Apps sind dabei. Die Tastenkürzel entsprechen dem deutschen Word, F1 zeigt sie alle.
+Formatieren geht wie gewohnt: fett, kursiv, unterstrichen, hoch- und tiefgestellt, Schriftart, Größe, Farbe und Hervorhebung, dazu Überschriften, Blocksatz, Listen mit Ebenen, Tabellen und Seitenumbrüche. Suchen und Ersetzen, Rückgängig, Kopieren mit anderen Apps, Drucken und Sichern als PDF sind dabei. Die Tastenkürzel entsprechen dem deutschen Word, F1 zeigt sie alle.
 
 Kopf- und Fußzeilen, Fußnoten oder Kommentare zeigt Stilus nicht an, sie bleiben beim Speichern aber erhalten. Ungespeicherte Änderungen werden beim Ausschalten gesichert. Die Bedienoberfläche folgt dem Saalburg-Aussehen.
 
