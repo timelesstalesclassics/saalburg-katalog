@@ -95,8 +95,9 @@ jobs:
           TESTPLATZ_SCHLUESSEL: ${{ secrets.TESTPLATZ_SCHLUESSEL }}
           KENNUNG: ${{ steps.kennung.outputs.kennung }}
         run: |
+          set -o pipefail
           mkdir -p "$RUNNER_TEMP/aus"
-          python3 -I main/werkzeug/testpaket.py pr/apps "$KENNUNG" "$RUNNER_TEMP/aus/$KENNUNG.ostest" | tee "$RUNNER_TEMP/paket.txt"
+          python3 -I main/werkzeug/testpaket.py pr/apps "$KENNUNG" "$RUNNER_TEMP/aus/$KENNUNG.ostest" 2> "$RUNNER_TEMP/fehler.txt" | tee "$RUNNER_TEMP/paket.txt" || { cat "$RUNNER_TEMP/fehler.txt" >&2; exit 1; }
           cat "$RUNNER_TEMP/paket.txt" >> "$GITHUB_OUTPUT"
 
       - name: Im Zweig testplatz ablegen
@@ -139,5 +140,24 @@ jobs:
             echo '```'
             echo "paket kennung=$KENNUNG pr=$NUMMER sha256=$SHA"
             echo '```'
+          } > "$RUNNER_TEMP/kommentar.md"
+          gh api "repos/$REPO/issues/$NUMMER/comments" -F body=@"$RUNNER_TEMP/kommentar.md" > /dev/null
+
+      - name: Fehler im Pull Request melden
+        if: failure() && github.event.issue.number
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMMER: ${{ github.event.issue.number }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "Testpaket konnte nicht gebaut werden."
+            if [ -s "$RUNNER_TEMP/fehler.txt" ]; then
+              echo '```'
+              grep '^FEHLER' "$RUNNER_TEMP/fehler.txt" | head -5
+              echo '```'
+            fi
+            echo "Ablauf: $LAUF"
           } > "$RUNNER_TEMP/kommentar.md"
           gh api "repos/$REPO/issues/$NUMMER/comments" -F body=@"$RUNNER_TEMP/kommentar.md" > /dev/null
