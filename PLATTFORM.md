@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611231841.**
+**Stand: Saalburg 202611241934.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -96,13 +96,14 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/proc` | lesen, eigene Einträge schreiben |
 | `/run/netz` (DNS) | lesen |
 | `/daten/system/schrift` (Schriftwahl, fontconfig) | lesen |
+| `/daten/system/aussehen` (Aussehen für native Apps, Abschnitt 5; ab Saalburg 202611240808) | lesen |
 | `/dev/null`, `zero`, `full`, `random`, `urandom`, `tty`, `ptmx`, `/dev/pts` | lesen, schreiben |
 | `/dev/shm` | lesen, schreiben, anlegen (ohne Ausführen) |
 | `/daten/apps/<kennung>` (Paket) | lesen, ausführen |
 | `$HOME` = `/daten/appdaten/<kennung>` | alles außer Gerätedateien |
 | `$XDG_RUNTIME_DIR` = `/run/user/<uid>` | alles außer Gerätedateien |
 | `/tmp` (eigenes, siehe unten) | alles außer Gerätedateien |
-| `/dev/dri` | nur mit Recht `gpu` |
+| `/dev/dri/renderD*` (Render-Knoten; nie `card*`/KMS) | nur mit Recht `gpu` (vor 202611241046: ganz `/dev/dri`, `card*` gehört aber der Gruppe video) |
 | `/dev/snd`, `/daten/system/ton` | nur mit Recht `ton` (siehe 6) |
 | `ordner = /daten/x, /daten/y (lesen)` | schreiben bzw. lesen; nur unter `/daten`, nie unter `/daten/claude`, `/daten/system`, `/daten/appdaten`, `/daten/apps`; höchstens 4 |
 
@@ -164,7 +165,7 @@ UTF-8-Zeile mit `\n`, die Antwort ist eine Zeile (`OK …`, `ABBRUCH`, `FEHLER <
 | `OEFFNEN [Titel]` | Die Dateien-Seite geht auf; der Nutzer wählt eine Datei (Enter). Der Dateidienst kopiert sie nach `$HOME/Dokumente/<Name>` (eine gleichnamige alte Kopie wandert in deren `.Papierkorb`). Wählt er eine Datei aus den eigenen Dokumenten, wird nichts kopiert. | `OK <Pfad>` oder `ABBRUCH` |
 | `SPEICHERN <Datei>[\t<Titel>]` | `<Datei>` ist ein Pfad relativ zu `Dokumente` und muss dort liegen. Der Nutzer öffnet den Zielordner und drückt F5. Gibt es das Ziel schon, bleibt die Auswahl offen (nie überschreiben). | `OK <Ort>/<Name>` oder `ABBRUCH` |
 | `MELDEN <Titel>\t<Text>` | Meldung kurz in der Leiste (8 s, ohne Ton, höchstens eine je Sekunde und App) | `OK` |
-| `DRUCKEN <Name>` + Datei als Deskriptor (`SCM_RIGHTS`) | nur PDF, JPEG, PNG bis 100 MB, Recht `drucken`; der Nutzer bestätigt am Bildschirm (passt der Inhalt nicht zur Endung, gleich `FEHLER`, ohne Frage). Die Datei geht unverändert an den Drucker (keine Umwandlung); nimmt der Drucker das Format nicht direkt, ist es ein Fehler. | `OK`, `ABBRUCH` oder `FEHLER …` |
+| `DRUCKEN <Name>` + Datei als Deskriptor (`SCM_RIGHTS`) | nur PDF, JPEG, PNG bis 100 MB, Recht `drucken`; der Nutzer bestätigt am Bildschirm (passt der Inhalt nicht zur Endung, gleich `FEHLER`, ohne Frage). Nimmt der Drucker das Format direkt an, geht die Datei unverändert hin; sonst wandelt Saalburg PDF und PNG in einem eingesperrten Prozess (ohne Netz, nur eigener Arbeitsordner, Zeit- und Speichergrenzen) in JPEG-Seiten um (300 dpi, höchstens 100 Seiten; ab Saalburg 202611241934, vorher Fehler). Geht die Umwandlung nicht, antwortet der Dienst mit `FEHLER`. | `OK`, `ABBRUCH` oder `FEHLER …` |
 
 - **Warten**: Öffnen und Speichern antworten erst, wenn der Nutzer gewählt hat (auch nach
   Minuten). Die App sollte dabei ihre Ereignisschleife weiterlaufen lassen (Thread), sonst zeigt
@@ -174,6 +175,8 @@ UTF-8-Zeile mit `\n`, die Antwort ist eine Zeile (`OK …`, `ABBRUCH`, `FEHLER <
 - **Drucken** braucht `drucken = ja` in `app.conf`; der Nutzer kann es in den Einstellungen
   (Spalte „Drucken“) abschalten, das gilt sofort. Einen Drucker richtet der Nutzer mit Claude
   ein (`drucken --drucker …`); fehlt er, antwortet der Dienst mit einem Fehler.
+- **Test-Apps auf dem Testplatz** (ab Saalburg 202611241934): `MELDEN` und `DRUCKEN` (mit
+  `drucken = ja`) gehen, `OEFFNEN`/`SPEICHERN` nicht (Abschnitt 15).
 
 ### Zwischenablage, Ziehen und Ablegen
 
@@ -181,7 +184,10 @@ Beides läuft über das Wayland-Protokoll `wl_data_device` (Version 3, siehe 5):
 - **Zwischenablage** zwischen Programmen: beliebige MIME-Typen, höchstens 8 je Quelle.
 - **Mit Terminals**: Text, also `text/plain;charset=utf-8`, `text/plain`, `UTF8_STRING`.
 - **Bildschirmfotos** des Nutzers (Druck-Taste) bietet die Ablage als `image/png` an, als Text
-  den Pfad.
+  den Pfad. Jedes neue Foto ist ein neues Angebot (`wl_data_device.selection`) an das Fenster
+  mit Fokus, auch mehrere Fotos in derselben Sekunde (eigene Datei je Foto). Fragt eine App
+  nach einem anderen Typ (z. B. `text/uri-list`, `text/html`), bekommt sie nichts (ab Saalburg
+  202611241934; vorher den Pfad als Text).
 - **Ziehen und Ablegen**: Text aus Terminals, und von Programmen `text/uri-list` bzw. Text;
   Dateien erscheinen als Pfade.
 
@@ -240,15 +246,17 @@ Recht fehlt.
 | `xdg_wm_base` | 5 | Fenster und Popups, Ping/Pong |
 | `zxdg_decoration_manager_v1` | 1 | Den Rahmen zeichnet die Oberfläche (serverseitig) |
 | `wl_data_device_manager` | 3 | Zwischenablage, Ziehen und Ablegen |
-| `zwp_linux_dmabuf_v1` | 3 | GPU-Puffer |
+| `zwp_linux_dmabuf_v1` | 4 | GPU-Puffer; Rückmeldung (`get_default_feedback`/`get_surface_feedback`) mit Render-Knoten als `main_device` und Formattabelle (ab 202611241046; vorher 3) |
 | `wp_viewporter` | 1 | Ausschnitt und Zielgröße einer Fläche ² |
 | `wp_fractional_scale_manager_v1` | 1 | bevorzugte Skalierung immer 120 (= 1,0) ² |
 | `zwp_pointer_constraints_v1` | 1 | Zeiger sperren oder auf die Fläche begrenzen ² |
 | `zwp_relative_pointer_manager_v1` | 1 | relative Mausbewegung (Spiele, 3D-Ansichten) ² |
 | `wp_cursor_shape_manager_v1` | 1 | Zeigerformen ohne eigenes Bild ² |
 | `zwp_idle_inhibit_manager_v1` | 1 | Bildschirm wach halten ² |
+| `zxdg_exporter_v2`, `zxdg_importer_v2` | 1 | xdg-foreign: Elternfenster über Verbindungen hinweg (z. B. GTK-Dialog von Chromium) ³ |
+| `zxdg_exporter_v1`, `zxdg_importer_v1` | 1 | dasselbe in Version 1 (GTK 3 importiert nur darüber); Griffe gelten für beide ³ |
 
-² ab Saalburg 202611230126 (Abschnitt 13).
+² ab Saalburg 202611230126 (Abschnitt 13). ³ ab Saalburg 202611241934.
 
 Verhalten:
 - **Fenster** bekommen per `configure` die Größe ihres Platzes und die Zustände „maximiert“
@@ -261,6 +269,12 @@ Verhalten:
 - **Tastaturfokus**: Bekommt ein Fenster den Fokus, bevor es sein erstes Bild zeigt, meldet
   Saalburg ihn mit dem ersten Puffer noch einmal (`wl_keyboard.leave`, dann `enter`; ab Saalburg 202611231841). Eine App
   sollte beides jederzeit vertragen.
+- **Dialoge** ³: Ein Fenster mit Elternfenster (`xdg_toplevel.set_parent` oder xdg-foreign
+  `set_parent_of`) erscheint auf dem Platz seines Elternfensters und bekommt den Tastaturfokus;
+  das Elternfenster wartet darunter und kommt zurück, wenn der Dialog zugeht. Holt der Nutzer
+  das Elternfenster über die Übersicht zurück, steht dort wieder der Dialog; ein Klick ins
+  Elternfenster (z. B. bei 1:1 auf dem anderen Platz) gibt dem Dialog den Fokus und erreicht
+  die App nicht. Gilt nur innerhalb derselben App; xdg-foreign-Griffe sind zufällig.
 - **Ping/Pong**: Antwortet eine App 5 s lang nicht auf `xdg_wm_base.ping`, zeigt die Oberfläche
   „reagiert nicht“. Deshalb die Ereignisschleife nie lange blockieren.
 - **Mauszeiger**: Eigene Zeiger über `wl_pointer.set_cursor` sind erlaubt. Mit
@@ -290,7 +304,122 @@ Verhalten:
 - **Schnittstellen**: EGL und OpenGL ES (`mesa-egl`, `mesa-gles`), dazu GBM.
 - **Vulkan**: Ein Vulkan-Treiber ist nicht installiert. Der Lader kommt nur als Abhängigkeit
   von Chromium mit.
+- **Gerät finden**: Die Oberfläche nennt ihren Render-Knoten über linux-dmabuf Version 4
+  (`main_device` der Rückmeldung); daran erkennt Mesa (EGL auf Wayland) die GPU, Apps müssen
+  nichts tun. Vor Saalburg 202611241046 fehlte diese Angabe: native Apps mit `gpu = ja` (EGL über
+  `wl_display`) fanden kein Gerät und zeichneten per Software (im Protokoll
+  „libEGL warning: failed to get driver name for fd -1“). Web-Apps waren nicht betroffen.
+  Wer EGL direkt auf GBM oder `EGL_PLATFORM_DEVICE` nutzt, öffnet `/dev/dri/renderD128`.
+- **Nur Render-Knoten**: zeichnen und rechnen ja, Anzeige (`card*`, KMS, Modus) nie.
 - **Ohne Recht `gpu`**: Programme zeichnen per Software in `wl_shm`-Puffer.
+
+### Aussehen für native Apps (ab Saalburg 202611240808)
+
+Native Apps (`art = programm`, eigene Fenster) zeichnen selbst. Damit sie wie Saalburg aussehen,
+legt Saalburg Farben, Schriften und Maße in eine einfache Datei. Sie kommt aus derselben Quelle
+wie die Farben der Oberfläche und `saalburg.css` der Web-Apps, die drei können nicht
+auseinanderlaufen.
+
+| Pfad | Inhalt |
+|---|---|
+| `/daten/system/aussehen/saalburg.conf` | **zuerst lesen**: aktuelle Werte mit Schrift und Schriftgröße aus den Einstellungen; von der Oberfläche geschrieben, für jede App lesbar (Landlock) |
+| `/usr/lib/osproto/aussehen/saalburg.conf` | Vorgaben ab Werk im selben Format, falls die erste Datei fehlt |
+
+**Format**: UTF-8, eine Angabe je Zeile `schluessel = wert`, `#` leitet Kommentarzeilen ein.
+Unbekannte Schlüssel überspringen (neue Rollen kommen ohne neue Formatnummer dazu). Beispiel
+(Schriftgröße 32, Vorgabe):
+
+```
+format = 1
+farbschema = dunkel
+schrift_fest = Terminess Nerd Font Mono
+schrift_fest_datei = /usr/share/fonts/saalburg/Terminess-Regular.ttf
+schrift_fest_fett_datei = /usr/share/fonts/saalburg/Terminess-Bold.ttf
+schrift_text = DejaVu Sans
+schrift_text_datei = /usr/share/fonts/dejavu/DejaVuSans.ttf
+schrift_text_fett_datei = /usr/share/fonts/dejavu/DejaVuSans-Bold.ttf
+zeilenhoehe = 32
+skalierung = 1.14
+abstand = 8
+rundung = 10
+grund = #111218
+karte = #1a1b26
+…
+```
+
+| Schlüssel | Bedeutung |
+|---|---|
+| `format` | Formatnummer, derzeit `1`. Ändert sich nur, wenn sich die Bedeutung vorhandener Schlüssel ändert |
+| `farbschema` | `dunkel` (derzeit immer) |
+| `schrift_fest`, `schrift_text` | Familienname der festen Schrift (Code, Tabellenraster, Terminal) bzw. der Fließtext-Schrift, wie der Nutzer sie gewählt hat; dieselben Namen liefert fontconfig für `monospace` bzw. `sans-serif` |
+| `schrift_…_datei`, `schrift_…_fett_datei` | TTF-Dateien dazu (normal, fett) für FreeType, ohne fontconfig |
+| `zeilenhoehe` | Schriftgröße der Oberfläche als Zeilenhöhe in Pixeln (20, 24, 28, 32). Die Oberfläche wählt die Pixelgröße der Schrift so, dass Ober- plus Unterlänge genau eine Zeile füllen |
+| `skalierung` | `zeilenhoehe / 28`, zwei Nachkommastellen (28 px = 1.00, 32 px = 1.14), wie der Seitenzoom der Web-Apps. Feste Pixelmaße der App damit malnehmen |
+| `abstand` | Abstand-Grundmaß in Pixeln, schon skaliert (7 bei 100 %); Ränder und Lücken als Vielfache |
+| `rundung` | Eckenradius von Karten und Knöpfen in Pixeln, schon skaliert (9 bei 100 %) |
+
+**Farbrollen** (`#rrggbb`, deckend):
+
+| Rolle | Bedeutung | Vorgabe |
+|---|---|---|
+| `grund` | Hintergrund des Fensters | `#111218` |
+| `seite` | Seitenleisten, dunkler als der Grund | `#0b0c11` |
+| `karte` | Flächen: Karten, Eingabefelder, Werkzeugleisten | `#1a1b26` |
+| `flaeche_hoch` | hervorgehobene Fläche: unter dem Zeiger, gewählt, Menüs | `#24283b` |
+| `rahmen` | Trennlinien, Ränder | `#2a2e42` |
+| `text` | Text | `#c0caf5` |
+| `text_hell` | betonter Text, Überschriften | `#f2f4fb` |
+| `text_gedaempft` | leiser Text, Hinweise, Tastenkürzel | `#8089b0` |
+| `text_aus` | deaktiviert | `#565f89` |
+| `akzent` | Fokus, Links, Hauptknopf, Fortschritt | `#7aa2f7` |
+| `akzent_hell` | Akzent unter dem Zeiger | `#9db8fa` |
+| `akzent_flaeche` | große Akzentflächen (Titel, Symbol), Saalburg-Blau | `#3d59a1` |
+| `akzent_text` | Text auf `akzent` (Hauptknopf, Fokuszeile) | `#0c0d13` |
+| `auswahl` | markierter Text, gewählte Zeile (Hintergrund) | `#364466` |
+| `erfolg`, `warnung`, `fehler` | Erfolg, Warnung/Rückfrage, Fehler/Löschen | `#9ece6a`, `#e0af68`, `#f7768e` |
+| `info` | Hinweis, läuft gerade | `#7dcfff` |
+| `terminal_grund`, `terminal_text` | Standardfarben im Terminal (Terminal-Apps: dort nichts übermalen) | `#1a1b26`, `#c0caf5` |
+
+Dieselben Farben haben Web-Apps unter `--saalburg-…` (Abschnitt 10): `grund` = `--saalburg-grund`,
+`karte` = `--saalburg-karte`, `flaeche_hoch` = `--saalburg-karte-hell`, `rahmen` =
+`--saalburg-linie`, `text_gedaempft` = `--saalburg-leise`, `erfolg`/`warnung` = `--saalburg-gut`/`-warn` usw.
+
+**Regeln**
+- **Aus Saalburg kommen**: Grundflächen (`grund`, `seite`, `karte`, `flaeche_hoch`), Text,
+  Rahmen, Akzent und Auswahl, Meldungsfarben, die Schriften der Bedienelemente und die Größe
+  (`zeilenhoehe`/`skalierung`). Keine eigene Hintergrundfarbe fürs Fenster, kein eigenes
+  Farbschema, keine eigene Schriftgröße.
+- **Eigene Farben erlaubt** für Inhalte: Dokument- und Seitenfarben (Stilus), Zellen- und
+  Diagrammfarben (Tabula), Spielgrafik, Bilder, Syntaxfarben, Farben, die der Nutzer selbst
+  wählt. Ebenso eigene Schriften für erzeugten Inhalt (z. B. Dokumentschriften).
+- **Spiele**: Menüs, Dialoge und Rahmen um das Spielfeld nach Saalburg; die Spielgrafik bleibt.
+- Die `farbe` in `app.conf` ist nur die Kachelfarbe der Übersicht, kein Aussehen der App.
+
+**Ausweichwerte**: Fehlt `/daten/system/aussehen/saalburg.conf` (älteres Saalburg, noch nicht
+geschrieben), die Vorgaben aus `/usr/lib/osproto/…` lesen; fehlt auch die oder ein Schlüssel,
+die Vorgaben aus den Tabellen oben verwenden. Eine App muss ohne beide Dateien laufen.
+
+**Änderungen**: Die Oberfläche schreibt die Datei beim Start und bei jeder Änderung von Schrift
+oder Schriftgröße neu, immer als neue Datei (`saalburg.conf.neu`, dann `rename`): Eine App sieht
+nie eine halbe Datei. Mindestens beim nächsten Start der App gilt der neue Stand. Wer laufend
+mitgehen will, beobachtet den **Ordner** `/daten/system/aussehen` mit inotify (`IN_MOVED_TO`,
+Name `saalburg.conf`; nicht die Datei selbst, sie wird ersetzt), liest neu und zeichnet neu.
+Die Farben ändern sich nur mit einem System-Update.
+
+**Baustein zum Einlesen**: `beispiele/saalburg_aussehen.zig` in diesem Repo (Zig 0.16, nur
+Systemaufrufe, mit Test): Laufzeit-Datei, Vorgaben, Ausweichwerte, inotify. Kurzform:
+
+```zig
+const aussehen = @import("saalburg_aussehen.zig");
+
+var a = aussehen.laden();                    // a.farben.grund, a.zeilenhoehe, a.schrift_text_datei.t() …
+const beobachter = aussehen.beobachten();    // ?i32, mit poll() in die Ereignisschleife
+// bei POLLIN: if (aussehen.geaendert(fd)) { a = aussehen.laden(); neu_zeichnen(); }
+```
+
+Terminal-Apps (`art = terminal`) lesen dieselbe Datei. Sie lassen den Standardhintergrund des
+Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben als 24-Bit-Farben
+(`ESC[38;2;r;g;bm`).
 
 ---
 
@@ -315,7 +444,15 @@ Verhalten:
 
 - Nur mit Recht `netzwerk` (Web-Apps: Standard an), sonst nur `lo`.
 - **DNS**: `/etc/resolv.conf` zeigt auf `/run/netz/resolv.conf`. Die Datei kann sich im
-  Betrieb ändern (DHCP), deshalb nicht dauerhaft zwischenspeichern.
+  Betrieb ändern (Netzwechsel, Schalter), deshalb nicht dauerhaft zwischenspeichern.
+- **Schutz vor Schadseiten** (ab Saalburg 202611241046, Standard an, nur der Nutzer schaltet ihn
+  ab): Saalburg fragt Quad9 (9.9.9.9, 149.112.112.112, mit IPv6 auch 2620:fe::fe/::9), das
+  bekannte Schad- und Betrugsseiten nicht auflöst (NXDOMAIN). Sperrt ein Netz Quad9, gelten
+  die DNS-Server des Netzes. Folgen für Apps: Namen aus dem lokalen Netz (`fritz.box`,
+  Rechnernamen ohne Punkt, `.local`) lösen in der Regel nicht auf – Geräte im LAN über ihre
+  IP-Adresse ansprechen (wie bei `netz_ziele`); Netzlaufwerke mit Rechnernamen löst Saalburg
+  selbst auf (Abschnitt 16). Zustand lesbar in `/run/netz/schutz`
+  (`zustand aktiv|rueckfall|aus|wartet`), nur zur Anzeige.
 - **TLS**: Die Wurzelzertifikate liegen in `/etc/ssl/certs/ca-certificates.crt`
   (Paket ca-certificates).
 - **Kein mDNS oder Avahi**, keine Firewall-Regeln pro App: Mit Netzrecht ist das Netz offen.
@@ -432,6 +569,8 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
   | `--saalburg-schrift-text` | Fließtext-Schrift (Nutzerwahl, über fontconfig `sans-serif`) |
   | `--saalburg-schrift-fest` | feste Schrift für Code und Terminal (Nutzerwahl, `monospace`) |
   | `--saalburg-schrift` | wie `--saalburg-schrift-text` (älterer Name, bleibt gültig) |
+  | `--saalburg-akzent-text`, `--saalburg-auswahl`, `--saalburg-info` | Text auf Akzentfläche, Markierung, Hinweis (ab Saalburg 202611240808) |
+  | `--saalburg-abstand`, `--saalburg-rundung` | Abstand-Grundmaß und Eckenradius bei 100 % (der Seitenzoom skaliert sie; ab Saalburg 202611240808) |
 
   Die Schriftwahl des Nutzers (Einstellungen → Darstellung) steht in
   `/daten/system/schrift/fonts.conf` und gilt für Web-Apps beim nächsten Start. Eigene
@@ -441,7 +580,9 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
   Fokusrahmen.
 - **Einschränkungen**:
   - Ein Dateidialog öffnet nur die Ordner der App, praktisch `Dokumente` (Lesezeichen in der
-    Seitenleiste). Andere Dateien holt der Nutzer mit Windows-Taste+O dorthin.
+    Seitenleiste). Andere Dateien holt der Nutzer mit Windows-Taste+O dorthin. Ab Saalburg
+    202611241934 erscheint der Dialog (GTK) sofort auf dem Platz der Web-App, hat die Tastatur und ist
+    deutsch.
   - Keine Web-Benachrichtigungen ans System (Chromium kennt den Dienst nicht), kein
     Teilen-Dialog, keine Kamera, kein Mikrofon.
   - Keine Erweiterungen aus dem Web Store.
@@ -455,13 +596,20 @@ aktualisiert, nicht über den Katalog.
   Profil; kein Zugriff auf die Profile und Anmeldungen der Web-Apps, auf Claudes Dateien oder auf
   den Rest von `/daten`. Rechte (Netz, GPU, Ton, Hintergrund, Dokumente für Claude) wie bei
   Web-Apps in den Einstellungen.
-- **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über DuckDuckGo ohne Vorschläge,
-  kein Passwortspeicher und kein Autofill, Drittanbieter-Cookies gesperrt, keine Telemetrie,
+- **Eigene Chromium-Richtlinien**, nur für den Browser: Suche über Google (deutsch) ohne
+  Vorschläge beim Tippen (vor Saalburg 202611240808: DuckDuckGo), Übersetzen nur auf Anfrage
+  (Chromium bietet es an, Rechtsklick → „Übersetzen“; nie automatisch, ab Saalburg 202611240808),
+  kein Safe Browsing (ab Saalburg 202611241046 abgeschaltet und ohne Netz im Hintergrund wie bei
+  Web-Apps: Google gibt dem mitgelieferten Chromium die Listen nicht, die Schnittstelle ist nur
+  nicht-kommerziell frei; vor Schadseiten schützt der DNS-Schutz, Abschnitt 7), kein
+  Passwortspeicher und kein Autofill,
+  Drittanbieter-Cookies gesperrt, keine Telemetrie,
   kein Hintergrundbetrieb, keine Komponenten-Updates, keine Erweiterungen, Benachrichtigungen,
   Standort, Kamera und Mikrofon gesperrt, `file://` nur für die Startseite und die eigenen
   Dokumente. Die Web-Apps behalten ihre bisherigen Richtlinien.
 - **Darstellung**: dunkel (`--force-dark-mode`, Seiten sehen `prefers-color-scheme: dark`),
-  Oberfläche in Saalburg-Blau, Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
+  Oberfläche in Saalburg-Blau, Systemtitelleiste (Rahmen von Saalburg, keine eigenen Knöpfe für
+  Minimieren, Maximieren, Schließen; ab Saalburg 202611240808), Seitenzoom nach Schriftgröße wie bei Web-Apps; Webseiten selbst
   bleiben unverändert (kein Saalburg-Aussehen).
 - **Startseite und Neuer Tab**: lokale Seite ohne Skript und ohne Netz. Nach einem Neustart
   öffnet er die Tabs der letzten Sitzung.
@@ -558,6 +706,9 @@ nach dem Update.
 | 202611230257 | Entfernen auf der Store-Seite (Wahl: Daten behalten oder `$HOME` mitlöschen; laufende App wird vorher wie beim Schließen beendet), Strg+I in der Übersicht öffnet die Store-Seite einer App |
 | 202611231526 | Fernzugriff (`fernzugriff`, `fernzugriff_sicher`, `$SAALBURG_FERN_SOCKET`, Abschnitt 16), begrenztes Netz (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke (`netzlaufwerk`), Testplatz (Abschnitt 15) |
 | 202611231841 | Mitgelieferter Browser (Tabs, eigene Sandbox und Richtlinien, Kennung `browser` reserviert); Wayland: Tastaturfokus wird mit dem ersten Bild eines Fensters noch einmal gemeldet; Chromium-Oberfläche und Accept-Language deutsch (Browser und Web-Apps) |
+| 202611240808 | Aussehen für native Apps (`/daten/system/aussehen/saalburg.conf`, Vorgaben in `/usr/lib/osproto/aussehen/`, Abschnitt 5; neue CSS-Variablen `--saalburg-akzent-text`, `-auswahl`, `-info`, `-abstand`, `-rundung`); Testplatz: Testpaket unter `/daten/apps/<kennung>/aktuell` (Katalog-Pfade laufen); Browser: Google-Suche, Übersetzen auf Anfrage, Systemtitelleiste |
+| 202611241046 | DNS über Quad9 (Schutz vor Schadseiten, Standard an; lokale Namen lösen nicht mehr auf, Abschnitt 7); Netzlaufwerke mit Rechnernamen; linux-dmabuf Version 4 mit Rückmeldung (native Apps mit `gpu = ja` finden die GPU über Mesa/EGL auf Wayland), `gpu` gibt nur die Render-Knoten frei; Browser ohne Safe Browsing und ohne Netz im Hintergrund; Store-Beschreibung bis 1200 Zeichen statt Bytes (Umlaute zählen einfach) |
+| 202611241934 | Dialoge (`xdg_toplevel.set_parent`, xdg-foreign v1/v2) auf dem Platz ihres Elternfensters mit Fokus, GTK-Dateidialog der Web-Apps deutsch; Bildschirmfotos: jedes Foto ein neues Ablage-Angebot, andere Typen als `image/png`/Text liefern nichts; Testplatz: Test-Apps dürfen melden und (mit `drucken = ja`) drucken; Drucken: PDF/PNG für Drucker ohne diese Formate eingesperrt in JPEG-Seiten umgewandelt, ipps:// wenn der Drucker TLS verlangt |
 
 ---
 
@@ -577,6 +728,9 @@ nach dem Update.
       neu.
 - [ ] Ton über ALSA `default`, nie über feste Hardware-Geräte.
 - [ ] Web-Apps: `aussehen.css` nur mit `var(--saalburg-…)`.
+- [ ] Native Apps: Grundflächen, Text, Rahmen, Akzent, Schrift und Größe aus
+      `saalburg.conf` (Abschnitt 5, „Aussehen für native Apps“), mit Ausweichwerten; eigene
+      Farben nur für Inhalte.
 - [ ] Was Claude tun können soll, ist ein MCP-Werkzeug (`verbindung`, `steuerung = claude`);
       gefährliche Schritte fragen in der App selbst nach. Der MCP-Server spricht mit der
       laufenden App über `$SAALBURG_APP_SOCKET` und meldet, wenn sie nicht läuft.
@@ -649,8 +803,21 @@ gibt es nicht.
 
 **Die Test-App** läuft getrennt von echten Apps: eigene Kennung (UID ab 30000), Daten unter
 `/daten/testplatz/daten/<kennung>` statt `/daten/appdaten`, keine `ordner =`, kein Dateidienst,
-nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton). Web-Apps
+nicht in der Übersicht. Rechte genau wie die `app.conf` verlangt (Netz, GPU, Ton, Drucken). Web-Apps
 bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
+**Dienst der Oberfläche** (`$SAALBURG_DIENST`, ab Saalburg 202611241934): `MELDEN` erscheint in der
+Leiste als „TEST <Name>: …“. `DRUCKEN` geht mit `drucken = ja`; der Bestätigungsdialog heißt
+„TEST: <Name> möchte drucken“, bestätigen kann nur der Nutzer am Bildschirm (Antwort `OK`,
+`ABBRUCH` oder `FEHLER …` wie bei echten Apps). `OEFFNEN` und `SPEICHERN` antworten
+`FEHLER auf dem Testplatz nicht verfügbar`. Vorher bekam jede Anfrage einer Test-App
+`FEHLER Nur für Apps in der Sandbox`.
+**Pfade wie bei echter Installation** (ab Saalburg 202611240808): Das Testpaket liegt auf dem
+Rechner unter `/daten/testplatz/apps/<kennung>`, erscheint für die Test-App und ihren MCP-Server
+aber unter `/daten/apps/<kennung>/aktuell` (nur lesbar). Eine `app.conf` mit absoluten Pfaden
+wie im Katalog (`start = exec /daten/apps/<kennung>/aktuell/<datei>`, ebenso `verbindung`) läuft
+damit unverändert. Andere installierte Apps sieht die Test-App dort nicht; ist dieselbe Kennung
+echt installiert, sieht sie nur ihr Testpaket, die echte Installation bleibt unberührt. Vorher
+fand die Test-App solche Pfade nicht („not found“).
 
 **Netz der Test-App** (`netzwerk = ja`): eigener Netz-Namensraum.
 - `127.0.0.1`/`::1` sind die eigene Schleife der App: Ein Server der App auf 127.0.0.1 (z. B.
@@ -658,8 +825,8 @@ bekommen die Browser-Steuerung immer (nur der Testplatz verbindet sich).
   für niemanden sonst. Dienste des Rechners (SSH …) sind von dort nicht zu erreichen – weder
   über 127.0.0.1 noch über seine LAN-Adresse.
 - Nach außen nur **Internet** (IPv4, NAT). LAN, private, Link-lokale und Multicast-Adressen
-  sind gesperrt. Namensauflösung geht über den DNS-Server des Rechners (nur Port 53 an genau
-  dieser Adresse).
+  sind gesperrt. Namensauflösung geht über die DNS-Server des Rechners aus
+  `/run/netz/resolv.conf` (Quad9 oder die des Netzes; nur Port 53 an genau diesen Adressen).
 - Ohne `netzwerk = ja`: nur die eigene Schleife, kein Weg nach außen.
 - LAN-Ziele (`netz_ziele`, `netzwerk = lan:…`), Netzlaufwerke und Fernzugriff (Abschnitt 16)
   bekommen Test-Apps nie, auch wenn ihre `app.conf` sie nennt.
@@ -793,6 +960,9 @@ Bildschirm ein, sie sind für Apps und Claude unsichtbar.
   Standard: aus).
 - **In der App**: `SAALBURG_NETZLAUFWERK=/daten/netz/<name>` (nur gesetzt, wenn freigegeben
   und eingerichtet). Lesen und schreiben, nichts ausführen. Zusätzlich die Gruppe des Laufwerks.
+- **Rechnernamen** (`//RECHNER/freigabe`, `nas.fritz.box`, `pc.local`) löst Saalburg selbst im
+  LAN auf (DNS-Server des Routers, NetBIOS, mDNS), auch wenn der DNS-Schutz aktiv ist (ab
+  202611241046). Findet es den Rechner nicht, steht das in den Einstellungen; dann die IP eintragen.
 - **Fehlt das Laufwerk** (Rechner aus, Netz weg), schlagen Zugriffe fehl (`EACCES`, `EIO`,
   `EHOSTDOWN`). Die App sagt das klar und versucht es später wieder; Saalburg verbindet von
   selbst neu. Erst schreiben, dann umbenennen (`datei.tmp` → `datei.nc`), damit die Gegenseite

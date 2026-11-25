@@ -34,7 +34,9 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BEKANNT = {"kennung", "version", "beschreibung", "name", "symbol", "farbe", "art", "start", "url", "reihe",
            "netzwerk", "gpu", "ton", "ram_max", "ordner", "steuerung", "verbindung",
-           "hintergrund", "kategorie", "saalburg"}
+           "hintergrund", "kategorie", "saalburg",
+           # wie BEKANNT in Saalburgs app.conf-Leser (Werte prüft Saalburg beim Installieren)
+           "angleichen", "drucken", "fernzugriff", "fernzugriff_sicher", "netz_ziele", "netzlaufwerk"}
 NAME_RE = re.compile(r"^[a-z0-9-]{1,31}$")
 VERSION_RE = re.compile(r"^[0-9][0-9a-z.-]{0,30}$")
 PFAD_RE = re.compile(r"^[A-Za-z0-9._+-]+$")
@@ -291,8 +293,14 @@ def signiert(vorsatz, magie, name, inhalt, geheim):
 
 def main():
     if len(sys.argv) == 2 and sys.argv[1] == "--pruefen":
-        # Nur prüfen (ohne Schlüssel), z. B. vor einem Pull Request
-        sys.exit(0 if aussehen_aller(os.path.join(WURZEL, "apps")) else 1)
+        # Nur prüfen (ohne Schlüssel), z. B. vor einem Pull Request: app.conf aller Apps
+        # (bricht mit FEHLER ab) und aussehen.css
+        apps = os.path.join(WURZEL, "apps")
+        for kennung in sorted(os.listdir(apps)):
+            conf = os.path.join(apps, kennung, "app.conf")
+            if os.path.isfile(conf):
+                conf_lesen(open(conf, encoding="utf-8").read(), kennung)
+        sys.exit(0 if aussehen_aller(apps) else 1)
     if len(sys.argv) != 2:
         fehler("Aufruf: katalog_bauen.py <ausgabe-ordner> | --pruefen")
     if not aussehen_aller(os.path.join(WURZEL, "apps")):
