@@ -654,6 +654,18 @@ Hinweise:
 - **Neue Systempakete**: Was nur im System fehlt (Bibliothek, Schrift), als Issue im
   Saalburg-Repo beantragen, nicht im Paket nachbauen.
 
+### Prozessor: Befehlssatz
+
+- **Bauen für `x86_64_v2`** (SSE4.2, POPCNT), nicht für `native` oder `x86_64_v3`:
+  Zig `-target x86_64-linux-musl -mcpu x86_64_v2` (bzw. `-Dcpu=x86_64_v2` mit `build.zig`),
+  GCC/Clang `-march=x86-64-v2`, Rust `-C target-cpu=x86-64-v2`. Ohne `-mcpu` baut Zig mit
+  `-target` für die x86-64-Grundstufe; das geht auch, ist aber langsamer als nötig.
+- **AVX2/FMA (`x86_64_v3`) nur mit Prüfung zur Laufzeit** (z. B. zwei Varianten einer Funktion
+  und Auswahl per `cpuid`). Der Grund: Saalburgs Testsystem ohne KVM (saalburg-test, QEMU)
+  hat **kein AVX2**; ein reiner v3-Build stürzt dort mit `SIGILL` (Illegal instruction) ab,
+  und die Prüfung schlägt fehl, obwohl die App auf dem Mini-PC liefe.
+- Numba/llvmlite im System erkennen die CPU selbst und brauchen nichts davon.
+
 ---
 
 ## 12. Befehle für Entwickler
