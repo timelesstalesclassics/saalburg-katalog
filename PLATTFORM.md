@@ -656,14 +656,19 @@ Hinweise:
 
 ### Prozessor: Befehlssatz
 
-- **Bauen für `x86_64_v2`** (SSE4.2, POPCNT), nicht für `native` oder `x86_64_v3`:
-  Zig `-target x86_64-linux-musl -mcpu x86_64_v2` (bzw. `-Dcpu=x86_64_v2` mit `build.zig`),
-  GCC/Clang `-march=x86-64-v2`, Rust `-C target-cpu=x86-64-v2`. Ohne `-mcpu` baut Zig mit
-  `-target` für die x86-64-Grundstufe; das geht auch, ist aber langsamer als nötig.
-- **AVX2/FMA (`x86_64_v3`) nur mit Prüfung zur Laufzeit** (z. B. zwei Varianten einer Funktion
-  und Auswahl per `cpuid`). Der Grund: Saalburgs Testsystem ohne KVM (saalburg-test, QEMU)
-  hat **kein AVX2**; ein reiner v3-Build stürzt dort mit `SIGILL` (Illegal instruction) ab,
-  und die Prüfung schlägt fehl, obwohl die App auf dem Mini-PC liefe.
+Alle Rechner, auf denen Saalburg läuft, haben AVX2 und FMA (`x86_64_v3`). Nutzt es, wo es
+wirklich rechnet (Bildverarbeitung, Geometrie, Simulation); für alles andere bringt es kaum
+etwas.
+
+- **Normale Apps**: für `x86_64_v2` bauen – Zig `-target x86_64-linux-musl -mcpu x86_64_v2`
+  (bzw. `-Dcpu=x86_64_v2` mit `build.zig`), GCC/Clang `-march=x86-64-v2`, Rust
+  `-C target-cpu=x86-64-v2`.
+- **Rechenintensive Apps**: am besten beides – die heißen Funktionen zusätzlich mit AVX2
+  übersetzen und per `cpuid` zur Laufzeit wählen. Ein reiner `x86_64_v3`-Build ist erlaubt.
+- **Testen**: Das Testsystem ohne KVM (saalburg-test, QEMU) hat AVX2 standardmäßig **aus**
+  (QEMU rechnet AVX2-Gather falsch; Chromium stürzte daran ab). Ein reiner v3-Build stürzt dort
+  mit `SIGILL` (Illegal instruction) ab. Dann mit `SAALBURG_TEST_CPU=max` prüfen (nur für native
+  Apps sinnvoll) oder auf dem Testplatz (Abschnitt 15) am echten Rechner.
 - Numba/llvmlite im System erkennen die CPU selbst und brauchen nichts davon.
 
 ---
