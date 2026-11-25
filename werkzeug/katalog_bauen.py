@@ -36,7 +36,7 @@ BEKANNT = {"kennung", "version", "beschreibung", "name", "symbol", "farbe", "art
            "netzwerk", "gpu", "ton", "ram_max", "ordner", "steuerung", "verbindung",
            "hintergrund", "kategorie", "saalburg",
            # wie BEKANNT in Saalburgs app.conf-Leser (Werte prüft Saalburg beim Installieren)
-           "angleichen", "drucken", "fernzugriff", "fernzugriff_sicher", "netz_ziele", "netzlaufwerk"}
+           "angleichen", "drucken", "fernzugriff", "fernzugriff_sicher", "netz_ziele", "netzlaufwerk", "kvm"}
 NAME_RE = re.compile(r"^[a-z0-9-]{1,31}$")
 VERSION_RE = re.compile(r"^[0-9][0-9a-z.-]{0,30}$")
 PFAD_RE = re.compile(r"^[A-Za-z0-9._+-]+$")
@@ -168,6 +168,11 @@ def conf_lesen(text, ordnername):
         fehler(f"{ordnername}: version fehlt oder ungültig")
     if len(text.encode()) > 4000:
         fehler(f"{ordnername}: app.conf größer als 4000 Bytes")
+    # Virtuelle Maschinen (KVM): ja/nein, nie mit LAN-Zielen (Saalburg prüft beim Installieren ebenso)
+    if werte.get("kvm", "nein") not in ("ja", "nein"):
+        fehler(f"{ordnername}: kvm = ja oder nein")
+    if werte.get("kvm") == "ja" and (werte.get("netzwerk", "").startswith("lan:") or "netz_ziele" in werte):
+        fehler(f"{ordnername}: kvm = ja geht nicht mit LAN-Zielen (netzwerk = lan:…, netz_ziele)")
     return werte
 
 

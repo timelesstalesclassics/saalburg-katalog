@@ -47,7 +47,8 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
 
 - **Eigene Linux-Kennung je App**: Die UID wird beim ersten Start vergeben (ab 20000) und
   bleibt dann fest. GID wie UID.
-- **Zusatzgruppen**: `wayland` (9000), mit Recht `ton` zusätzlich `audio` (18). Mehr gibt es
+- **Zusatzgruppen**: `wayland` (9000), mit Recht `ton` zusätzlich `audio` (18), mit
+  eingeschaltetem Recht `kvm` zusätzlich `kvm` (34, ab Saalburg NEUE_VERSION). Mehr gibt es
   nicht: kein `video`, kein `input`.
 - **Arbeitsordner beim Start**: `$HOME`.
 - **Umgebung** (vollständig, sonst nichts):
@@ -105,6 +106,7 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/tmp` (eigenes, siehe unten) | alles außer Gerätedateien |
 | `/dev/dri/renderD*` (Render-Knoten; nie `card*`/KMS) | nur mit Recht `gpu` (vor 202611241046: ganz `/dev/dri`, `card*` gehört aber der Gruppe video) |
 | `/dev/snd`, `/daten/system/ton` | nur mit Recht `ton` (siehe 6) |
+| `/dev/kvm` | nur mit eingeschaltetem Recht `kvm` (Abschnitt 17, ab Saalburg NEUE_VERSION); `/dev/kvm` gehört `root:kvm` mit `0660` |
 | `ordner = /daten/x, /daten/y (lesen)` | schreiben bzw. lesen; nur unter `/daten`, nie unter `/daten/claude`, `/daten/system`, `/daten/appdaten`, `/daten/apps`; höchstens 4 |
 
 **Nicht** erreichbar sind unter anderem das `/tmp` des Systems, `/daten/claude`, die Daten
@@ -223,7 +225,8 @@ Jede installierte App läuft eingesperrt. Das lässt sich nicht abschalten.
 - **Fremde Prozesse**: Andere Apps und claude laufen unter anderen UIDs und sind tabu.
 
 Der Nutzer kann jedes Recht in den Einstellungen abschalten (Netzwerk, GPU, Ton, Drucken,
-Hintergrund, Aussehen) und die Steuerung durch Claude einschalten. Eine App muss damit leben, dass ein
+Hintergrund, Aussehen) und die Steuerung durch Claude sowie virtuelle Maschinen (`kvm`)
+einschalten. Eine App muss damit leben, dass ein
 Recht fehlt.
 
 ---
@@ -459,6 +462,9 @@ Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben
 - **Begrenztes Netz**: Ohne `netzwerk = ja` kann eine App einzelne LAN-Ziele bekommen
   (`netz_ziele`, `netzwerk = lan:<adresse>:<port>`); sie erreicht dann nur diese
   (Abschnitt 16).
+- **Apps mit `kvm = ja`** (ab Saalburg NEUE_VERSION): Mit Netzrecht nur Internet und DNS, nie das LAN
+  und nie das System selbst (eigener Netz-Namensraum mit Sperre, kein IPv6); LAN-Ziele gibt es
+  für sie nicht (Abschnitt 17).
 
 ---
 
@@ -664,6 +670,7 @@ Im System sind unter anderem diese Pakete (Alpine 3.24, Stand des Images):
 | Ton | alsa-lib 1.2 |
 | Medien | gstreamer 1.28 (Grundpaket), ffmpeg-Teile über Chromium |
 | Sonstiges | sqlite, zlib, libpng, libjpeg-turbo, libgomp (OpenMP), ca-certificates |
+| Virtuelle Maschinen | QEMU 11.0 (`qemu-system-x86_64`, `qemu-img`) mit SeaBIOS und OVMF (`/usr/share/qemu/edk2-x86_64-code.fd`); nur x86_64, ab Saalburg NEUE_VERSION (Abschnitt 17) |
 | Schriften | DejaVu, Open Sans, Terminess (Nerd Font Mono, `monospace`); `fc-match monospace`/`sans-serif` folgt der Nutzerwahl |
 
 Prüfen lässt sich das auf Saalburg:
@@ -713,7 +720,7 @@ Diese Befehle laufen als claude (oder ein anderer Benutzer), ohne root:
 | `app store liste` bzw. `app store daten` | Kataloge lesen (lesbar bzw. maschinenlesbar) |
 | `app installieren <paket.osapp>`, `app store installieren <k>` | installieren; **der Nutzer bestätigt am Bildschirm** |
 | `app liste`, `app zurueck <k>`, `app entfernen <k> [--daten]` | installierte Apps; Änderungen nur mit Bestätigung (`--daten` löscht auch `$HOME` der App) |
-| `app einstellung [<k> <recht> ja\|nein]` | Rechte ansehen; Änderungen nur mit Bestätigung (`steuerung` auch `bedarf`) |
+| `app einstellung [<k> <recht> ja\|nein]` | Rechte ansehen; Änderungen nur mit Bestätigung (`steuerung` auch `bedarf`; Rechte: `netzwerk`, `gpu`, `ton`, `drucken`, `dateien`, `hintergrund`, `kvm`, `steuerung`) |
 | `app verbindungen`, `app verbinden <k>` | MCP-Verbindungen zu Apps |
 | `app steuerung anfordern <k> "<Begründung>"`, `app steuerung zurueckgeben <k>`, `app steuerung stand [k]` | Steuerung bei Bedarf (der Nutzer bestätigt am Bildschirm) |
 | `app datei …` | Dateidienst (siehe 3) |
@@ -756,6 +763,7 @@ nach dem Update.
 | 202611241934 | Dialoge (`xdg_toplevel.set_parent`, xdg-foreign v1/v2) auf dem Platz ihres Elternfensters mit Fokus, GTK-Dateidialog der Web-Apps deutsch; Bildschirmfotos: jedes Foto ein neues Ablage-Angebot, andere Typen als `image/png`/Text liefern nichts; Testplatz: Test-Apps dürfen melden und (mit `drucken = ja`) drucken; Drucken: PDF/PNG für Drucker ohne diese Formate eingesperrt in JPEG-Seiten umgewandelt, ipps:// wenn der Drucker TLS verlangt |
 | 202611251640 | Steuerung durch Claude in drei Stufen (nein / bei Bedarf / ja), Voreinstellung „bei Bedarf“: Claude fordert mit Begründung an (`steuerung_anfordern`, `app steuerung anfordern`), der Nutzer bestätigt am Bildschirm; Web-Apps und Browser laufen im Alltag ohne DevTools-Pipe (`navigator.webdriver = false`) und starten für die Steuerung mit Pipe neu (Profil und Tabs bleiben); Ende durch Rückgabe, nach 10 min ohne Befehl oder durch den Nutzer (Leiste, Windows-Taste+Esc); eigener MCP-Server bei Bedarf erst mit der Freigabe |
 | 202611251957 | Weitere Hardware: AMD-Grafik (amdgpu, Mesa radeonsi) nutzbar wie Intel; ohne passenden Grafiktreiber läuft die Oberfläche über das Bild der Firmware (simpledrm) ohne GPU – dann gibt es keinen Render-Knoten, Apps mit `gpu = ja` zeichnen per Software. Bildschirmauflösung kann je Gerät abweichen |
+| NEUE_VERSION | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
 
 ---
 
@@ -1037,3 +1045,74 @@ Bildschirm ein, sie sind für Apps und Claude unsichtbar.
    `$SAALBURG_NETZLAUFWERK` (erst `.tmp`, dann umbenennen) – nur geprüften G-Code; ungeprüfter
    bleibt in einem Entwurfsordner.
 7. Auf der Monitorseite gut sichtbar: „Ersetzt nie den Not-Halt an der Maschine.“
+
+---
+
+## 17. Virtuelle Maschinen (QEMU, KVM)
+
+Ab Saalburg NEUE_VERSION ist QEMU Teil des Systems: `qemu-system-x86_64` (nur x86_64), `qemu-img`,
+Firmware SeaBIOS (`bios-256k.bin`) und OVMF für UEFI (`/usr/share/qemu/edk2-x86_64-code.fd`,
+Vorlage für die Variablen `edk2-i386-vars.fd`; eine beschreibbare Kopie gehört nach `$HOME`).
+Jede App darf QEMU starten – ohne KVM aber nur emuliert (TCG, langsam).
+
+**Recht `kvm`** (app.conf `kvm = ja`):
+- Erst wirksam, wenn der Nutzer in den Einstellungen → Apps & Rechte den Schalter „Virtuelle
+  Maschinen“ einschaltet (oder `app einstellung <k> kvm ja` am Bildschirm bestätigt). Der
+  Installieren-Dialog und die Store-Seite zeigen „Virtuelle Maschinen (KVM): möglich (aus, bis
+  du es in den Einstellungen einschaltest)“.
+- Dann: Zusatzgruppe `kvm` (34) und Landlock für `/dev/kvm` (öffnen, ioctl). Sonst nichts: kein
+  `/dev/net/tun`, kein vhost, keine Brücke, kein root.
+- Gilt beim nächsten Start der App. Ist das Recht aus oder hat der Rechner keine
+  Virtualisierung (bzw. läuft Saalburg selbst in einer VM ohne verschachtelte
+  Virtualisierung), fehlt `/dev/kvm` bzw. lässt sich nicht öffnen: die App fällt auf TCG zurück
+  (`-accel kvm -accel tcg`) oder meldet es.
+- Nur für installierte Apps (Katalog, lokaler Katalog); auf dem Testplatz gilt `kvm` wie in der
+  app.conf.
+
+**Netz**: Eine App mit `kvm = ja` (egal ob eingeschaltet) kommt nie ins LAN. Mit
+`netzwerk = ja` läuft sie in einem eigenen Netz-Namensraum, der nur Internet und den
+DNS-Server erreicht – nicht Router, Drucker, Maschinensteuerung oder Saalburg selbst, kein
+IPv6. `netz_ziele` und `netzwerk = lan:…` sind mit `kvm = ja` verboten (Katalog und
+App-Verwaltung lehnen ab). Für die VM heißt das: **nur Usernet** (`-nic user,…`, slirp);
+`10.0.2.2` in der VM ist die Schleife der App (eigene Server der App auf `127.0.0.1`), nicht
+der Rechner. `hostfwd` auf `127.0.0.1` der App geht.
+
+**Speicher und Prozesse**: Die VM zählt zur cgroup der App: `ram_max` muss RAM der VM plus
+etwa 300 MB für QEMU abdecken (z. B. `ram_max = 6144M` für `-m 4G`). `pids.max` 512 reicht für
+QEMU mit einigen Kernen.
+
+**Lebenszyklus**: Wie jede App wird sie eingefroren, wenn sie 10 s nicht zu sehen ist – die VM
+steht dann still (Abschnitt 8). Soll die VM weiterlaufen (z. B. lange Tests), `hintergrund = ja`
+setzen.
+
+**Anzeige**: Ein eigenes QEMU-Fenster (GTK/SDL) gibt es nicht. `-display none` mit
+`-serial`, QMP/Monitor über einen Unix-Socket in `$XDG_RUNTIME_DIR` und `screendump` für
+Bilder; ein Fenster zeichnet die App selbst (z. B. aus `screendump` oder VNC auf
+`127.0.0.1` in ihrem Namensraum).
+
+**Seccomp**: `io_uring` und `userfaultfd` sind gesperrt (Abschnitt 4): kein `aio=io_uring`,
+keine Postcopy-Migration; QEMU fällt von selbst auf Threads bzw. `poll` zurück.
+
+Beispiel (Terminal-App):
+
+```
+kennung  = vmlabor
+version  = 1.0
+art      = terminal
+start    = exec /daten/apps/vmlabor/aktuell/start.sh
+kvm      = ja
+netzwerk = ja
+ram_max  = 6144M
+hintergrund = ja
+saalburg = NEUE_VERSION
+```
+
+```
+qemu-system-x86_64 -accel kvm -accel tcg -cpu host -m 4G -smp 4 -machine q35 \
+  -drive if=pflash,format=raw,readonly=on,file=/usr/share/qemu/edk2-x86_64-code.fd \
+  -drive if=pflash,format=raw,file=$HOME/vars.fd \
+  -drive file=$HOME/platte.qcow2,if=virtio -nic user,model=virtio-net-pci \
+  -display none -serial unix:$XDG_RUNTIME_DIR/seriell.sock,server,nowait
+```
+(`-cpu host` nur mit KVM; ohne KVM `-cpu max`.)
+

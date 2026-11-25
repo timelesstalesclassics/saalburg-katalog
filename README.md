@@ -54,7 +54,10 @@ Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `
 ab Saalburg 202611230126, also mit `saalburg = 202611230126`),
 `saalburg = JJJJMMTTHHMM` (Mindestversion von Saalburg in UTC, z. B. `202611211629`; ältere
 Systeme zeigen „Braucht Saalburg vom …“ und installieren erst nach dem System-Update),
-`kategorie` (wie in `store/`).
+`kategorie` (wie in `store/`),
+`kvm = ja` (darf virtuelle Maschinen mit QEMU und KVM starten; aus, bis der Nutzer es in den
+Einstellungen einschaltet; Netz dann nur Internet, nie das LAN, also nicht zusammen mit
+`netz_ziele` oder `netzwerk = lan:…`; siehe `PLATTFORM.md` Abschnitt 17).
 
 Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
 `info.conf` (`kategorie = Büro`, `empfohlen = ja`), `text.txt` (lange Beschreibung, höchstens
