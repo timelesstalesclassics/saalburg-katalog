@@ -512,12 +512,12 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
 - **`steuerung = claude`**: Die App bietet Claude die Steuerung an. Der Nutzer stellt sie in den
   Einstellungen je App auf eine von drei Stufen:
   - **nein**: keine Verbindung;
-  - **bei Bedarf** (Voreinstellung, ab Saalburg VERSION_STEUERUNG; davor war die Steuerung bis zum
+  - **bei Bedarf** (Voreinstellung, ab Saalburg 202611251640; davor war die Steuerung bis zum
     Einschalten aus): Claude fordert die Steuerung mit einer kurzen Begründung an, der Nutzer
     bestätigt sie jedes Mal im Bestätigungsdialog am Bildschirm (Claude kann das nicht). Sie endet,
     wenn Claude sie zurückgibt, nach 10 Minuten ohne Befehl oder wenn der Nutzer sie beendet (Klick
     auf „Claude steuert …“ in der Leiste, Windows-Taste+Esc);
-  - **ja**: immer an (wie vor VERSION_STEUERUNG nach dem Einschalten).
+  - **ja**: immer an (wie vor 202611251640 nach dem Einschalten).
 
   Bestehende Einstellungen bleiben, wie sie sind.
   - Claude erreicht den Server als `app verbinden <kennung>`. Bei Bedarf bietet die Verbindung
@@ -642,7 +642,7 @@ aktualisiert, nicht über den Katalog.
 - **Downloads** landen in `/daten/appdaten/browser/Dokumente`; weitergegeben wird wie bei allen
   Apps über den Dateidienst.
 - **Steuerung durch Claude**: angeboten, Stufen wie bei Web-Apps (Abschnitt 9; ab Saalburg
-  VERSION_STEUERUNG Voreinstellung „bei Bedarf“, davor aus bis zum Einschalten). Die Werkzeuge wirken
+  202611251640 Voreinstellung „bei Bedarf“, davor aus bis zum Einschalten). Die Werkzeuge wirken
   auf den sichtbaren Tab; dazu `tabs`, `tab_wechseln`, `tab_neu`, `tab_schliessen`. Beim Neustart
   für die Steuerung kommen alle Tabs wieder.
 - Apps können den Browser nicht aufrufen (kein `xdg-open`); Links für den Nutzer als Text
@@ -754,7 +754,7 @@ nach dem Update.
 | 202611240808 | Aussehen für native Apps (`/daten/system/aussehen/saalburg.conf`, Vorgaben in `/usr/lib/osproto/aussehen/`, Abschnitt 5; neue CSS-Variablen `--saalburg-akzent-text`, `-auswahl`, `-info`, `-abstand`, `-rundung`); Testplatz: Testpaket unter `/daten/apps/<kennung>/aktuell` (Katalog-Pfade laufen); Browser: Google-Suche, Übersetzen auf Anfrage, Systemtitelleiste |
 | 202611241046 | DNS über Quad9 (Schutz vor Schadseiten, Standard an; lokale Namen lösen nicht mehr auf, Abschnitt 7); Netzlaufwerke mit Rechnernamen; linux-dmabuf Version 4 mit Rückmeldung (native Apps mit `gpu = ja` finden die GPU über Mesa/EGL auf Wayland), `gpu` gibt nur die Render-Knoten frei; Browser ohne Safe Browsing und ohne Netz im Hintergrund; Store-Beschreibung bis 1200 Zeichen statt Bytes (Umlaute zählen einfach) |
 | 202611241934 | Dialoge (`xdg_toplevel.set_parent`, xdg-foreign v1/v2) auf dem Platz ihres Elternfensters mit Fokus, GTK-Dateidialog der Web-Apps deutsch; Bildschirmfotos: jedes Foto ein neues Ablage-Angebot, andere Typen als `image/png`/Text liefern nichts; Testplatz: Test-Apps dürfen melden und (mit `drucken = ja`) drucken; Drucken: PDF/PNG für Drucker ohne diese Formate eingesperrt in JPEG-Seiten umgewandelt, ipps:// wenn der Drucker TLS verlangt |
-| VERSION_STEUERUNG | Steuerung durch Claude in drei Stufen (nein / bei Bedarf / ja), Voreinstellung „bei Bedarf“: Claude fordert mit Begründung an (`steuerung_anfordern`, `app steuerung anfordern`), der Nutzer bestätigt am Bildschirm; Web-Apps und Browser laufen im Alltag ohne DevTools-Pipe (`navigator.webdriver = false`) und starten für die Steuerung mit Pipe neu (Profil und Tabs bleiben); Ende durch Rückgabe, nach 10 min ohne Befehl oder durch den Nutzer (Leiste, Windows-Taste+Esc); eigener MCP-Server bei Bedarf erst mit der Freigabe |
+| 202611251640 | Steuerung durch Claude in drei Stufen (nein / bei Bedarf / ja), Voreinstellung „bei Bedarf“: Claude fordert mit Begründung an (`steuerung_anfordern`, `app steuerung anfordern`), der Nutzer bestätigt am Bildschirm; Web-Apps und Browser laufen im Alltag ohne DevTools-Pipe (`navigator.webdriver = false`) und starten für die Steuerung mit Pipe neu (Profil und Tabs bleiben); Ende durch Rückgabe, nach 10 min ohne Befehl oder durch den Nutzer (Leiste, Windows-Taste+Esc); eigener MCP-Server bei Bedarf erst mit der Freigabe |
 
 ---
 
