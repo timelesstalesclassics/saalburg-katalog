@@ -71,6 +71,7 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
   | `SHELL` | `/bin/sh` |
   | `SAALBURG_DIENST` | `/run/wayland/saalburg-dienst`: Dienst der Oberfläche (Öffnen, Speichern, Meldungen, Drucken, siehe 3) ¹ |
   | `SAALBURG_APP_SOCKET` | `$XDG_RUNTIME_DIR/app.sock`: Kanal zwischen laufender App und ihrem MCP-Server (siehe 9) ¹ |
+  | `SAALBURG_WERKZEUG_<KENNUNG>` | nur mit `werkzeuge = …`: Ordner der genutzten Version der Werkzeug-App, z. B. `SAALBURG_WERKZEUG_ZIG=/daten/apps/zig/1.1` (Kennung groß, `-` wird `_`; Abschnitt 19, ab Saalburg 202611261611) |
 
   ¹ ab Saalburg 202611230126 (Abschnitt 13); vorher `TMPDIR=/daten/appdaten/<kennung>/tmp`.
 
@@ -105,6 +106,7 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/dev/null`, `zero`, `full`, `random`, `urandom`, `tty`, `ptmx`, `/dev/pts` | lesen, schreiben |
 | `/dev/shm` | lesen, schreiben, anlegen (ohne Ausführen) |
 | `/daten/apps/<kennung>` (Paket) | lesen, ausführen |
+| `/daten/apps/<werkzeug>/<version>` (nur die Werkzeuge aus `werkzeuge`, genau die genutzte Version; Abschnitt 19) | lesen, ausführen |
 | `$HOME` = `/daten/appdaten/<kennung>` | alles außer Gerätedateien |
 | `$XDG_RUNTIME_DIR` = `/run/user/<uid>` | alles außer Gerätedateien |
 | `/tmp` (eigenes, siehe unten) | alles außer Gerätedateien |
@@ -721,6 +723,7 @@ Im System sind unter anderem diese Pakete (Alpine 3.24, Stand des Images):
 | Ton | alsa-lib 1.2 |
 | Medien | gstreamer 1.28 (Grundpaket), ffmpeg-Teile über Chromium |
 | Sonstiges | sqlite, zlib, libpng, libjpeg-turbo, libgomp (OpenMP), ca-certificates |
+| Packen | `zstd` (ab Saalburg 202611261611, für `app packen --zstd`) |
 | Virtuelle Maschinen | QEMU 11.0 (`qemu-system-x86_64`, `qemu-img`) mit SeaBIOS und OVMF (`/usr/share/qemu/edk2-x86_64-code.fd`); nur x86_64, ab Saalburg 202611260908 (Abschnitt 17) |
 | Schriften | DejaVu, Open Sans, Terminess (Nerd Font Mono, `monospace`); `fc-match monospace`/`sans-serif` folgt der Nutzerwahl |
 
@@ -735,7 +738,12 @@ Hinweise:
   - `pip install` zur Laufzeit geht nur mit Netzrecht und nur nach `$HOME`, PEP 668 sperrt
     das System-Python.
 - **Größe**: Ein Paket darf bis 1 GB groß sein und bis 20 000 Einträge haben, `app.conf` bis
-  4000 Bytes.
+  4000 Bytes. Ab Saalburg 202611261611 gibt es komprimierte Pakete (OSAPP2) bis 2 GB, entpackt
+  bis 4 GB und bis 100 000 Einträge; der Katalog baut sie selbst, wenn ein Paket über 90 MB
+  oder 20 000 Einträge hat. Große Archive (Compiler, Laufzeiten) nicht in Git und nicht beim
+  ersten Start nach `$HOME` entpacken, sondern per `entpacken.conf` beim Bauen ins Paket
+  (README des Katalogs, Abschnitt 19).
+- **Werkzeuge anderer Apps** statt doppelt mitbringen: `werkzeuge = zig >=1.1` (Abschnitt 19).
 - **Neue Systempakete**: Was nur im System fehlt (Bibliothek, Schrift), als Issue im
   Saalburg-Repo beantragen, nicht im Paket nachbauen.
 
@@ -765,11 +773,11 @@ Diese Befehle laufen als claude (oder ein anderer Benutzer), ohne root:
 | Befehl | Zweck |
 |---|---|
 | `app schluessel-erzeugen <name>` | Schlüsselpaar für eigene Pakete (`~/.osapp/<name>.key/.pub`) |
-| `app packen <ordner> <name.key> <ziel.osapp>` | Ordner mit `app.conf` signiert packen; prüft das Format |
-| `app pruefen <paket.osapp>` | Paket und Rechte ansehen, ohne zu installieren |
+| `app packen <ordner> <name.key> <ziel.osapp> [--zstd]` | Ordner mit `app.conf` signiert packen; prüft das Format. `--zstd`: komprimiert (OSAPP2, für große Pakete; ab Saalburg 202611261611) |
+| `app pruefen <paket.osapp>` | Paket und Rechte ansehen, ohne zu installieren (OSAPP2: entpackt und gegen die Signatur geprüft) |
 | `app katalog <ordner> <name.key> [titel]` | lokalen Katalog bauen (mit `store/<kennung>/` für die Store-Seite) |
 | `app store liste` bzw. `app store daten` | Kataloge lesen (lesbar bzw. maschinenlesbar) |
-| `app installieren <paket.osapp>`, `app store installieren <k>` | installieren; **der Nutzer bestätigt am Bildschirm** |
+| `app installieren <paket.osapp> [<werkzeug.osapp> …]`, `app store installieren <k>` | installieren; **der Nutzer bestätigt am Bildschirm**. Fehlende Werkzeuge der App kommen im selben Dialog mit (der Store holt sie aus dem Katalog) |
 | `app liste`, `app zurueck <k>`, `app entfernen <k> [--daten]` | installierte Apps; Änderungen nur mit Bestätigung (`--daten` löscht auch `$HOME` der App) |
 | `app einstellung [<k> <recht> ja\|nein]` | Rechte ansehen; Änderungen nur mit Bestätigung (`steuerung` auch `bedarf`; Rechte: `netzwerk`, `gpu`, `ton`, `drucken`, `dateien`, `hintergrund`, `kvm`, `steuerung`) |
 | `app verbindungen`, `app verbinden <k>` | MCP-Verbindungen zu Apps |
@@ -818,6 +826,7 @@ nach dem Update.
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
 | 202611261611 | Wayland: Eingaberegionen (`set_input_region`), schwebende Dialoge (weitere Fenster derselben Verbindung ohne Elternfenster und ohne xdg-decoration stehen in eigener Größe über ihrem Fenster, z. B. Wine-Meldungsfenster); app.conf `schliessen_frist` (Beenden zuerst per `xdg_toplevel.close`, `SIGTERM` erst nach der Frist, auch beim Ausschalten) |
 | 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
+| 202611261611 | Große Pakete und Werkzeuge (Abschnitt 19): komprimierte Pakete OSAPP2 (zstd, bis 2 GB, entpackt bis 4 GB, bis 100 000 Einträge; Saalburg entpackt bei der Installation und prüft das Ergebnis gegen die Signatur); app.conf `werkzeug = ja` (Werkzeug-App) und `werkzeuge = <kennung>[ =<version> \| >=<version>]` (Werkzeug einer anderen App nur lesen und ausführen, `$SAALBURG_WERKZEUG_<KENNUNG>`, Versionsbindung); `app installieren <app> <werkzeug> …`, `app packen --zstd`; System: `zstd` |
 
 ---
 
@@ -845,6 +854,8 @@ nach dem Update.
       laufenden App über `$SAALBURG_APP_SOCKET` und meldet, wenn sie nicht läuft.
 - [ ] Fernzugriff nur über `$SAALBURG_FERN_SOCKET`, relative Links, Steuerfunktionen in
       `fernzugriff_sicher`; LAN-Ziele über `netz_ziele`, nie eine Adresse raten (Abschnitt 16).
+- [ ] Große Werkzeuge per `entpacken.conf` ins Paket, nicht in `$HOME` entpacken; ein Werkzeug
+      einer anderen App über `werkzeuge = …` nutzen statt es mitzubringen (Abschnitt 19).
 - [ ] Store-Text und Bilder ohne private Daten; mit `saalburg-test` getestet, bei Bedarf auch auf dem
       Testplatz (Abschnitt 15).
 
@@ -1224,3 +1235,77 @@ ausführt und der nicht von ihr stammt (z. B. Test-Skripte), mit Landlock davon 
 Einstellungsseite zeigt sie auf der Karte der App, solange sie freigegeben ist.
 
 **Werkzeuge**: Für FAT-Abbilder ohne Einhängen liegen `mcopy`, `mmd` & Co. (mtools) im System.
+
+---
+
+## 19. Große Pakete und Werkzeug-Apps (ab Saalburg 202611261611)
+
+Für Werkzeuge wie Zig, Wine oder später eine Bau-App: Hunderte MB, Zehntausende Dateien, und
+mehrere Apps sollen dasselbe Werkzeug nutzen, ohne es doppelt mitzubringen.
+
+**Große Pakete**
+- Archive (das offizielle Zig-Archiv, Alpine-Pakete …) legt die App nicht entpackt in Git ab und
+  entpackt sie auch nicht beim ersten Start nach `$HOME`, sondern nennt sie in
+  `apps/<kennung>/entpacken.conf` (Datei im App-Ordner oder https-Adresse, mit SHA-256;
+  README des Katalogs). Der Katalog prüft und entpackt sie beim Bauen ins Paket.
+- Über 90 MB oder über 20 000 Einträge wird das Paket komprimiert (OSAPP2, zstd). Saalburg prüft
+  die Signatur, bevor es entpackt, entpackt ohne Rechte, vergleicht das Ergebnis mit der
+  signierten Prüfsumme und packt dann aus wie immer: nach `/daten/apps/<kennung>/<version>`,
+  root-eigen, für die App nur lesbar. Grenzen: 2 GB komprimiert, 4 GB entpackt, 100 000
+  Einträge; vorher prüft Saalburg den freien Platz.
+- Solche Pakete und alle Werkzeug-Apps stehen als Release-Anhang im Katalog (Adresse, Größe und
+  SHA-256 im signierten Katalog). Eine veröffentlichte Version ändert sich nie mehr: für
+  Änderungen `version` erhöhen.
+- `saalburg = 202611261611` (oder neuer) ist für komprimierte Pakete, `werkzeug` und
+  `werkzeuge` Pflicht; ältere Systeme zeigen „Braucht Saalburg vom …“.
+
+**Werkzeug-App** (`werkzeug = ja`): eine normale App (meist Terminal mit MCP-Server für Claude),
+deren installiertes Paket andere Apps nutzen dürfen. Sie selbst bekommt dadurch keine Rechte.
+Ihr Paket ist für Nutzer nur lesbar: Caches, Präfixe und Einstellungen legt das Werkzeug im
+`$HOME` der nutzenden App ab (`XDG_CACHE_HOME` usw. zeigen dorthin). Programme darin also so
+bauen, dass sie aus einem schreibgeschützten Ordner laufen und ihren Ort selbst finden (relativ
+zur Programmdatei, nicht über feste Pfade). Keine Links im Paket.
+
+**Nutzende App** (`werkzeuge = zig >=1.1, wine =11.0-1`, höchstens 4):
+
+| Angabe | Saalburg nimmt |
+|---|---|
+| `zig` | die installierte aktuelle Version |
+| `zig >=1.1` | die aktuelle Version, wenn sie mindestens 1.1 ist |
+| `wine =11.0-1` | genau diese Version – **Versionsbindung**: sie bleibt installiert, auch wenn die Werkzeug-App neuer wird, solange eine App sie bindet |
+
+- In der Sandbox der App (und ihres MCP-Servers) ist genau dieser Ordner lesbar und ausführbar:
+  `$SAALBURG_WERKZEUG_<KENNUNG>` (z. B. `$SAALBURG_WERKZEUG_ZIG/zig/zig`). Andere Versionen und
+  `/daten/apps/<werkzeug>/aktuell` einer anderen Version bleiben gesperrt; ohne Angabe sieht
+  eine App nichts von fremden Paketen. Immer den Pfad aus der Umgebung nehmen, nie
+  `/daten/apps/<werkzeug>/aktuell` fest eintragen.
+- Das Werkzeug läuft als Prozess der nutzenden App: mit ihrer Kennung, ihrem Netz, ihrer
+  RAM-Grenze und ihren Rechten. Braucht es mehr (z. B. GPU für Wine), muss die nutzende App das
+  Recht selbst anfordern.
+- Fehlt das Werkzeug beim Start (entfernt, Bedingung nicht erfüllt), startet die App ohne die
+  Variable: dann bitte verständlich melden („Werkzeug Wine fehlt – im Store installieren“).
+- Installieren: Der Store holt fehlende Werkzeuge mit, der Nutzer bestätigt App und Werkzeug in
+  einem Dialog (mit Herausgeber, Umfang und den eigenen Rechten des Werkzeugs). Ohne Werkzeug
+  lehnt Saalburg die App ab. Bindet eine App eine ältere Version, legt Saalburg sie neben die
+  aktuelle („vorgehalten“). Der Katalog hält gebundene Versionen bereit, solange eine App sie
+  bindet.
+- Anzeige: Installationsdialog, Store-Seite und Einstellungen → Apps & Rechte („Werkzeuge: wine
+  (genau 11.0-1) – nur lesen und ausführen“; bei der Werkzeug-App „genutzt von …“). Entfernt der
+  Nutzer ein Werkzeug, das Apps nutzen, warnt der Dialog.
+- Test-Apps (Testplatz) sehen die Werkzeuge der echten Installation ebenso, nur lesbar, unter
+  demselben Pfad.
+
+**Beispiel**: Eine Bau-App mit Zig:
+
+```
+kennung   = bau
+werkzeuge = zig >=1.1
+saalburg  = 202611261611
+```
+
+```sh
+"$SAALBURG_WERKZEUG_ZIG/zig/zig" build -Dtarget=x86_64-linux-musl   # Cache in $HOME/.cache/zig
+```
+
+**Noch nicht**: ein Sysroot mit Kopfdateien des Systems (Wayland, EGL, GLES, ALSA) für native
+Apps auf dem Gerät. Bis dahin baut man native Apps mit `saalburg-test sysroot` auf dem Rechner.
