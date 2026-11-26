@@ -60,11 +60,13 @@ BEKANNT = {"kennung", "version", "beschreibung", "name", "symbol", "farbe", "art
            "hintergrund", "kategorie", "saalburg",
            # wie BEKANNT in Saalburgs app.conf-Leser (Werte prüft Saalburg beim Installieren)
            "angleichen", "drucken", "fernzugriff", "fernzugriff_sicher", "netz_ziele", "netzlaufwerk", "kvm", "laeufer",
-           "schliessen_frist", "werkzeug", "werkzeuge"}
+           "schliessen_frist"}
 NAME_RE = re.compile(r"^[a-z0-9-]{1,31}$")
 VERSION_RE = re.compile(r"^[0-9][0-9a-z.-]{0,30}$")
 PFAD_RE = re.compile(r"^[A-Za-z0-9._+-]+$")
 WERKZEUG_RE = re.compile(r"^([a-z0-9-]{1,31})\s*(?:(>=|=)\s*([0-9][0-9a-z.-]{0,30}))?$")
+# Werkzeug-Apps und Werkzeuge anderer Apps (ab Saalburg 202611261611, PLATTFORM.md Abschnitt 19)
+BEKANNT |= {"werkzeug", "werkzeuge"}
 
 # Saalburg-Version, ab der OSAPP2 (komprimierte Pakete) und werkzeug/werkzeuge gelten
 # (Versionstabelle in PLATTFORM.md)
