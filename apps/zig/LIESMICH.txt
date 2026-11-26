@@ -1,25 +1,32 @@
 Zig für Saalburg
 ================
 
-zig-x86_64-linux-0.16.0.tar.xz
+zig-x86_64-linux-0.16.0.tar.xz  (nur in der Quelle, nicht im Paket)
     Das unveränderte offizielle Archiv von https://ziglang.org/download/0.16.0/
     SHA-256 70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00
     (wie in https://ziglang.org/download/index.json; Signatur mit minisign geprüft,
     Schlüssel RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U).
-    Die App prüft die Prüfsumme und entpackt es beim ersten Start nach
-    $HOME/.cache/zig-werkzeug/ (Paketgrenzen: höchstens 20 000 Einträge, Dateien im
-    Katalog höchstens 100 MB; entpackt sind es ~20 800 Einträge und ~400 MB).
+    entpacken.conf: Der Katalog prüft beim Bauen die SHA-256 und entpackt den Inhalt
+    nach zig/ im Paket (~20 800 Einträge, ~400 MB, komprimiert ~60 MB, als Release-Anhang).
+    Saalburg installiert es fertig entpackt nach /daten/apps/zig/<version>/zig
+    (root, nur lesbar); die App entpackt nichts mehr in $HOME.
+
+Zig in anderen Apps (Werkzeug-App, werkzeug = ja)
+    Eine App schreibt `werkzeuge = zig >=1.1` in ihre app.conf (mit „=1.1“ genau diese
+    Version). Saalburg blendet dann das installierte Paket nur lesbar in ihre Sandbox ein:
+    $SAALBURG_WERKZEUG_ZIG/zig/zig. Zig läuft dort mit den Rechten jener App; seinen
+    Cache legt es in deren $HOME/.cache/zig ab.
 
 LIZENZ-Zig.txt
     Lizenz von Zig (MIT). Das Archiv enthält außerdem Teile anderer Projekte mit ihren
-    eigenen Lizenzen, jeweils dort abgelegt: lib/libcxx, lib/libcxxabi, lib/libunwind
-    (Apache-2.0 mit LLVM-Ausnahme), lib/libc/musl (MIT), lib/libc/mingw, lib/libc/glibc,
-    lib/libc/wasi und weitere.
+    eigenen Lizenzen, jeweils dort abgelegt: zig/lib/libcxx, zig/lib/libcxxabi, zig/lib/libunwind
+    (Apache-2.0 mit LLVM-Ausnahme), zig/lib/libc/musl (MIT), zig/lib/libc/mingw, zig/lib/libc/glibc,
+    zig/lib/libc/wasi und weitere.
 
 werkzeug/konsole.py      Terminal der App: Shell in den Dokumenten, zig im PATH
 werkzeug/zig_mcp.py      MCP-Server für Claude (zig_version, projekte, zig_bauen, zig_test,
                          programm_ausfuehren, zig_fmt, zig, cache_leeren)
 werkzeug/werkzeug_mcp.py gemeinsamer Baustein für Werkzeug-Apps (MCP über stdio, Befehle
                          mit Zeitlimit, Pfade nur in den Dokumenten)
-werkzeug/zig_dist.py     Prüfen und Entpacken des Archivs
+werkzeug/zig_dist.py     Pfad von zig im Paket, Aufräumen der alten entpackten Fassung (1.0)
 tests/test_zig.py        python3 -I -B -m unittest discover -v -s /daten/apps/zig/aktuell/tests

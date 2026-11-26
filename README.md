@@ -26,7 +26,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 | `tabula` | Programm | Tabellenkalkulation: Excel-Mappen (.xlsx) und CSV öffnen, bearbeiten und Excel-lesbar speichern, Formeln wie im deutschen Excel (Wayland, ohne Internet) |
 | `whatsapp` | Web-App | WhatsApp Web im eigenen Fenster, Kopplung per QR-Code mit dem Handy; Downloads in den Dokumenten der App |
 | `youtube` | Web-App | YouTube im eigenen Fenster, mit Saalburg-Aussehen (`aussehen.css`, ab Saalburg mit Aussehen-Unterstützung) |
-| `zig` | Terminal | Zig 0.16.0 (Compiler, Build-System, `zig cc`) zum Bauen und Testen auf dem Gerät; MCP-Werkzeuge für Claude (`zig_bauen`, `zig_test` …), ohne Internet |
+| `zig` | Terminal | Zig 0.16.0 (Compiler, Build-System, `zig cc`) zum Bauen und Testen auf dem Gerät; MCP-Werkzeuge für Claude (`zig_bauen`, `zig_test` …), ohne Internet; Werkzeug-App (andere Apps nutzen Zig mit `werkzeuge = zig >=1.1`) |
 
 ## Eine App hinzufügen oder ändern
 
@@ -64,13 +64,41 @@ Einstellungen einschaltet; Netz dann nur Internet, nie das LAN, also nicht zusam
 `netz_ziele` oder `netzwerk = lan:…`; siehe `PLATTFORM.md` Abschnitt 17),
 `laeufer = ja` (Läufer-App: läuft ohne Fenster nur, solange der Nutzer sie in den Einstellungen
 freigibt; nur `art = terminal`, ohne Steuerung, Verbindung, Fernzugriff, Ordner, Netzlaufwerk;
-siehe `PLATTFORM.md` Abschnitt 18).
+siehe `PLATTFORM.md` Abschnitt 18),
+`werkzeug = ja` (Werkzeug-App: andere Apps dürfen ihr installiertes Paket nutzen),
+`werkzeuge = zig, wine =11.0-1, bau >=2.0` (Werkzeuge anderer Apps, höchstens 4; Saalburg blendet
+das installierte Paket der Werkzeug-App nur lesbar und ausführbar ein, Pfad in
+`$SAALBURG_WERKZEUG_<KENNUNG>`; `=` bindet genau diese Version, `>=` verlangt mindestens diese;
+beides erst ab Saalburg 202611261611, siehe `PLATTFORM.md` Abschnitt 19).
 
 Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
 `info.conf` (`kategorie = Büro`, `empfohlen = ja`), `text.txt` (lange Beschreibung, höchstens
 1200 Zeichen) und bis zu 4 Bildschirmfotos `*.png` (je höchstens 2 MB, alphabetisch). Sie
 kommen mit Prüfsumme in den signierten Katalog; ältere Saalburg-Versionen überspringen diese
 Zeilen.
+### Große Pakete und Werkzeug-Apps
+
+Für Werkzeuge wie Zig oder Wine (Hunderte MB, über 20 000 Dateien):
+
+- **`apps/<kennung>/entpacken.conf`**: Archive, die nicht als einzelne Dateien in Git gehören,
+  je Zeile `entpacken = <datei im App-Ordner oder https-Adresse> sha256=<hex> [aus=<ordner im
+  archiv>] [nach=<ordner im paket>]`. „Katalog bauen“ prüft die SHA-256 und entpackt den Inhalt
+  ins Paket (nur Dateien und Ordner, Namen wie oben; Links lehnt es ab). Ein Archiv aus dem
+  App-Ordner kommt selbst nicht ins Paket. Beispiel: `apps/zig/`.
+- **Komprimiertes Paket (OSAPP2)**: Wird das Paket größer als 90 MB oder hat es mehr als 20 000
+  Einträge, baut der Katalog es mit zstd (bis 100 000 Einträge, entpackt bis 4 GB). Signiert
+  sind die komprimierten Bytes und der entpackte Inhalt; Saalburg entpackt bei der Installation
+  ohne Rechte und vergleicht das Ergebnis mit der Signatur. Solche Apps brauchen die
+  Mindestversion `saalburg = 202611261611` (oder neuer, `PLATTFORM.md` Abschnitt 13).
+- **Release-Anhang**: Pakete über 90 MB und alle Werkzeug-Apps (`werkzeug = ja`) legt der Ablauf
+  nicht in den Zweig `veroeffentlicht`, sondern als Anhang eines Releases `<kennung>-<version>`
+  ab (bis 2 GB). Der Katalog führt Adresse, Größe und SHA-256 wie sonst; `anhaenge.txt` im Zweig
+  listet alle. Eine veröffentlichte Version ist unveränderlich: Ändert sich der Inhalt, muss
+  `version` steigen.
+- **Versionsbindung**: Bindet eine App ein Werkzeug mit `=<version>`, bleibt diese Version als
+  weitere `app`-Zeile im Katalog, auch wenn das Werkzeug neuer ist (sie muss als Release-Anhang
+  veröffentlicht sein). Auf dem Gerät hält Saalburg sie vor, solange eine App sie bindet.
+
 ### Web-Apps im Saalburg-Aussehen (`aussehen.css`)
 
 Eine Web-App kann `aussehen.css` (optional `aussehen.js`) im Ordner `apps/<kennung>/`
