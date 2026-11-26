@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611261611.**
+**Stand: Saalburg 202611262215.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -826,7 +826,7 @@ nach dem Update.
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
 | 202611261611 | Wayland: Eingaberegionen (`set_input_region`), schwebende Dialoge (weitere Fenster derselben Verbindung ohne Elternfenster und ohne xdg-decoration stehen in eigener Größe über ihrem Fenster, z. B. Wine-Meldungsfenster); app.conf `schliessen_frist` (Beenden zuerst per `xdg_toplevel.close`, `SIGTERM` erst nach der Frist, auch beim Ausschalten) |
 | 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
-| NEUE_VERSION | Läufer-Apps (Abschnitt 18): bei Nutzung neue Wahl `nutzung = weiterarbeiten` (Vorgabe) – die App arbeitet weiter, nachrangig (`cpu.idle` gegenüber allem, I/O-Klasse idle), `pause` bleibt `nein`; neue Zustandszeilen `benutzung`, `prioritaet` und `kvm` (Recht „Virtuelle Maschinen“ jetzt an); Leiste „· niedrige Priorität“; die Karte warnt, wenn `/dev/kvm` fehlt (VT-x im BIOS/UEFI aus) |
+| 202611262215 | Läufer-Apps (Abschnitt 18): bei Nutzung neue Wahl `nutzung = weiterarbeiten` (Vorgabe) – die App arbeitet weiter, nachrangig (`cpu.idle` gegenüber allem, I/O-Klasse idle), `pause` bleibt `nein`; neue Zustandszeilen `benutzung`, `prioritaet` und `kvm` (Recht „Virtuelle Maschinen“ jetzt an); Leiste „· niedrige Priorität“; die Karte warnt, wenn `/dev/kvm` fehlt (VT-x im BIOS/UEFI aus) |
 | 202611261611 | Große Pakete und Werkzeuge (Abschnitt 19): komprimierte Pakete OSAPP2 (zstd, bis 2 GB, entpackt bis 4 GB, bis 100 000 Einträge; Saalburg entpackt bei der Installation und prüft das Ergebnis gegen die Signatur); app.conf `werkzeug = ja` (Werkzeug-App) und `werkzeuge = <kennung>[ =<version> \| >=<version>]` (Werkzeug einer anderen App nur lesen und ausführen, `$SAALBURG_WERKZEUG_<KENNUNG>`, Versionsbindung); `app installieren <app> <werkzeug> …`, `app packen --zstd`; System: `zstd` |
 
 ---
@@ -1222,16 +1222,16 @@ alle paar Sekunden reicht), Zeilen `schlüssel=wert`:
 | `bis` | Ende als Unix-Sekunden (UTC) oder `unbegrenzt` |
 | `pause` | `ja`: **nichts Neues anfangen** (jemand arbeitet am Rechner und `nutzung` ist `drosseln` oder `anhalten`) |
 | `nutzung` | `weiterarbeiten` (Vorgabe), `drosseln` oder `anhalten`: was Saalburg bei Nutzung tut |
-| `benutzung` | `ja`: jemand arbeitet am Rechner (Eingaben oder Ton in den letzten 5 min) – nur zur Anzeige (ab NEUE_VERSION) |
-| `prioritaet` | `niedrig`: die App arbeitet bei Nutzung weiter, aber nachrangig (`weiterarbeiten`); sonst `normal` (ab NEUE_VERSION) |
-| `kvm` | `ja`: Recht „Virtuelle Maschinen“ ist jetzt an. Fehlt der App trotzdem der Zugriff auf `/dev/kvm` (Recht erst nach ihrem Start eingeschaltet), soll sie sich zwischen zwei Aufträgen beenden – Saalburg startet sie nach 30 s mit dem Recht neu (ab NEUE_VERSION) |
+| `benutzung` | `ja`: jemand arbeitet am Rechner (Eingaben oder Ton in den letzten 5 min) – nur zur Anzeige (ab 202611262215) |
+| `prioritaet` | `niedrig`: die App arbeitet bei Nutzung weiter, aber nachrangig (`weiterarbeiten`); sonst `normal` (ab 202611262215) |
+| `kvm` | `ja`: Recht „Virtuelle Maschinen“ ist jetzt an. Fehlt der App trotzdem der Zugriff auf `/dev/kvm` (Recht erst nach ihrem Start eingeschaltet), soll sie sich zwischen zwei Aufträgen beenden – Saalburg startet sie nach 30 s mit dem Recht neu (ab 202611262215) |
 | `vms`, `kerne`, `ram_mb` | VMs gleichzeitig, Kerne je VM, RAM je VM (MB) – vom Nutzer gewählt |
 | `kerne_gesamt`, `ram_gesamt_mb` | Grenzen der ganzen App: `cpu.max` (höchstens N−1 Kerne) und `memory.max` (VMs × (RAM + 512 MB) + 768 MB) |
 
 **Ressourcen und Nutzung**: `memory.max` setzt Saalburg aus der Einstellung (das `ram_max` der
 app.conf gilt für Läufer-Apps nicht); höchstens N−1 Kerne, und dem System bleiben mindestens
 4 GB bzw. 3/8 des RAM. Bei Nutzung (Eingaben oder Ton in den letzten 5 Minuten):
-- „weiterarbeiten“ (Vorgabe, ab NEUE_VERSION): `pause` bleibt `nein`, die App darf weiter neue
+- „weiterarbeiten“ (Vorgabe, ab 202611262215): `pause` bleibt `nein`, die App darf weiter neue
   Arbeit beginnen; Saalburg stellt sie nach hinten – Rechenzeit nur, wenn nichts anderes sie will
   (`cpu.idle`, gegenüber allem im System), Plattenzugriffe in der I/O-Klasse idle. Kerne und RAM
   bleiben wie eingestellt. Längere Laufzeiten einplanen (Zeitgrenzen großzügig).
@@ -1239,7 +1239,7 @@ app.conf gilt für Läufer-Apps nicht); höchstens N−1 Kerne, und dem System b
 - „anhalten“: `pause=ja`; die ganze App eingefroren, bis 5 Minuten Ruhe ist.
 
 Die App soll keine neue Arbeit beginnen, solange `pause=ja`. Die Grenzen setzt nur Saalburg; die
-App kann sie nicht ändern. Läufer-Apps haben ab NEUE_VERSION eine eigene cgroup außerhalb der
+App kann sie nicht ändern. Läufer-Apps haben ab 202611262215 eine eigene cgroup außerhalb der
 übrigen Apps (nur für Saalburg von Belang).
 
 **Tokens**: Braucht die App Zugangsdaten (der VM-Läufer: zwei GitHub-Tokens), trägt der Nutzer
