@@ -100,7 +100,7 @@ class TestAusfuehren(unittest.TestCase):
 
 
 class TestZig(unittest.TestCase):
-    """Zig selbst und der MCP-Server (dauert beim ersten Mal: Zig wird eingerichtet)."""
+    """Zig selbst und der MCP-Server."""
 
     @classmethod
     def setUpClass(cls):
@@ -114,8 +114,12 @@ class TestZig(unittest.TestCase):
         shutil.rmtree(os.path.join(cls.doku, cls.projekt), ignore_errors=True)
         shutil.rmtree(os.path.join(cls.doku, cls.projekt + "-datei"), ignore_errors=True)
 
-    def test_0_archiv(self):
-        self.assertEqual(zig_dist.sha256(os.path.join(zig_dist.PAKET, zig_dist.ARCHIV)), zig_dist.ARCHIV_SHA256)
+    def test_0_paket(self):
+        # Zig liegt entpackt im Paket (nur lesbar), das Archiv nicht mehr
+        self.assertTrue(zig_dist.bereit(), zig_dist.zig_datei())
+        self.assertFalse(os.path.exists(os.path.join(zig_dist.PAKET, zig_dist.ARCHIV)))
+        self.assertFalse(os.access(zig_dist.ZIG_ORDNER, os.W_OK))
+        self.assertTrue(os.path.isfile(os.path.join(zig_dist.ZIG_ORDNER, "lib", "std", "std.zig")))
 
     def test_1_protokoll(self):
         init = self.mcp.anfrage("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},

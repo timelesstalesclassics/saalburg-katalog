@@ -27,30 +27,52 @@ jobs:
           python-version: "3.12"
 
       - name: Werkzeug
-        run: pip install cryptography==44.0.0
+        run: pip install cryptography==44.0.0 zstandard==0.25.0
 
-      - name: Pakete und Katalog bauen und signieren
-        env:
-          OSAPP_SCHLUESSEL: ${{ secrets.OSAPP_SCHLUESSEL }}
-        run: python3 werkzeug/katalog_bauen.py "$RUNNER_TEMP/aus"
-
-      - name: Im Zweig veroeffentlicht ablegen
+      - name: Bisherigen Stand holen (Zweig veroeffentlicht, Liste der Release-Anhänge)
         run: |
-          git config user.name "Katalog"
-          git config user.email "katalog@users.noreply.github.com"
           if git fetch --depth 1 origin veroeffentlicht; then
             git worktree add "$RUNNER_TEMP/zweig" FETCH_HEAD
             cd "$RUNNER_TEMP/zweig" && git checkout -B veroeffentlicht
           else
             git worktree add --orphan -b veroeffentlicht "$RUNNER_TEMP/zweig"
-            cd "$RUNNER_TEMP/zweig"
           fi
+
+      - name: Pakete und Katalog bauen und signieren
+        env:
+          OSAPP_SCHLUESSEL: ${{ secrets.OSAPP_SCHLUESSEL }}
+          KATALOG_CACHE: ${{ runner.temp }}/cache
+        run: python3 werkzeug/katalog_bauen.py "$RUNNER_TEMP/aus" --bisher "$RUNNER_TEMP/zweig/anhaenge.txt"
+
+      # Große Pakete (über 90 MB) und Werkzeug-Apps: je Version ein Release mit dem Paket als
+      # Anhang (Tag <kennung>-<version>). Der Katalog führt Adresse, Größe und SHA-256; Saalburg
+      # prüft beides und die Signatur des Pakets. Ein Anhang, den noch kein veröffentlichter
+      # Katalog nennt (abgebrochener Lauf), wird ersetzt.
+      - name: Große Pakete als Release-Anhang hochladen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while IFS='|' read -r tag datei; do
+            [ -n "$tag" ] || continue
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+              gh release upload "$tag" "$datei" --clobber --repo "$GITHUB_REPOSITORY"
+            else
+              gh release create "$tag" "$datei" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+                --title "$tag" --notes "Signiertes App-Paket für Saalburg ($tag), gebaut aus $GITHUB_SHA. Installiert wird es über den Katalog (katalog.osk im Zweig veroeffentlicht), der Größe und SHA-256 führt."
+            fi
+          done < "$RUNNER_TEMP/hochladen.txt"
+
+      - name: Im Zweig veroeffentlicht ablegen
+        run: |
+          git config user.name "Katalog"
+          git config user.email "katalog@users.noreply.github.com"
+          cd "$RUNNER_TEMP/zweig"
           git rm -rq --ignore-unmatch . || true
           # Das System-Update (system/aktuell.osm) legt „System freigeben“ ab: behalten
           git checkout HEAD -- system 2>/dev/null || true
           cp -r "$RUNNER_TEMP/aus/." .
           cp "$GITHUB_WORKSPACE/schluessel/"*.pub .
-          printf 'Signierte Pakete und Katalog von Saalburg, gebaut aus %s.\n' "$GITHUB_SHA" > LIESMICH.txt
+          printf 'Signierte Pakete und Katalog von Saalburg, gebaut aus %s.\nGroße Pakete und Werkzeug-Apps liegen als Release-Anhang (anhaenge.txt).\n' "$GITHUB_SHA" > LIESMICH.txt
           git add -A
           git commit -qm "Katalog aus ${GITHUB_SHA::7}"
           git push origin veroeffentlicht
