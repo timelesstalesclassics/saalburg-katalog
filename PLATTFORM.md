@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611260908.**
+**Stand: Saalburg 202611261259.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -73,7 +73,7 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
 
   Web-Apps setzen zusätzlich `XDG_CONFIG_HOME=$HOME/.config` und
   `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus` (Schlüsseldienst, Abschnitt 10;
-  vor Saalburg NEUE_VERSION `disabled:`), ihre Downloads und Dokumente zeigen auf
+  vor Saalburg 202611261259 `disabled:`), ihre Downloads und Dokumente zeigen auf
   `$HOME/Dokumente`.
 
 ### Terminal-Apps
@@ -567,7 +567,7 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
   Deutsch (Oberfläche und `Accept-Language`; vor Saalburg 202611231841 fehlte die deutsche
   Sprachdatei, Chromium war englisch).
 - **Profil je App** in `$HOME/.cache/profil`, mit getrennten Anmeldungen.
-- **Passwörter, Cookies und Anmelde-Token verschlüsselt je App** (ab Saalburg NEUE_VERSION):
+- **Passwörter, Cookies und Anmelde-Token verschlüsselt je App** (ab Saalburg 202611261259):
   Chromium läuft mit `--password-store=gnome-libsecret` und holt sein Geheimnis beim Start
   über den **Schlüsseldienst** des Systems (Secret Service, `org.freedesktop.secrets`). Jede
   Kennung hat ihr eigenes Geheimnis; der Dienst gibt es nur an diese UID heraus (der Kernel
@@ -787,7 +787,7 @@ nach dem Update.
 | 202611251640 | Steuerung durch Claude in drei Stufen (nein / bei Bedarf / ja), Voreinstellung „bei Bedarf“: Claude fordert mit Begründung an (`steuerung_anfordern`, `app steuerung anfordern`), der Nutzer bestätigt am Bildschirm; Web-Apps und Browser laufen im Alltag ohne DevTools-Pipe (`navigator.webdriver = false`) und starten für die Steuerung mit Pipe neu (Profil und Tabs bleiben); Ende durch Rückgabe, nach 10 min ohne Befehl oder durch den Nutzer (Leiste, Windows-Taste+Esc); eigener MCP-Server bei Bedarf erst mit der Freigabe |
 | 202611251957 | Weitere Hardware: AMD-Grafik (amdgpu, Mesa radeonsi) nutzbar wie Intel; ohne passenden Grafiktreiber läuft die Oberfläche über das Bild der Firmware (simpledrm) ohne GPU – dann gibt es keinen Render-Knoten, Apps mit `gpu = ja` zeichnen per Software. Bildschirmauflösung kann je Gerät abweichen |
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
-| NEUE_VERSION | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
+| 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
 
 ---
 
