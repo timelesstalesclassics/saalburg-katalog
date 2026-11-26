@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611261259.**
+**Stand: Saalburg 202611261345.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -36,6 +36,9 @@ er **nur lesbar**.
 | `terminal` | `start` per `/bin/sh -c` in einem Terminal der Oberfläche | Pseudo-Terminal, `TERM=xterm-256color` |
 | `programm` | `start` per `/bin/sh -c`, eigenes Wayland-Fenster | stdin, stdout und stderr auf `/dev/null`; Protokoll bitte selbst nach `$HOME` schreiben |
 | `web` | Chromium im App-Modus mit `url` (nur `https://` oder lokal `http://127.0.0.1`, `http://localhost`) | eigenes Chromium-Profil je App |
+
+Eine Terminal-App mit `laeufer = ja` läuft ohne Terminal und ohne Fenster, nur solange der
+Nutzer sie freigibt (Läufer-App, Abschnitt 18, ab Saalburg 202611261345).
 
 Eine weitere Art, `browser`, gibt es nur für den mitgelieferten Browser (Abschnitt 10); die
 Kennung `browser` ist für ihn reserviert, Pakete damit lehnt die App-Verwaltung ab (ab Saalburg 202611231841).
@@ -786,6 +789,7 @@ nach dem Update.
 | 202611241934 | Dialoge (`xdg_toplevel.set_parent`, xdg-foreign v1/v2) auf dem Platz ihres Elternfensters mit Fokus, GTK-Dateidialog der Web-Apps deutsch; Bildschirmfotos: jedes Foto ein neues Ablage-Angebot, andere Typen als `image/png`/Text liefern nichts; Testplatz: Test-Apps dürfen melden und (mit `drucken = ja`) drucken; Drucken: PDF/PNG für Drucker ohne diese Formate eingesperrt in JPEG-Seiten umgewandelt, ipps:// wenn der Drucker TLS verlangt |
 | 202611251640 | Steuerung durch Claude in drei Stufen (nein / bei Bedarf / ja), Voreinstellung „bei Bedarf“: Claude fordert mit Begründung an (`steuerung_anfordern`, `app steuerung anfordern`), der Nutzer bestätigt am Bildschirm; Web-Apps und Browser laufen im Alltag ohne DevTools-Pipe (`navigator.webdriver = false`) und starten für die Steuerung mit Pipe neu (Profil und Tabs bleiben); Ende durch Rückgabe, nach 10 min ohne Befehl oder durch den Nutzer (Leiste, Windows-Taste+Esc); eigener MCP-Server bei Bedarf erst mit der Freigabe |
 | 202611251957 | Weitere Hardware: AMD-Grafik (amdgpu, Mesa radeonsi) nutzbar wie Intel; ohne passenden Grafiktreiber läuft die Oberfläche über das Bild der Firmware (simpledrm) ohne GPU – dann gibt es keinen Render-Knoten, Apps mit `gpu = ja` zeichnen per Software. Bildschirmauflösung kann je Gerät abweichen |
+| 202611261345 | Läufer-Apps: app.conf `laeufer = ja` (nur `art = terminal`, ohne Steuerung, Verbindung, Fernzugriff, Ordner, Netzlaufwerk): läuft ohne Fenster nur, solange der Nutzer sie am Bildschirm freigibt (1/4/8 h, bis Zeitpunkt, unbegrenzt); Zustand `/run/laeufer/<kennung>/zustand` (Freigabe, Pause bei Nutzung, VMs/Kerne/RAM), Tokens `/daten/system/laeufer/<kennung>/token-*`, Rückmeldung `$XDG_RUNTIME_DIR/laeufer.status`; System: `mtools` (Abschnitt 18) |
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
 | 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
 
@@ -1140,3 +1144,57 @@ qemu-system-x86_64 -accel kvm -accel tcg -cpu host -m 4G -smp 4 -machine q35 \
 ```
 (`-cpu host` nur mit KVM; ohne KVM `-cpu max`.)
 
+---
+
+## 18. Läufer-Apps (`laeufer = ja`)
+
+Für Apps, die im Hintergrund lange rechnen – vor allem Tests in virtuellen Maschinen (der
+VM-Läufer) –, aber nur, wenn der Nutzer es ausdrücklich erlaubt. Ab Saalburg 202611261345.
+
+**Bedingungen** (Katalog und App-Verwaltung lehnen sonst ab): `art = terminal`, kein
+`steuerung = claude`, keine `verbindung`, kein `fernzugriff`/`fernzugriff_sicher`, keine
+`ordner`, kein `netzlaufwerk`. Meist zusammen mit `kvm = ja` und `netzwerk = ja` (dann nur
+Internet, Abschnitt 17). Nur installierte Apps, nicht auf dem Testplatz.
+
+**Freigabe**: Der Nutzer gibt die App in den Einstellungen → Apps & Rechte auf ihrer Karte frei:
+1, 4 oder 8 Stunden, bis zu einem Zeitpunkt (höchstens 31 Tage) oder unbegrenzt; „Beenden“
+jederzeit. Die Leiste zeigt jede Freigabe („<Name> 3:41 · Pause“). Nur echte Eingaben am
+Bildschirm geben frei, Claude kann es nicht. Nach einem Neustart ist die Freigabe aus.
+
+**Lebenszyklus**:
+- Ohne Freigabe läuft die App nicht. Die Kachel in der Übersicht öffnet die Einstellungen,
+  nicht die App.
+- Mit Freigabe startet Saalburg `start` ohne Terminal und ohne Fenster (stdin `/dev/null`,
+  stdout/stderr nach `$HOME/laeufer.log`) in der Sandbox der App. Endet die App von selbst,
+  startet Saalburg sie frühestens nach 30 s neu, solange die Freigabe gilt.
+- Endet die Freigabe (Ablauf, „Beenden“, Ausschalten): `SIGTERM` an die Prozessgruppe, nach 15 s
+  `cgroup.kill`. Auf `SIGTERM` Laufendes sauber abbrechen und enden.
+- Sie wird nie wegen Unsichtbarkeit eingefroren (kein Fenster), wohl aber bei Nutzung (unten).
+
+**Zustand** `/run/laeufer/<kennung>/zustand` (nur lesbar, wird ersetzt – bei Bedarf neu lesen,
+alle paar Sekunden reicht), Zeilen `schlüssel=wert`:
+
+| Schlüssel | Bedeutung |
+|---|---|
+| `freigabe` | `ja`/`nein` |
+| `bis` | Ende als Unix-Sekunden (UTC) oder `unbegrenzt` |
+| `pause` | `ja`: jemand arbeitet am Rechner (Eingaben oder Ton in den letzten 5 min) – **nichts Neues anfangen** |
+| `nutzung` | `drosseln` oder `anhalten`: was Saalburg bei Nutzung mit laufender Arbeit tut |
+| `vms`, `kerne`, `ram_mb` | VMs gleichzeitig, Kerne je VM, RAM je VM (MB) – vom Nutzer gewählt |
+| `kerne_gesamt`, `ram_gesamt_mb` | Grenzen der ganzen App: `cpu.max` (höchstens N−1 Kerne) und `memory.max` (VMs × (RAM + 512 MB) + 768 MB) |
+
+**Ressourcen und Nutzung**: `memory.max` setzt Saalburg aus der Einstellung (das `ram_max` der
+app.conf gilt für Läufer-Apps nicht); höchstens N−1 Kerne, und dem System bleiben mindestens
+4 GB bzw. 3/8 des RAM. Bei Nutzung: „drosseln“ = `cpu.idle` (Rechenzeit nur, wenn sonst nichts
+läuft) und ein Kern; „anhalten“ = die ganze App eingefroren, bis 5 Minuten Ruhe ist. In beiden
+Fällen soll die App keine neue Arbeit beginnen, solange `pause=ja`.
+
+**Tokens**: Braucht die App Zugangsdaten (der VM-Läufer: zwei GitHub-Tokens), trägt der Nutzer
+sie auf ihrer Karte ein; sie liegen als `/daten/system/laeufer/<kennung>/token-lesen` und
+`token-auftraege` (nur die App liest sie). Nicht in Protokolle schreiben; Code, den die App
+ausführt und der nicht von ihr stammt (z. B. Test-Skripte), mit Landlock davon fernhalten.
+
+**Rückmeldung**: bis zu 6 Zeilen Text in `$XDG_RUNTIME_DIR/laeufer.status` (atomar ersetzen); die
+Einstellungsseite zeigt sie auf der Karte der App, solange sie freigegeben ist.
+
+**Werkzeuge**: Für FAT-Abbilder ohne Einhängen liegen `mcopy`, `mmd` & Co. (mtools) im System.
