@@ -263,7 +263,7 @@ Recht fehlt.
 | `zxdg_exporter_v2`, `zxdg_importer_v2` | 1 | xdg-foreign: Elternfenster über Verbindungen hinweg (z. B. GTK-Dialog von Chromium) ³ |
 | `zxdg_exporter_v1`, `zxdg_importer_v1` | 1 | dasselbe in Version 1 (GTK 3 importiert nur darüber); Griffe gelten für beide ³ |
 
-² ab Saalburg 202611230126 (Abschnitt 13). ³ ab Saalburg 202611241934.
+² ab Saalburg 202611230126 (Abschnitt 13). ³ ab Saalburg 202611241934. ⁴ ab Saalburg NEUE_VERSION.
 
 Verhalten:
 - **Fenster** bekommen per `configure` die Größe ihres Platzes und die Zustände „maximiert“
@@ -282,6 +282,22 @@ Verhalten:
   das Elternfenster über die Übersicht zurück, steht dort wieder der Dialog; ein Klick ins
   Elternfenster (z. B. bei 1:1 auf dem anderen Platz) gibt dem Dialog den Fokus und erreicht
   die App nicht. Gilt nur innerhalb derselben App; xdg-foreign-Griffe sind zufällig.
+- **Schwebende Dialoge** ⁴: Öffnet eine App über dieselbe Wayland-Verbindung ein weiteres
+  Fenster mit Titel, aber ohne Elternfenster und ohne xdg-decoration (z. B. Meldungsfenster von
+  Wine, das kein `set_parent` schickt), bekommt es keinen eigenen Platz: Es erhält ein
+  `configure` ohne Größe (0×0) und ohne „maximiert“/„angelegt“, wählt seine Größe also selbst,
+  und steht mittig über dem Fenster derselben Verbindung, innerhalb von dessen Platz, ohne
+  Layoutwechsel und ohne eigene Kachel in der Übersicht. Der oberste schwebende Dialog hat die
+  Tastatur, auch wenn der Nutzer ins Fenster darunter klickt (der Klick erreicht die App);
+  geht er zu, bekommt das Fenster sie zurück. Windows-Taste+Q schließt ihn, `xdg_toplevel.move`
+  verschiebt ihn. Einen eigenen Platz bekommt er doch, wenn sein erstes Bild größer als der
+  Platz ist, er `set_maximized` schickt, sein Fenster zugeht oder er nachträglich ein
+  Elternfenster meldet. Wer ein zweites Hauptfenster will, setzt eine xdg-decoration oder
+  maximiert es; wer einen Dialog auf dem Platz des Elternfensters will, setzt `set_parent`.
+- **Eingaberegion** ⁴: `wl_surface.set_input_region` gilt (auch für Unterflächen). Außerhalb
+  der Region ist eine Fläche für den Zeiger durchlässig, die Fläche darunter bekommt ihn – z. B.
+  Unterflächen mit leerer Region für OpenGL in Wine. Die undurchsichtige Region
+  (`set_opaque_region`) wird nicht ausgewertet.
 - **Ping/Pong**: Antwortet eine App 5 s lang nicht auf `xdg_wm_base.ping`, zeigt die Oberfläche
   „reagiert nicht“. Deshalb die Ereignisschleife nie lange blockieren.
 - **Mauszeiger**: Eigene Zeiger über `wl_pointer.set_cursor` sind erlaubt. Mit
@@ -480,14 +496,23 @@ Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben
 | Unsichtbar seit 10 s | `cgroup.freeze`: keine Rechenzeit, Speicher bleibt | Zeitgeber und Netzverbindungen müssen ein Einfrieren überstehen |
 | Unsichtbar seit 2 min oder Speicher knapp | Speicher wird ausgelagert (`memory.reclaim`, verschlüsselte Auslagerung auf der SSD) | nichts, die Seiten kommen bei Bedarf zurück |
 | Wieder sichtbar | sofort aufgetaut | |
-| Fenster schließen (Windows-Taste+Q, Entf in der Übersicht) | `xdg_toplevel.close` bzw. `SIGHUP` beim Terminal; reagiert die App nach 3 s nicht, endet ihre cgroup hart (`cgroup.kill`) | `close` beachten, Stand speichern, beenden |
+| Fenster schließen (Windows-Taste+Q, Entf in der Übersicht) | `xdg_toplevel.close` bzw. `SIGHUP` beim Terminal; Windows-Taste+Q bittet nur. Bei Entf: reagiert die App nach 3 s nicht, endet ihre cgroup hart (`cgroup.kill`); mit `schliessen_frist` ⁴ erst nach der Frist `SIGTERM`, 3 s später hart | `close` beachten, Stand speichern, beenden |
 | Entfernen (Store-Seite³ oder `app entfernen`) | Der Nutzer wählt „Daten behalten“ (Standard) oder „Auch Daten löschen“. Läuft die App, wird sie vorher wie beim Schließen beendet (erst freundlich, nach 3 s hart); nach der Bestätigung am Bildschirm wird `/daten/apps/<kennung>` gelöscht, `$HOME` bleibt bzw. wird mit gelöscht | Daten so in `$HOME` ablegen, dass eine Neuinstallation sie wieder nutzen kann (Version mitspeichern, ältere Stände lesen können) |
-| Ausschalten oder Neustart | `SIGTERM`, bis zu **12 s** Frist, danach hart | auf `SIGTERM` speichern und enden |
+| Ausschalten oder Neustart | `SIGTERM`, bis zu **12 s** Frist, danach hart. Mit `schliessen_frist` ⁴: zuerst `xdg_toplevel.close` an alle Fenster der App (unter Wine `WM_CLOSE`), `SIGTERM` erst nach der Frist; Saalburg wartet entsprechend länger | auf `SIGTERM` (bzw. `close`) speichern und enden |
 | Nach dem Neustart | Saalburg öffnet die App wieder auf ihrem Platz (Web-Apps mit der letzten Seite derselben Herkunft) | Stand beim Start wiederherstellen |
 | Speichermangel | Der Kernel beendet zuerst schlafende Apps (oom_score_adj 800), dann wache (300), dann Claude (-500); Dienste haben -900 | regelmäßig speichern |
 
 ³ Knopf „Entfernen“ auf der Store-Seite ab Saalburg 202611230257 (Abschnitt 13); in der Übersicht öffnet
 Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf.
+⁴ ab Saalburg NEUE_VERSION.
+
+**Schließ-Frist** (`schliessen_frist = <Sekunden>`, 1–120, ab Saalburg NEUE_VERSION): für Apps,
+die beim Beenden aufräumen müssen und `SIGTERM` nicht als Bitte verstehen – z. B. Windows-
+Programme unter Wine, die bei `SIGTERM` sofort enden, ohne `WM_CLOSE` zu verarbeiten. Ohne die
+Angabe bleibt alles wie oben. Die Frist gilt für Entf in der Übersicht, Entfernen und
+Ausschalten; Windows-Taste+Q beendet ohnehin nie hart. Fragt die App beim Schließen nach (z. B.
+„Änderungen speichern?“), sieht der Nutzer das beim Ausschalten nicht – nach der Frist kommt
+`SIGTERM`. Eine App sollte sich also auch ohne Rückfrage sauber beenden können.
 
 **Wach bleiben** Apps, wenn:
 - ein Platz sie zeigt;
@@ -791,6 +816,7 @@ nach dem Update.
 | 202611251957 | Weitere Hardware: AMD-Grafik (amdgpu, Mesa radeonsi) nutzbar wie Intel; ohne passenden Grafiktreiber läuft die Oberfläche über das Bild der Firmware (simpledrm) ohne GPU – dann gibt es keinen Render-Knoten, Apps mit `gpu = ja` zeichnen per Software. Bildschirmauflösung kann je Gerät abweichen |
 | 202611261345 | Läufer-Apps: app.conf `laeufer = ja` (nur `art = terminal`, ohne Steuerung, Verbindung, Fernzugriff, Ordner, Netzlaufwerk): läuft ohne Fenster nur, solange der Nutzer sie am Bildschirm freigibt (1/4/8 h, bis Zeitpunkt, unbegrenzt); Zustand `/run/laeufer/<kennung>/zustand` (Freigabe, Pause bei Nutzung, VMs/Kerne/RAM), Tokens `/daten/system/laeufer/<kennung>/token-*`, Rückmeldung `$XDG_RUNTIME_DIR/laeufer.status`; System: `mtools` (Abschnitt 18) |
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
+| NEUE_VERSION | Wayland: Eingaberegionen (`set_input_region`), schwebende Dialoge (weitere Fenster derselben Verbindung ohne Elternfenster und ohne xdg-decoration stehen in eigener Größe über ihrem Fenster, z. B. Wine-Meldungsfenster); app.conf `schliessen_frist` (Beenden zuerst per `xdg_toplevel.close`, `SIGTERM` erst nach der Frist, auch beim Ausschalten) |
 | 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
 
 ---

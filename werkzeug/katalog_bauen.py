@@ -36,7 +36,8 @@ BEKANNT = {"kennung", "version", "beschreibung", "name", "symbol", "farbe", "art
            "netzwerk", "gpu", "ton", "ram_max", "ordner", "steuerung", "verbindung",
            "hintergrund", "kategorie", "saalburg",
            # wie BEKANNT in Saalburgs app.conf-Leser (Werte prüft Saalburg beim Installieren)
-           "angleichen", "drucken", "fernzugriff", "fernzugriff_sicher", "netz_ziele", "netzlaufwerk", "kvm", "laeufer"}
+           "angleichen", "drucken", "fernzugriff", "fernzugriff_sicher", "netz_ziele", "netzlaufwerk", "kvm", "laeufer",
+           "schliessen_frist"}
 NAME_RE = re.compile(r"^[a-z0-9-]{1,31}$")
 VERSION_RE = re.compile(r"^[0-9][0-9a-z.-]{0,30}$")
 PFAD_RE = re.compile(r"^[A-Za-z0-9._+-]+$")
@@ -173,6 +174,11 @@ def conf_lesen(text, ordnername):
         fehler(f"{ordnername}: kvm = ja oder nein")
     if werte.get("kvm") == "ja" and (werte.get("netzwerk", "").startswith("lan:") or "netz_ziele" in werte):
         fehler(f"{ordnername}: kvm = ja geht nicht mit LAN-Zielen (netzwerk = lan:…, netz_ziele)")
+    # Schließ-Frist: Sekunden 1–120 (wie Saalburg beim Installieren prüft)
+    if "schliessen_frist" in werte:
+        zahl = werte["schliessen_frist"].rstrip("sS ")
+        if not zahl.isdigit() or not 1 <= int(zahl) <= 120:
+            fehler(f"{ordnername}: schliessen_frist = Sekunden (1–120)")
     # Läufer-Apps (laufen nur mit Freigabe am Bildschirm, ohne Fenster): wie Saalburg prüft
     if werte.get("laeufer", "nein") not in ("ja", "nein"):
         fehler(f"{ordnername}: laeufer = ja oder nein")
