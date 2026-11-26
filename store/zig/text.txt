@@ -2,7 +2,7 @@ Zig ist eine Programmiersprache und zugleich ein vollständiges Build-System. Au
 
 Die App bringt Zig 0.16.0 als unverändertes Archiv von ziglang.org mit (Prüfsumme wird geprüft) und richtet es beim ersten Start ein. Dazu gehören die Sprache, die Standardbibliothek, ein C- und C++-Compiler (zig cc) und Bibliotheken für viele Ziele: Programme für Saalburg, Linux und Windows entstehen auf demselben Rechner.
 
-Im Terminal öffnet sich eine Shell in den Dokumenten der App mit zig init, zig build, zig build test und zig fmt.
+Im Terminal öffnet sich eine Shell in den Dokumenten der App mit zig init, zig build, zig build test und zig fmt. Beim ersten Start richtet die App Zig einmal ein, das dauert einen Moment.
 
 Claude nutzt die App über die Saalburg-Verbindung: Projekte bauen, testen, formatieren und gebaute Programme mit Zeitlimit ausführen. Fehlermeldungen des Compilers kommen direkt zurück. Projekte und Ergebnisse wandern über den Dateidienst zwischen Claude und der App.
 
