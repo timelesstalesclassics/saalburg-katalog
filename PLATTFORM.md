@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611261345.**
+**Stand: Saalburg 202611261611.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -263,7 +263,7 @@ Recht fehlt.
 | `zxdg_exporter_v2`, `zxdg_importer_v2` | 1 | xdg-foreign: Elternfenster über Verbindungen hinweg (z. B. GTK-Dialog von Chromium) ³ |
 | `zxdg_exporter_v1`, `zxdg_importer_v1` | 1 | dasselbe in Version 1 (GTK 3 importiert nur darüber); Griffe gelten für beide ³ |
 
-² ab Saalburg 202611230126 (Abschnitt 13). ³ ab Saalburg 202611241934. ⁴ ab Saalburg NEUE_VERSION.
+² ab Saalburg 202611230126 (Abschnitt 13). ³ ab Saalburg 202611241934. ⁴ ab Saalburg 202611261611.
 
 Verhalten:
 - **Fenster** bekommen per `configure` die Größe ihres Platzes und die Zustände „maximiert“
@@ -504,9 +504,9 @@ Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben
 
 ³ Knopf „Entfernen“ auf der Store-Seite ab Saalburg 202611230257 (Abschnitt 13); in der Übersicht öffnet
 Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf.
-⁴ ab Saalburg NEUE_VERSION.
+⁴ ab Saalburg 202611261611.
 
-**Schließ-Frist** (`schliessen_frist = <Sekunden>`, 1–120, ab Saalburg NEUE_VERSION): für Apps,
+**Schließ-Frist** (`schliessen_frist = <Sekunden>`, 1–120, ab Saalburg 202611261611): für Apps,
 die beim Beenden aufräumen müssen und `SIGTERM` nicht als Bitte verstehen – z. B. Windows-
 Programme unter Wine, die bei `SIGTERM` sofort enden, ohne `WM_CLOSE` zu verarbeiten. Ohne die
 Angabe bleibt alles wie oben. Die Frist gilt für Entf in der Übersicht, Entfernen und
@@ -816,7 +816,7 @@ nach dem Update.
 | 202611251957 | Weitere Hardware: AMD-Grafik (amdgpu, Mesa radeonsi) nutzbar wie Intel; ohne passenden Grafiktreiber läuft die Oberfläche über das Bild der Firmware (simpledrm) ohne GPU – dann gibt es keinen Render-Knoten, Apps mit `gpu = ja` zeichnen per Software. Bildschirmauflösung kann je Gerät abweichen |
 | 202611261345 | Läufer-Apps: app.conf `laeufer = ja` (nur `art = terminal`, ohne Steuerung, Verbindung, Fernzugriff, Ordner, Netzlaufwerk): läuft ohne Fenster nur, solange der Nutzer sie am Bildschirm freigibt (1/4/8 h, bis Zeitpunkt, unbegrenzt); Zustand `/run/laeufer/<kennung>/zustand` (Freigabe, Pause bei Nutzung, VMs/Kerne/RAM), Tokens `/daten/system/laeufer/<kennung>/token-*`, Rückmeldung `$XDG_RUNTIME_DIR/laeufer.status`; System: `mtools` (Abschnitt 18) |
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
-| NEUE_VERSION | Wayland: Eingaberegionen (`set_input_region`), schwebende Dialoge (weitere Fenster derselben Verbindung ohne Elternfenster und ohne xdg-decoration stehen in eigener Größe über ihrem Fenster, z. B. Wine-Meldungsfenster); app.conf `schliessen_frist` (Beenden zuerst per `xdg_toplevel.close`, `SIGTERM` erst nach der Frist, auch beim Ausschalten) |
+| 202611261611 | Wayland: Eingaberegionen (`set_input_region`), schwebende Dialoge (weitere Fenster derselben Verbindung ohne Elternfenster und ohne xdg-decoration stehen in eigener Größe über ihrem Fenster, z. B. Wine-Meldungsfenster); app.conf `schliessen_frist` (Beenden zuerst per `xdg_toplevel.close`, `SIGTERM` erst nach der Frist, auch beim Ausschalten) |
 | 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
 
 ---
