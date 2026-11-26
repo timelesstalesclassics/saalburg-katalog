@@ -1,0 +1,4 @@
+# Shell der App „zig“ (bash; sh liest diese Datei über ENV)
+PS1="\[${ZIG_AKZENT}\]zig\[${ZIG_AUS}\] \w \$ "
+HISTSIZE=2000
+alias ll='ls -la'
