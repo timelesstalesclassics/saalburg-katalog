@@ -58,7 +58,10 @@ Systeme zeigen „Braucht Saalburg vom …“ und installieren erst nach dem Sys
 `kategorie` (wie in `store/`),
 `kvm = ja` (darf virtuelle Maschinen mit QEMU und KVM starten; aus, bis der Nutzer es in den
 Einstellungen einschaltet; Netz dann nur Internet, nie das LAN, also nicht zusammen mit
-`netz_ziele` oder `netzwerk = lan:…`; siehe `PLATTFORM.md` Abschnitt 17).
+`netz_ziele` oder `netzwerk = lan:…`; siehe `PLATTFORM.md` Abschnitt 17),
+`laeufer = ja` (Läufer-App: läuft ohne Fenster nur, solange der Nutzer sie in den Einstellungen
+freigibt; nur `art = terminal`, ohne Steuerung, Verbindung, Fernzugriff, Ordner, Netzlaufwerk;
+siehe `PLATTFORM.md` Abschnitt 18).
 
 Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
 `info.conf` (`kategorie = Büro`, `empfohlen = ja`), `text.txt` (lange Beschreibung, höchstens
