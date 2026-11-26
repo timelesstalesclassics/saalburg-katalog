@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611260908.**
+**Stand: Saalburg 202611261259.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -15,7 +15,7 @@ Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` un
 |---|---|
 | Kernel | Linux 6.18 (eigene Konfiguration, x86_64) |
 | Basis | Alpine Linux 3.24, **musl** libc 1.2.6. glibc-Programme laufen nicht. |
-| Init | eigenes Init-Programm (kein systemd, kein OpenRC, **kein D-Bus**) |
+| Init | eigenes Init-Programm (kein systemd, kein OpenRC, **kein D-Bus**; nur für Chromium spielt der Schlüsseldienst einen Sitzungsbus mit genau einem Dienst, Abschnitt 10) |
 | Oberfläche | eigener Compositor (Zig) mit eigenem Wayland-Server, Terminal-Emulator und Systemseiten |
 | Zielgerät | Mini-PC mit Intel N100 (Grafik i915), 16 GB RAM, SSD |
 | Sprache/Zeit | `LANG=C.UTF-8` (keine weiteren Locales), `TZ=Europe/Berlin`, deutsche Tastaturbelegung |
@@ -72,7 +72,8 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
   ¹ ab Saalburg 202611230126 (Abschnitt 13); vorher `TMPDIR=/daten/appdaten/<kennung>/tmp`.
 
   Web-Apps setzen zusätzlich `XDG_CONFIG_HOME=$HOME/.config` und
-  `DBUS_SESSION_BUS_ADDRESS=disabled:`, ihre Downloads und Dokumente zeigen auf
+  `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus` (Schlüsseldienst, Abschnitt 10;
+  vor Saalburg 202611261259 `disabled:`), ihre Downloads und Dokumente zeigen auf
   `$HOME/Dokumente`.
 
 ### Terminal-Apps
@@ -565,8 +566,29 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
 - **Chromium 158** im App-Modus (ohne Browserleiste), Wayland, GPU-Beschleunigung, Sprache
   Deutsch (Oberfläche und `Accept-Language`; vor Saalburg 202611231841 fehlte die deutsche
   Sprachdatei, Chromium war englisch).
-- **Profil je App** in `$HOME/.cache/profil`, mit getrennten Anmeldungen. Passwörter speichert
-  Chromium im eigenen Speicher (`--password-store=basic`), einen Schlüsselbund gibt es nicht.
+- **Profil je App** in `$HOME/.cache/profil`, mit getrennten Anmeldungen.
+- **Passwörter, Cookies und Anmelde-Token verschlüsselt je App** (ab Saalburg 202611261259):
+  Chromium läuft mit `--password-store=gnome-libsecret` und holt sein Geheimnis beim Start
+  über den **Schlüsseldienst** des Systems (Secret Service, `org.freedesktop.secrets`). Jede
+  Kennung hat ihr eigenes Geheimnis; der Dienst gibt es nur an diese UID heraus (der Kernel
+  sagt ihm, wer fragt), es liegt außerhalb des Profils unter `/daten/system` und ist für die
+  App nicht als Datei lesbar. Im Profil stehen Passwörter und Cookies damit als `v11` (vorher
+  `v10` mit Chromiums festem, öffentlich bekanntem Schlüssel – praktisch Klartext). Für den
+  Nutzer ändert sich nichts: keine Abfrage, kein Schlüsselbund-Passwort.
+  - **Umzug**: Vor jedem Start schlüsselt Saalburg noch vorhandene `v10`-Einträge des Profils
+    (Cookies, gespeicherte Passwörter, Anmelde-Token und Zahlungsdaten in `Web Data`) auf den
+    Schlüssel der App um. Anmeldungen bleiben erhalten, niemand muss sich neu anmelden.
+  - **Antwortet der Schlüsseldienst nicht**, startet eine Web-App, deren Profil schon einen
+    Schlüssel hat, nicht (Meldung in der Leiste) – Chromium könnte die Anmeldungen sonst
+    nicht lesen und verwürfe sie.
+  - **Entfernen mit Daten** löscht auch das Geheimnis; eine neue Installation beginnt mit
+    einem neuen.
+  - Der „Bus“ unter `/run/schluessel/bus` ist kein allgemeiner D-Bus: Er kennt nur den Secret
+    Service (für jeden anderen Namen „nicht vorhanden“, also z. B. keine Benachrichtigungen
+    oder Portale) und leitet nichts zwischen Programmen weiter. Native Apps sollen ihn nicht
+    benutzen; eigene Geheimnisse legt eine App in ihrem `$HOME` ab.
+  - Grenze: Wer die ganze Saalburg-Platte hat, hat auch die Geheimnisse (die Platte ist nicht
+    verschlüsselt). Geschützt ist das Profil, wenn es allein kopiert wird, und vor anderen Apps.
 - **Flags, die Saalburg setzt**:
   - `--force-dark-mode`: Seiten sehen `prefers-color-scheme: dark`;
   - Grundzoom passend zur Schriftgröße der Oberfläche (28 px = 100 %), als **Seitenzoom** im
@@ -575,7 +597,8 @@ Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf
     Zoomstufen je Seite (Strg+Plus/Minus) bleiben erhalten. Seiten daher mit relativen Größen
     und Media Queries bauen, nicht mit festen Pixelbreiten fürs Fenster;
   - `--disable-background-networking`, `--disable-component-update`;
-  - Übersetzen und MediaRouter sind aus.
+  - Übersetzen und MediaRouter sind aus, ebenso das Secret-Portal (`DbusSecretPortal`);
+  - `--password-store=gnome-libsecret` (Schlüsseldienst, siehe oben; vorher `basic`).
 - **Erweiterungen**: keine eigenen. Die einzige ist das Saalburg-Aussehen.
 - **Saalburg-Aussehen**: Bringt das Paket ein `aussehen.css` (optional `aussehen.js`) mit,
   baut Saalburg daraus eine Erweiterung ohne Rechte, nur für den Host der Start-URL und seine
@@ -764,6 +787,7 @@ nach dem Update.
 | 202611251640 | Steuerung durch Claude in drei Stufen (nein / bei Bedarf / ja), Voreinstellung „bei Bedarf“: Claude fordert mit Begründung an (`steuerung_anfordern`, `app steuerung anfordern`), der Nutzer bestätigt am Bildschirm; Web-Apps und Browser laufen im Alltag ohne DevTools-Pipe (`navigator.webdriver = false`) und starten für die Steuerung mit Pipe neu (Profil und Tabs bleiben); Ende durch Rückgabe, nach 10 min ohne Befehl oder durch den Nutzer (Leiste, Windows-Taste+Esc); eigener MCP-Server bei Bedarf erst mit der Freigabe |
 | 202611251957 | Weitere Hardware: AMD-Grafik (amdgpu, Mesa radeonsi) nutzbar wie Intel; ohne passenden Grafiktreiber läuft die Oberfläche über das Bild der Firmware (simpledrm) ohne GPU – dann gibt es keinen Render-Knoten, Apps mit `gpu = ja` zeichnen per Software. Bildschirmauflösung kann je Gerät abweichen |
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
+| 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
 
 ---
 
