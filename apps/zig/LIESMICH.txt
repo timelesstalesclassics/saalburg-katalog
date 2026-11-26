@@ -1,0 +1,25 @@
+Zig für Saalburg
+================
+
+zig-x86_64-linux-0.16.0.tar.xz
+    Das unveränderte offizielle Archiv von https://ziglang.org/download/0.16.0/
+    SHA-256 70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00
+    (wie in https://ziglang.org/download/index.json; Signatur mit minisign geprüft,
+    Schlüssel RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U).
+    Die App prüft die Prüfsumme und entpackt es beim ersten Start nach
+    $HOME/.cache/zig-werkzeug/ (Paketgrenzen: höchstens 20 000 Einträge, Dateien im
+    Katalog höchstens 100 MB; entpackt sind es ~20 800 Einträge und ~400 MB).
+
+LIZENZ-Zig.txt
+    Lizenz von Zig (MIT). Das Archiv enthält außerdem Teile anderer Projekte mit ihren
+    eigenen Lizenzen, jeweils dort abgelegt: lib/libcxx, lib/libcxxabi, lib/libunwind
+    (Apache-2.0 mit LLVM-Ausnahme), lib/libc/musl (MIT), lib/libc/mingw, lib/libc/glibc,
+    lib/libc/wasi und weitere.
+
+werkzeug/konsole.py      Terminal der App: Shell in den Dokumenten, zig im PATH
+werkzeug/zig_mcp.py      MCP-Server für Claude (zig_version, projekte, zig_bauen, zig_test,
+                         programm_ausfuehren, zig_fmt, zig, cache_leeren)
+werkzeug/werkzeug_mcp.py gemeinsamer Baustein für Werkzeug-Apps (MCP über stdio, Befehle
+                         mit Zeitlimit, Pfade nur in den Dokumenten)
+werkzeug/zig_dist.py     Prüfen und Entpacken des Archivs
+tests/test_zig.py        python3 -I -B -m unittest discover -v -s /daten/apps/zig/aktuell/tests

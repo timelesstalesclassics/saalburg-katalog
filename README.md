@@ -26,6 +26,7 @@ Bildschirm zustimmt; dabei zeigt das System Name, Version, Herausgeber und die R
 | `tabula` | Programm | Tabellenkalkulation: Excel-Mappen (.xlsx) und CSV öffnen, bearbeiten und Excel-lesbar speichern, Formeln wie im deutschen Excel (Wayland, ohne Internet) |
 | `whatsapp` | Web-App | WhatsApp Web im eigenen Fenster, Kopplung per QR-Code mit dem Handy; Downloads in den Dokumenten der App |
 | `youtube` | Web-App | YouTube im eigenen Fenster, mit Saalburg-Aussehen (`aussehen.css`, ab Saalburg mit Aussehen-Unterstützung) |
+| `zig` | Terminal | Zig 0.16.0 (Compiler, Build-System, `zig cc`) zum Bauen und Testen auf dem Gerät; MCP-Werkzeuge für Claude (`zig_bauen`, `zig_test` …), ohne Internet |
 
 ## Eine App hinzufügen oder ändern
 
