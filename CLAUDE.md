@@ -16,6 +16,10 @@ Wayland, GPU, Ton, Lebenszyklus, Claude-Anbindung, Bibliotheken, Mindestversion)
 - Bei jeder Änderung an einer App `version` in `app.conf` erhöhen.
 - `saalburg = JJJJMMTTHHMM` setzen, wenn die App eine bestimmte Saalburg-Version braucht
   (z. B. Saalburg-Aussehen für Web-Apps: ab `202611221801`). Die passende Nummer steht in `PLATTFORM.md` (Versionstabelle).
+- Große Werkzeuge (Compiler, Laufzeiten wie Wine): nicht entpackt in Git und nicht beim ersten
+  Start in `$HOME` entpacken, sondern das offizielle Archiv per `entpacken.conf` beim Bauen ins
+  Paket (README, „Große Pakete und Werkzeug-Apps“). Braucht eine App ein Werkzeug einer anderen,
+  `werkzeuge = <kennung>` statt es doppelt mitzubringen.
 - Dateien tauschen Apps nur über ihren Ordner „Dokumente“ und den Dateidienst aus; keine
   gemeinsamen Ordner per `ordner =` für den Austausch mit anderen Apps oder mit Claude.
 - Steuerung durch Claude nur über die Saalburg-Verbindung (`steuerung = claude`,
