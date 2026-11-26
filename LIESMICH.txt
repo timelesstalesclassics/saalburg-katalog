@@ -1,1 +1,2 @@
-Signierte Pakete und Katalog von Saalburg, gebaut aus 3c2e2aba879515f3910a5e634bedbf0f1d05002d.
+Signierte Pakete und Katalog von Saalburg, gebaut aus 19aa18ce8be699290f4c71ee17464679955cf049.
+Große Pakete und Werkzeug-Apps liegen als Release-Anhang (anhaenge.txt).

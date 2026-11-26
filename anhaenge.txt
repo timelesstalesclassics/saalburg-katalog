@@ -1,0 +1,2 @@
+# kennung|version|bytes|sha256|adresse|inhalt-sha256 (Release-Anhänge, unveränderlich)
+zig|1.1|61437671|9484d59f0bde6acee0d7aefefe2d88311f042d430f5628bbb5f944d6c7ee3640|https://github.com/timelesstalesclassics/saalburg-katalog/releases/download/zig-1.1/zig-1.1.osapp|dd9f69eac5f5887226722686bded33ce221d4792203ebc9f99163c278c82e791
