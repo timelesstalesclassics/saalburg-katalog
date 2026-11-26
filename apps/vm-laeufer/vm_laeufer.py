@@ -17,11 +17,16 @@ Ablauf eines Auftrags (Issue mit Label „vm-laeufer“ im Auftrags-Repo, Codebl
   4. Protokolle und Bildschirmfotos in den Zweig „vm-laeufer-ergebnisse“ des Auftrags-Repos,
      Kommentar „fertig“ mit der Zusammenfassung, Issue schließen.
 
-Zustand von Saalburg: /run/laeufer/<kennung>/zustand (Freigabe, Pause, Ressourcen).
+Zustand von Saalburg: /run/laeufer/<kennung>/zustand (Freigabe, Pause, Ressourcen, Recht kvm).
 Rückmeldung an Saalburg: $XDG_RUNTIME_DIR/laeufer.status (zeigt die Einstellungsseite).
-Pause (jemand arbeitet am Rechner): keine neuen Aufträge; lauf.py startet keine neuen Tests.
+Pause (jemand arbeitet am Rechner, „Drosseln“/„Anhalten“): keine neuen Aufträge; lauf.py
+startet keine neuen Tests. Bei „Weiterarbeiten“ (prioritaet=niedrig) geht es nachrangig weiter.
+
+Ohne nutzbares KVM nimmt der Läufer keinen Test an (Rückmeldung rc=kvm mit dem Grund, z. B.
+„VT-x im BIOS einschalten“) – Tests in TCG wären auf dem Rechner viel zu langsam.
 """
 import base64
+import fcntl
 import hashlib
 import io
 import json
@@ -32,6 +37,7 @@ import signal
 import subprocess
 import sys
 import tarfile
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -231,8 +237,21 @@ def tagebuch_setzen(schluessel, wert):
 # Quelltext und Abbild
 # ---------------------------------------------------------------------------
 
-def archiv_entpacken(datei, ziel, vorsatz_pruefen=None):
-    """tar.gz eines GitHub-Archivs ohne die oberste Ebene nach ziel (nur Dateien und Ordner)"""
+def archiv_passt(t, oben, commit):
+    """Ist das GitHub-Archiv t vom Commit? GitHub schreibt (wie git archive) die volle Commit-ID
+    in den globalen pax-Kopf („comment“) – das ist maßgeblich. Der Name des obersten Ordners
+    (<owner>-<repo>-<sha>) wechselt dagegen zwischen kurzer und voller SHA; ohne pax-Kopf muss
+    seine SHA (7–40 Hex-Ziffern) ein Anfang des Commits sein."""
+    kommentar = (t.pax_headers or {}).get("comment", "").strip()
+    if kommentar:
+        return kommentar == commit
+    sha = oben.rsplit("-", 1)[-1] if "-" in oben else ""
+    return 7 <= len(sha) <= 40 and re.fullmatch(r"[0-9a-f]+", sha) is not None and commit.startswith(sha)
+
+
+def archiv_entpacken(datei, ziel, commit=None):
+    """tar.gz eines GitHub-Archivs ohne die oberste Ebene nach ziel (nur Dateien und Ordner);
+    mit commit: muss von diesem Commit sein (archiv_passt)"""
     os.makedirs(ziel, exist_ok=True)
     with tarfile.open(datei, "r:gz") as t:
         mitglieder = []
@@ -241,8 +260,10 @@ def archiv_entpacken(datei, ziel, vorsatz_pruefen=None):
             teile = m.name.split("/", 1)
             if oben is None:
                 oben = teile[0]
-                if vorsatz_pruefen and not vorsatz_pruefen(oben):
-                    raise AuftragFehler(f"Archiv passt nicht zum Commit ({oben})")
+                if commit and not archiv_passt(t, oben, commit):
+                    k = (t.pax_headers or {}).get("comment", "")
+                    raise AuftragFehler(f"Archiv passt nicht zum Commit {commit[:10]} (Ordner {oben}"
+                                        + (f", Commit im Archiv {k[:10]}" if k else "") + ")")
             if teile[0] != oben or len(teile) < 2 or not teile[1]:
                 continue
             if not (m.isfile() or m.isdir()):
@@ -255,7 +276,7 @@ def archiv_entpacken(datei, ziel, vorsatz_pruefen=None):
 def code_holen(a, tok, ziel):
     datei = ziel + ".tar.gz"
     anfrage(f"/repos/{CODE_REPO}/tarball/{a['commit']}", tok, ziel=datei, zeit=300)
-    archiv_entpacken(datei, ziel, lambda oben: oben.endswith("-" + a["commit"][:7]))
+    archiv_entpacken(datei, ziel, a["commit"])
     os.remove(datei)
 
 
@@ -347,8 +368,60 @@ def abbild_holen(a, tok):
 laufend = None  # subprocess.Popen des Laufs
 
 
+KVM_GET_API_VERSION = 0xAE00  # _IO(0xAE, 0x00)
+
+
+def cpu_flags():
+    """Flags der ersten CPU aus /proc/cpuinfo (None, wenn nicht lesbar)"""
+    try:
+        with open("/proc/cpuinfo") as f:
+            for zeile in f:
+                if zeile.startswith("flags"):
+                    return set(zeile.split(":", 1)[1].split())
+    except OSError:
+        pass
+    return None
+
+
+def kvm_pruefen(geraet=None):
+    """(nutzbar, Grund) – öffnet /dev/kvm wirklich und fragt die API-Version ab"""
+    geraet = geraet or os.environ.get("VM_LAEUFER_KVM_GERAET") or "/dev/kvm"  # Umgebung: nur Tests
+    try:
+        fd = os.open(geraet, os.O_RDWR | os.O_CLOEXEC)
+    except FileNotFoundError:
+        flags = cpu_flags()
+        if flags is not None and not flags & {"vmx", "svm"}:
+            # Linux löscht vmx aus den Flags, wenn die Firmware VT-x gesperrt hat
+            return False, ("der Prozessor meldet keine Virtualisierung – im BIOS/UEFI „Intel Virtualization "
+                           "Technology“ (VT-x) einschalten, dann neu starten")
+        return False, "/dev/kvm fehlt (Kernel ohne KVM, oder VT-x im BIOS/UEFI aus)"
+    except OSError as e:
+        try:
+            gid = os.stat(geraet).st_gid
+        except OSError:
+            gid = None
+        if gid is not None and gid not in os.getgroups():
+            return False, ("kein Zugriff auf /dev/kvm: Recht „Virtuelle Maschinen“ aus oder erst nach dem Start "
+                           "des Läufers eingeschaltet")
+        return False, f"kein Zugriff auf /dev/kvm ({e.strerror})"
+    try:
+        version = fcntl.ioctl(fd, KVM_GET_API_VERSION)
+    except OSError as e:
+        return False, f"/dev/kvm antwortet nicht ({e.strerror})"
+    finally:
+        os.close(fd)
+    if version != 12:
+        return False, f"/dev/kvm: unerwartete API-Version {version}"
+    return True, "KVM"
+
+
 def kvm_nutzbar():
-    return os.access("/dev/kvm", os.R_OK | os.W_OK)
+    return kvm_pruefen()[0]
+
+
+def ohne_kvm_erlaubt():
+    """Nur für Tests ohne KVM (VM_LAEUFER_TCG=ja): dann rechnen die VMs in TCG"""
+    return os.environ.get("VM_LAEUFER_TCG") == "ja"
 
 
 def befehl_bauen(a, z, repo, erg, abbild, tmp):
@@ -417,7 +490,8 @@ def lauf_ausfuehren(a, z, tok_lesen, auftrag_ordner):
             if z2.get("freigabe") != "ja":
                 break
             stand = fortschritt(erg)
-            status(f"Auftrag {a['kennung']}: {stand}" + (" · Pause" if z2.get("pause") == "ja" else ""), a["tests"][:180])
+            zusatz = " · Pause" if z2.get("pause") == "ja" else " · niedrige Priorität" if z2.get("prioritaet") == "niedrig" else ""
+            status(f"Auftrag {a['kennung']}: {stand}{zusatz}", a["tests"][:180])
         rc = laufend.poll()
         if rc is None:
             lauf_beenden()
@@ -542,6 +616,20 @@ def zusammenfassung(erg):
         return "(keine Zusammenfassung)"
 
 
+def kein_test(nr, a, rc_t, text, pfad, tok):
+    """Ohne Test fertig melden – mit einer kleinen Datei im Ergebnis-Zweig (legt ihn beim ersten
+    Mal an), damit jeder Auftrag dort einen Ordner hat"""
+    with tempfile.TemporaryDirectory() as d:
+        with open(os.path.join(d, "zusammenfassung.txt"), "w") as f:
+            f.write(text + "\n")
+        try:
+            ergebnis_hochladen(d, pfad, tok)
+            text += f"\nErgebnisse: Zweig `{ERGEBNIS_ZWEIG}`, Ordner `{pfad}/` (1 Datei)"
+        except GhFehler as fehler:
+            text += f"\nErgebnisse nicht hochgeladen: {fehler}"
+    fertig_melden(nr, a, rc_t, text, tok)
+
+
 def auftrag_bearbeiten(issue, owner, tok_lesen, tok_auftraege):
     nr = issue["number"]
     try:
@@ -550,15 +638,22 @@ def auftrag_bearbeiten(issue, owner, tok_lesen, tok_auftraege):
         fertig_melden(nr, None, "auftrag", f"Auftrag nicht lesbar: {fehler}", tok_auftraege)
         return
     z = zustand()
-    kommentar(nr, f"{MARKE_AN}\nangenommen: {a['ref']} ({a['commit'][:10]}), KVM {'ja' if kvm_nutzbar() else 'NEIN (TCG, langsam)'}, "
+    pfad = f"{nr}-{a['kennung']}"
+    kvm, grund = kvm_pruefen()
+    kvm_text = "ja" if kvm else ("NEIN (TCG, langsam – nur Test)" if ohne_kvm_erlaubt() else f"NEIN: {grund}")
+    kommentar(nr, f"{MARKE_AN}\nangenommen: {a['ref']} ({a['commit'][:10]}), KVM {kvm_text}, "
                   f"bis zu {z.get('vms', '?')} VM(s) mit je {z.get('kerne', '?')} Kern(en) und {int(z.get('ram_mb', '0')) // 1024} GB", tok_auftraege)
     tagebuch_setzen(f"{nr}", {"kennung": a["kennung"], "status": "laeuft"})
+    if not kvm and not ohne_kvm_erlaubt():
+        # Nicht still in TCG rechnen: ohne KVM wären die Tests viel zu langsam
+        kein_test(nr, a, "kvm", f"Kein Test: KVM nicht nutzbar – {grund}", pfad, tok_auftraege)
+        return
     ordner = os.path.join(ARBEIT, "auftrag")
-    pfad = f"{nr}-{a['kennung']}"
     try:
         rc, erg = lauf_ausfuehren(a, z, tok_lesen, ordner)
     except (AuftragFehler, GhFehler, OSError, tarfile.TarError, zipfile.BadZipFile) as fehler:
-        fertig_melden(nr, a, "fehler", f"Kein Test: {fehler}", tok_auftraege)
+        shutil.rmtree(ordner, ignore_errors=True)
+        kein_test(nr, a, "fehler", f"Kein Test: {fehler}", pfad, tok_auftraege)
         return
     if rc == 130 or zustand().get("freigabe") != "ja":
         text = "abgebrochen: Freigabe beendet\n```\n" + zusammenfassung(erg) + "\n```"
@@ -598,6 +693,22 @@ def offene_auftraege(owner, tok):
 
 
 beenden = False
+NEUSTART_MARKE = os.path.join(HOME, "neustart-kvm")
+
+
+def neustart_erlaubt():
+    """Höchstens ein Neustart wegen des Rechts je 10 Minuten (keine Schleife, falls es trotz
+    Neustart nicht greift)"""
+    try:
+        if time.time() - os.path.getmtime(NEUSTART_MARKE) < 600:
+            return False
+    except OSError:
+        pass
+    try:
+        open(NEUSTART_MARKE, "w").close()
+    except OSError:
+        return False
+    return True
 
 
 def signal_term(*_):
@@ -610,7 +721,8 @@ def main():
     signal.signal(signal.SIGTERM, signal_term)
     signal.signal(signal.SIGINT, signal_term)
     os.makedirs(ARBEIT, exist_ok=True)
-    sag(f"VM-Läufer startet (Aufträge: {AUFTRAG_REPO}, Code: {CODE_REPO}, KVM {'ja' if kvm_nutzbar() else 'nein'})")
+    kvm, grund = kvm_pruefen()
+    sag(f"VM-Läufer startet (Aufträge: {AUFTRAG_REPO}, Code: {CODE_REPO}, KVM {'ja' if kvm else 'nein: ' + grund})")
     owner = None
     naechste = 0.0
     while not beenden:
@@ -622,6 +734,13 @@ def main():
             status("Pause: jemand arbeitet am Rechner – keine neuen Aufträge")
             time.sleep(3)
             continue
+        kvm, grund = kvm_pruefen()
+        if not kvm and z.get("kvm") == "ja" and "Recht" in grund and neustart_erlaubt():
+            # Recht „Virtuelle Maschinen“ nach dem Start eingeschaltet: Gruppe und Landlock-Regel
+            # bekommt die App nur beim Start – beenden, Saalburg startet sie (nach 30 s) neu
+            sag("Recht „Virtuelle Maschinen“ ist jetzt an – Neustart, damit es gilt")
+            status("Recht „Virtuelle Maschinen“ eingeschaltet – der Läufer startet neu …")
+            return 0
         tok_lesen, tok_auftraege = token("lesen"), token("auftraege")
         if not tok_lesen or not tok_auftraege:
             status("Token fehlt: " + ", ".join(n for n, t in (("Code lesen", tok_lesen), ("Aufträge", tok_auftraege)) if not t),
@@ -643,8 +762,12 @@ def main():
                 naechste = 0.0
                 break
             if not gefunden:
-                status(f"Bereit – {'KVM' if kvm_nutzbar() else 'OHNE KVM (Recht „Virtuelle Maschinen“ aus?)'}, "
-                       f"zuletzt nach Aufträgen gesehen {time.strftime('%H:%M')}")
+                if kvm:
+                    status(f"Bereit – KVM, zuletzt nach Aufträgen gesehen {time.strftime('%H:%M')}"
+                           + (" · niedrige Priorität" if z.get("prioritaet") == "niedrig" else ""))
+                else:
+                    status(f"OHNE KVM – nimmt keine Tests an: {grund}",
+                           f"zuletzt nach Aufträgen gesehen {time.strftime('%H:%M')}")
         except GhFehler as fehler:
             sag(f"GitHub: {fehler}")
             status(f"GitHub nicht erreichbar oder Token ohne Recht: {str(fehler)[:120]}")

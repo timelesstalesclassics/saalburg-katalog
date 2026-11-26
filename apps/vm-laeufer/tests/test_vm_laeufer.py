@@ -54,6 +54,41 @@ class AuftragLesen(unittest.TestCase):
             vl.auftrag_lesen("kein Block")
 
 
+def github_tarball(commit, dateien, oben="lang", pax=True, links=()):
+    """tar.gz wie von GitHub (api.github.com/repos/<o>/<r>/tarball/<sha>, geprüft an echten
+    Archiven): globaler pax-Kopf „comment“ mit der vollen Commit-ID (git archive), oberster Ordner
+    <owner>-<repo>-<sha> mit voller (heute üblich) oder kurzer SHA, zuerst der Ordner selbst."""
+    ordner = "o-code-" + (commit if oben == "lang" else commit[:7] if oben == "kurz" else oben)
+    puffer = io.BytesIO()
+    kopf = {"comment": commit} if pax is True else ({"comment": pax} if pax else {})
+    with tarfile.open(fileobj=puffer, mode="w:gz", format=tarfile.PAX_FORMAT, pax_headers=kopf) as t:
+        info = tarfile.TarInfo(ordner)
+        info.type = tarfile.DIRTYPE
+        info.mode = 0o775
+        t.addfile(info)
+        gesehen = set()
+        for name, inhalt in dateien:
+            teile = name.split("/")
+            for i in range(1, len(teile)):
+                d = "/".join(teile[:i])
+                if d not in gesehen:
+                    gesehen.add(d)
+                    di = tarfile.TarInfo(f"{ordner}/{d}")
+                    di.type = tarfile.DIRTYPE
+                    di.mode = 0o775
+                    t.addfile(di)
+            fi = tarfile.TarInfo(f"{ordner}/{name}")
+            fi.size = len(inhalt)
+            fi.mode = 0o664
+            t.addfile(fi, io.BytesIO(inhalt))
+        for name, ziel in links:
+            li = tarfile.TarInfo(f"{ordner}/{name}")
+            li.type = tarfile.SYMTYPE
+            li.linkname = ziel
+            t.addfile(li)
+    return puffer.getvalue()
+
+
 def abbild_anlegen(ordner, extra=None):
     dateien = {"bzImage": b"kernel", "stick/osproto/system.sqfs": b"system" * 100, "stick/EFI/BOOT/BOOTX64.EFI": b"kernel",
                "programme/app": b"app", "commit.txt": (COMMIT + "\n").encode()}
@@ -90,21 +125,75 @@ class Abbild(unittest.TestCase):
     def test_archiv_ohne_links(self):
         with tempfile.TemporaryDirectory() as d:
             arch = os.path.join(d, "a.tar.gz")
-            with tarfile.open(arch, "w:gz") as t:
-                for name, inhalt in (("org-saalburg-0123456/werkzeug/x.py", b"print(1)"),):
-                    info = tarfile.TarInfo(name)
-                    info.size = len(inhalt)
-                    t.addfile(info, io.BytesIO(inhalt))
-                link = tarfile.TarInfo("org-saalburg-0123456/geheim")
-                link.type = tarfile.SYMTYPE
-                link.linkname = "/daten/system/laeufer/vm-laeufer/token-lesen"
-                t.addfile(link)
+            with open(arch, "wb") as f:
+                f.write(github_tarball(COMMIT, [("werkzeug/x.py", b"print(1)")],
+                                       links=[("geheim", "/daten/system/laeufer/vm-laeufer/token-lesen")]))
             ziel = os.path.join(d, "r")
-            vl.archiv_entpacken(arch, ziel, lambda o: o.endswith("-0123456"))
+            vl.archiv_entpacken(arch, ziel, COMMIT)
             self.assertTrue(os.path.isfile(os.path.join(ziel, "werkzeug", "x.py")))
             self.assertFalse(os.path.lexists(os.path.join(ziel, "geheim")))
             with self.assertRaises(vl.AuftragFehler):
-                vl.archiv_entpacken(arch, os.path.join(d, "r2"), lambda o: o.endswith("-fffffff"))
+                vl.archiv_entpacken(arch, os.path.join(d, "r2"), "f" * 40)
+
+    def test_archiv_commit(self):
+        """Wie echte GitHub-Archive: Ordner mit voller oder kurzer SHA, Commit im pax-Kopf"""
+        anderer = "f" * 40
+        faelle = [
+            ("volle SHA, pax", dict(oben="lang"), True),
+            ("kurze SHA, pax", dict(oben="kurz"), True),
+            ("volle SHA, ohne pax", dict(oben="lang", pax=False), True),
+            ("kurze SHA, ohne pax", dict(oben="kurz", pax=False), True),
+            ("12 Zeichen, ohne pax", dict(oben=COMMIT[:12], pax=False), True),
+            ("pax mit anderem Commit", dict(oben="lang", pax=anderer), False),
+            ("fremder Ordner, ohne pax", dict(oben="fffffff", pax=False), False),
+            ("zu kurz, ohne pax", dict(oben="0123", pax=False), False),
+        ]
+        for name, art, ok in faelle:
+            with self.subTest(name), tempfile.TemporaryDirectory() as d:
+                arch = os.path.join(d, "a.tar.gz")
+                with open(arch, "wb") as f:
+                    f.write(github_tarball(COMMIT, [("werkzeug/laeufer/lauf.py", b"# --raum")], **art))
+                if ok:
+                    vl.archiv_entpacken(arch, os.path.join(d, "r"), COMMIT)
+                    self.assertTrue(os.path.isfile(os.path.join(d, "r", "werkzeug", "laeufer", "lauf.py")))
+                else:
+                    with self.assertRaises(vl.AuftragFehler) as f:
+                        vl.archiv_entpacken(arch, os.path.join(d, "r"), COMMIT)
+                    self.assertIn("passt nicht zum Commit", str(f.exception))
+
+
+class Kvm(unittest.TestCase):
+    def test_fehlt_bios(self):
+        alt = vl.cpu_flags
+        try:
+            vl.cpu_flags = lambda: {"fpu", "sse2", "aes"}
+            ok, grund = vl.kvm_pruefen("/gibt/es/nicht/kvm")
+            self.assertFalse(ok)
+            self.assertIn("BIOS", grund)
+            self.assertIn("VT-x", grund)
+            vl.cpu_flags = lambda: {"fpu", "vmx"}
+            ok, grund = vl.kvm_pruefen("/gibt/es/nicht/kvm")
+            self.assertFalse(ok)
+            self.assertIn("/dev/kvm fehlt", grund)
+        finally:
+            vl.cpu_flags = alt
+
+    def test_kein_kvm_geraet(self):
+        with tempfile.NamedTemporaryFile() as f:
+            ok, grund = vl.kvm_pruefen(f.name)
+            self.assertFalse(ok)
+            self.assertIn("antwortet nicht", grund)
+
+    def test_recht_fehlt(self):
+        alt = os.getgroups
+        try:
+            os.getgroups = lambda: [999999]
+            with tempfile.TemporaryDirectory() as d:
+                ok, grund = vl.kvm_pruefen(d)  # Ordner: open(O_RDWR) scheitert wie ohne Recht
+            self.assertFalse(ok)
+            self.assertIn("Virtuelle Maschinen", grund)
+        finally:
+            os.getgroups = alt
 
 
 @unittest.skipUnless(einsperren.abi() >= 1, "Landlock fehlt im Kernel")
@@ -253,13 +342,9 @@ class GanzerAuftrag(unittest.TestCase):
         self.d = tempfile.mkdtemp()
         self.tokens = os.path.join(self.d, "tokens")
         lauf_py = LAUF_PY.replace("TOKENS_PFAD", self.tokens)
-        # Archiv des Codes mit Attrappe von lauf.py
-        puffer = io.BytesIO()
-        with tarfile.open(fileobj=puffer, mode="w:gz") as t:
-            for name, inhalt in (("werkzeug/laeufer/lauf.py", lauf_py.encode()), ("werkzeug/test_a.py", b"")):
-                info = tarfile.TarInfo(f"o-code-{COMMIT[:7]}/{name}")
-                info.size = len(inhalt)
-                t.addfile(info, io.BytesIO(inhalt))
+        # Archiv des Codes (Aufbau wie bei GitHub: volle SHA im Ordner, Commit im pax-Kopf)
+        # mit Attrappe von lauf.py
+        code = github_tarball(COMMIT, [("werkzeug/laeufer/lauf.py", lauf_py.encode()), ("werkzeug/test_a.py", b"")])
         abbild = os.path.join(self.d, "abbild-quelle")
         os.makedirs(abbild)
         self.manifest = abbild_anlegen(abbild)
@@ -273,7 +358,7 @@ class GanzerAuftrag(unittest.TestCase):
         self.srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Github)
         port = self.srv.server_address[1]
         Github.zustand = {"port": port, "anfragen": [], "kommentare": {}, "blobs": [], "token_am_speicher": False,
-                          "dateien": {"/speicher/code.tar.gz": puffer.getvalue(), "/speicher/abbild.zip": self.zip},
+                          "dateien": {"/speicher/code.tar.gz": code, "/speicher/abbild.zip": self.zip},
                           "issues": []}
         threading.Thread(target=self.srv.serve_forever, daemon=True).start()
         self.home = os.path.join(self.d, "home")
@@ -290,11 +375,15 @@ class GanzerAuftrag(unittest.TestCase):
 
     def tearDown(self):
         self.srv.shutdown()
+        self.srv.server_close()
         subprocess.run(["chmod", "-R", "u+w", self.d])
         subprocess.run(["rm", "-rf", self.d])
 
-    def laeufer(self, sekunden=60):
-        env = dict(os.environ, HOME=self.home, XDG_RUNTIME_DIR=self.home, USER="vm-laeufer",
+    def laeufer(self, sekunden=60, kvm="tcg"):
+        # kvm="tcg": ohne KVM in TCG erlaubt (Testrechner haben oft kein /dev/kvm);
+        # kvm="fehlt": /dev/kvm gibt es nicht, TCG nicht erlaubt (wie ein Rechner mit VT-x aus)
+        extra = {"VM_LAEUFER_TCG": "ja"} if kvm == "tcg" else {"VM_LAEUFER_KVM_GERAET": "/gibt/es/nicht/kvm"}
+        env = dict(os.environ, HOME=self.home, XDG_RUNTIME_DIR=self.home, USER="vm-laeufer", **extra,
                    VM_LAEUFER_ZUSTAND=self.zustand_datei, VM_LAEUFER_TOKENS=self.tokens, VL_TOKENS=self.tokens,
                    VM_LAEUFER_API=f"http://127.0.0.1:{Github.zustand['port']}",
                    VM_LAEUFER_CODE_REPO="o/code", VM_LAEUFER_AUFTRAG_REPO="o/test")
@@ -363,6 +452,40 @@ class GanzerAuftrag(unittest.TestCase):
         self.assertTrue(ok, aus)
         texte = [k["body"] for k in z["kommentare"].get(9, [])]
         self.assertTrue(any("rc=fehler" in t and "Prüfsumme" in t for t in texte), texte)
+
+    def auftrag_bis_fertig(self, nr, body, kvm="tcg"):
+        z = Github.zustand
+        z["issues"] = [{"number": nr, "title": "x", "state": "open", "user": {"login": "besitzer"}, "body": body}]
+        p = self.laeufer(kvm=kvm)
+        try:
+            ok = self.warte(lambda: z["issues"][0]["state"] == "closed", 90)
+        finally:
+            with open(self.zustand_datei, "w") as f:
+                f.write("freigabe=nein\n")
+            aus = p.communicate(timeout=30)[0]
+        self.assertTrue(ok, aus)
+        return [k["body"] for k in z["kommentare"].get(nr, [])]
+
+    def test_ohne_kvm_kein_test(self):
+        """VT-x aus (kein /dev/kvm): nicht still TCG, sondern rc=kvm mit Grund; Ergebnis-Zweig wird
+        angelegt (gab es auf GitHub noch nicht: GET ref → 404)"""
+        z = Github.zustand
+        texte = self.auftrag_bis_fertig(11, block(abbild_manifest=self.manifest, katalog="nein"), kvm="fehlt")
+        self.assertTrue(any("KVM NEIN" in t for t in texte), texte)
+        fertig = [t for t in texte if vl.MARKE_FERTIG in t]
+        self.assertTrue(fertig and "rc=kvm" in fertig[0] and "KVM nicht nutzbar" in fertig[0], texte)
+        self.assertEqual(z["ref"]["ref"], "refs/heads/vm-laeufer-ergebnisse")
+        self.assertEqual([e["path"] for e in z["baum"]["tree"]], ["11-abc123def0/zusammenfassung.txt"])
+        self.assertNotIn("base_tree", z["baum"])
+        self.assertFalse(any("/tarball/" in pfad for _, pfad, _ in z["anfragen"]), "ohne KVM nichts laden")
+
+    def test_archiv_anderer_commit(self):
+        z = Github.zustand
+        z["dateien"]["/speicher/code.tar.gz"] = github_tarball(COMMIT, [("werkzeug/laeufer/lauf.py", b"--raum")], pax="f" * 40)
+        texte = self.auftrag_bis_fertig(12, block(abbild_manifest=self.manifest, katalog="nein"))
+        fertig = [t for t in texte if vl.MARKE_FERTIG in t]
+        self.assertTrue(fertig and "rc=fehler" in fertig[0] and "passt nicht zum Commit" in fertig[0], texte)
+        self.assertIn("Ergebnisse: Zweig", fertig[0])
 
     def test_ohne_freigabe_nichts(self):
         with open(self.zustand_datei, "w") as f:

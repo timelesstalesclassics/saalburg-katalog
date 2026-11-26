@@ -826,7 +826,7 @@ nach dem Update.
 | 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
 | 202611261611 | Wayland: Eingaberegionen (`set_input_region`), schwebende Dialoge (weitere Fenster derselben Verbindung ohne Elternfenster und ohne xdg-decoration stehen in eigener Größe über ihrem Fenster, z. B. Wine-Meldungsfenster); app.conf `schliessen_frist` (Beenden zuerst per `xdg_toplevel.close`, `SIGTERM` erst nach der Frist, auch beim Ausschalten) |
 | 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
-| NEUE_VERSION | Läufer-Apps (Abschnitt 18): bei Nutzung neue Wahl `nutzung = weiterarbeiten` (Vorgabe) – die App arbeitet weiter, nachrangig (`cpu.idle` gegenüber allem, I/O-Klasse idle), `pause` bleibt `nein`; neue Zustandszeilen `benutzung` und `prioritaet`; Leiste „· niedrige Priorität“ |
+| NEUE_VERSION | Läufer-Apps (Abschnitt 18): bei Nutzung neue Wahl `nutzung = weiterarbeiten` (Vorgabe) – die App arbeitet weiter, nachrangig (`cpu.idle` gegenüber allem, I/O-Klasse idle), `pause` bleibt `nein`; neue Zustandszeilen `benutzung`, `prioritaet` und `kvm` (Recht „Virtuelle Maschinen“ jetzt an); Leiste „· niedrige Priorität“; die Karte warnt, wenn `/dev/kvm` fehlt (VT-x im BIOS/UEFI aus) |
 | 202611261611 | Große Pakete und Werkzeuge (Abschnitt 19): komprimierte Pakete OSAPP2 (zstd, bis 2 GB, entpackt bis 4 GB, bis 100 000 Einträge; Saalburg entpackt bei der Installation und prüft das Ergebnis gegen die Signatur); app.conf `werkzeug = ja` (Werkzeug-App) und `werkzeuge = <kennung>[ =<version> \| >=<version>]` (Werkzeug einer anderen App nur lesen und ausführen, `$SAALBURG_WERKZEUG_<KENNUNG>`, Versionsbindung); `app installieren <app> <werkzeug> …`, `app packen --zstd`; System: `zstd` |
 
 ---
@@ -1131,7 +1131,10 @@ Jede App darf QEMU starten – ohne KVM aber nur emuliert (TCG, langsam).
 - Gilt beim nächsten Start der App. Ist das Recht aus oder hat der Rechner keine
   Virtualisierung (bzw. läuft Saalburg selbst in einer VM ohne verschachtelte
   Virtualisierung), fehlt `/dev/kvm` bzw. lässt sich nicht öffnen: die App fällt auf TCG zurück
-  (`-accel kvm -accel tcg`) oder meldet es.
+  (`-accel kvm -accel tcg`) oder meldet es. Den Grund kann sie selbst erkennen: `/dev/kvm` fehlt
+  und `/proc/cpuinfo` hat kein `vmx`/`svm` → Virtualisierung im BIOS/UEFI aus (Linux streicht
+  `vmx`, wenn die Firmware VT-x sperrt); `/dev/kvm` da, aber Gruppe `kvm` fehlt in den eigenen
+  Gruppen → Recht aus bzw. erst nach dem Start eingeschaltet.
 - Nur für installierte Apps (Katalog, lokaler Katalog); auf dem Testplatz gilt `kvm` wie in der
   app.conf.
 
@@ -1221,6 +1224,7 @@ alle paar Sekunden reicht), Zeilen `schlüssel=wert`:
 | `nutzung` | `weiterarbeiten` (Vorgabe), `drosseln` oder `anhalten`: was Saalburg bei Nutzung tut |
 | `benutzung` | `ja`: jemand arbeitet am Rechner (Eingaben oder Ton in den letzten 5 min) – nur zur Anzeige (ab NEUE_VERSION) |
 | `prioritaet` | `niedrig`: die App arbeitet bei Nutzung weiter, aber nachrangig (`weiterarbeiten`); sonst `normal` (ab NEUE_VERSION) |
+| `kvm` | `ja`: Recht „Virtuelle Maschinen“ ist jetzt an. Fehlt der App trotzdem der Zugriff auf `/dev/kvm` (Recht erst nach ihrem Start eingeschaltet), soll sie sich zwischen zwei Aufträgen beenden – Saalburg startet sie nach 30 s mit dem Recht neu (ab NEUE_VERSION) |
 | `vms`, `kerne`, `ram_mb` | VMs gleichzeitig, Kerne je VM, RAM je VM (MB) – vom Nutzer gewählt |
 | `kerne_gesamt`, `ram_gesamt_mb` | Grenzen der ganzen App: `cpu.max` (höchstens N−1 Kerne) und `memory.max` (VMs × (RAM + 512 MB) + 768 MB) |
 

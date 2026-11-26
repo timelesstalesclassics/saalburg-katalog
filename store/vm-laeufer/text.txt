@@ -2,6 +2,6 @@ Der VM-Läufer führt Saalburg-Tests in virtuellen Maschinen aus (QEMU mit KVM),
 
 Er läuft nur, solange du ihn freigibst: Einstellungen → Apps & Rechte → VM-Läufer, für 1, 4 oder 8 Stunden, bis zu einem Zeitpunkt (z. B. übers Wochenende bis Montag früh) oder unbegrenzt. Die Leiste zeigt die Freigabe, „Beenden“ hält ihn jederzeit an. Ohne Freigabe läuft nichts und er belegt keinen Speicher.
 
-Dort stellst du auch ein, wie viele VMs gleichzeitig laufen dürfen und mit wie vielen Kernen und wie viel RAM; ein Kern und genug Speicher bleiben immer für Saalburg. Arbeitest du am Rechner, startet er keine neuen Tests und drosselt oder hält die laufenden an.
+Dort stellst du auch ein, wie viele VMs gleichzeitig laufen dürfen und mit wie vielen Kernen und wie viel RAM; ein Kern und genug Speicher bleiben immer für Saalburg. Arbeitest du am Rechner, arbeitet er mit niedrigster Priorität weiter – oder, wenn du es so einstellst, startet er nichts Neues und drosselt oder hält die laufenden Tests an. Ohne Prozessor-Virtualisierung (KVM) nimmt er keine Tests an und sagt, woran es liegt, etwa „VT-x im BIOS einschalten“.
 
 Seine VMs erreichen nur das Internet, nie dein lokales Netz. Er testet nur fertig gebaute, per Prüfsumme geprüfte Abbilder. Die GitHub-Tokens trägst du nur am Bildschirm ein; die Tests selbst kommen nicht an sie heran.
