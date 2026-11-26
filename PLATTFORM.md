@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611251640.**
+**Stand: Saalburg 202611260908.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -48,7 +48,7 @@ man absolut: `exec /daten/apps/<kennung>/aktuell/<datei>`.
 - **Eigene Linux-Kennung je App**: Die UID wird beim ersten Start vergeben (ab 20000) und
   bleibt dann fest. GID wie UID.
 - **Zusatzgruppen**: `wayland` (9000), mit Recht `ton` zusätzlich `audio` (18), mit
-  eingeschaltetem Recht `kvm` zusätzlich `kvm` (34, ab Saalburg NEUE_VERSION). Mehr gibt es
+  eingeschaltetem Recht `kvm` zusätzlich `kvm` (34, ab Saalburg 202611260908). Mehr gibt es
   nicht: kein `video`, kein `input`.
 - **Arbeitsordner beim Start**: `$HOME`.
 - **Umgebung** (vollständig, sonst nichts):
@@ -106,7 +106,7 @@ Landlock sperrt alles, was nicht ausdrücklich freigegeben ist:
 | `/tmp` (eigenes, siehe unten) | alles außer Gerätedateien |
 | `/dev/dri/renderD*` (Render-Knoten; nie `card*`/KMS) | nur mit Recht `gpu` (vor 202611241046: ganz `/dev/dri`, `card*` gehört aber der Gruppe video) |
 | `/dev/snd`, `/daten/system/ton` | nur mit Recht `ton` (siehe 6) |
-| `/dev/kvm` | nur mit eingeschaltetem Recht `kvm` (Abschnitt 17, ab Saalburg NEUE_VERSION); `/dev/kvm` gehört `root:kvm` mit `0660` |
+| `/dev/kvm` | nur mit eingeschaltetem Recht `kvm` (Abschnitt 17, ab Saalburg 202611260908); `/dev/kvm` gehört `root:kvm` mit `0660` |
 | `ordner = /daten/x, /daten/y (lesen)` | schreiben bzw. lesen; nur unter `/daten`, nie unter `/daten/claude`, `/daten/system`, `/daten/appdaten`, `/daten/apps`; höchstens 4 |
 
 **Nicht** erreichbar sind unter anderem das `/tmp` des Systems, `/daten/claude`, die Daten
@@ -462,7 +462,7 @@ Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben
 - **Begrenztes Netz**: Ohne `netzwerk = ja` kann eine App einzelne LAN-Ziele bekommen
   (`netz_ziele`, `netzwerk = lan:<adresse>:<port>`); sie erreicht dann nur diese
   (Abschnitt 16).
-- **Apps mit `kvm = ja`** (ab Saalburg NEUE_VERSION): Mit Netzrecht nur Internet und DNS, nie das LAN
+- **Apps mit `kvm = ja`** (ab Saalburg 202611260908): Mit Netzrecht nur Internet und DNS, nie das LAN
   und nie das System selbst (eigener Netz-Namensraum mit Sperre, kein IPv6); LAN-Ziele gibt es
   für sie nicht (Abschnitt 17).
 
@@ -670,7 +670,7 @@ Im System sind unter anderem diese Pakete (Alpine 3.24, Stand des Images):
 | Ton | alsa-lib 1.2 |
 | Medien | gstreamer 1.28 (Grundpaket), ffmpeg-Teile über Chromium |
 | Sonstiges | sqlite, zlib, libpng, libjpeg-turbo, libgomp (OpenMP), ca-certificates |
-| Virtuelle Maschinen | QEMU 11.0 (`qemu-system-x86_64`, `qemu-img`) mit SeaBIOS und OVMF (`/usr/share/qemu/edk2-x86_64-code.fd`); nur x86_64, ab Saalburg NEUE_VERSION (Abschnitt 17) |
+| Virtuelle Maschinen | QEMU 11.0 (`qemu-system-x86_64`, `qemu-img`) mit SeaBIOS und OVMF (`/usr/share/qemu/edk2-x86_64-code.fd`); nur x86_64, ab Saalburg 202611260908 (Abschnitt 17) |
 | Schriften | DejaVu, Open Sans, Terminess (Nerd Font Mono, `monospace`); `fc-match monospace`/`sans-serif` folgt der Nutzerwahl |
 
 Prüfen lässt sich das auf Saalburg:
@@ -763,7 +763,7 @@ nach dem Update.
 | 202611241934 | Dialoge (`xdg_toplevel.set_parent`, xdg-foreign v1/v2) auf dem Platz ihres Elternfensters mit Fokus, GTK-Dateidialog der Web-Apps deutsch; Bildschirmfotos: jedes Foto ein neues Ablage-Angebot, andere Typen als `image/png`/Text liefern nichts; Testplatz: Test-Apps dürfen melden und (mit `drucken = ja`) drucken; Drucken: PDF/PNG für Drucker ohne diese Formate eingesperrt in JPEG-Seiten umgewandelt, ipps:// wenn der Drucker TLS verlangt |
 | 202611251640 | Steuerung durch Claude in drei Stufen (nein / bei Bedarf / ja), Voreinstellung „bei Bedarf“: Claude fordert mit Begründung an (`steuerung_anfordern`, `app steuerung anfordern`), der Nutzer bestätigt am Bildschirm; Web-Apps und Browser laufen im Alltag ohne DevTools-Pipe (`navigator.webdriver = false`) und starten für die Steuerung mit Pipe neu (Profil und Tabs bleiben); Ende durch Rückgabe, nach 10 min ohne Befehl oder durch den Nutzer (Leiste, Windows-Taste+Esc); eigener MCP-Server bei Bedarf erst mit der Freigabe |
 | 202611251957 | Weitere Hardware: AMD-Grafik (amdgpu, Mesa radeonsi) nutzbar wie Intel; ohne passenden Grafiktreiber läuft die Oberfläche über das Bild der Firmware (simpledrm) ohne GPU – dann gibt es keinen Render-Knoten, Apps mit `gpu = ja` zeichnen per Software. Bildschirmauflösung kann je Gerät abweichen |
-| NEUE_VERSION | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
+| 202611260908 | Virtuelle Maschinen: QEMU (`qemu-system-x86_64`, `qemu-img`, SeaBIOS, OVMF) im System, KVM im Kernel (Intel VT-x, AMD-V); app.conf `kvm = ja` (aus, bis der Nutzer es einschaltet: Gruppe `kvm`, `/dev/kvm`); Apps mit `kvm = ja` haben Netz nur ins Internet, nie ins LAN (Abschnitt 17) |
 
 ---
 
@@ -1050,7 +1050,7 @@ Bildschirm ein, sie sind für Apps und Claude unsichtbar.
 
 ## 17. Virtuelle Maschinen (QEMU, KVM)
 
-Ab Saalburg NEUE_VERSION ist QEMU Teil des Systems: `qemu-system-x86_64` (nur x86_64), `qemu-img`,
+Ab Saalburg 202611260908 ist QEMU Teil des Systems: `qemu-system-x86_64` (nur x86_64), `qemu-img`,
 Firmware SeaBIOS (`bios-256k.bin`) und OVMF für UEFI (`/usr/share/qemu/edk2-x86_64-code.fd`,
 Vorlage für die Variablen `edk2-i386-vars.fd`; eine beschreibbare Kopie gehört nach `$HOME`).
 Jede App darf QEMU starten – ohne KVM aber nur emuliert (TCG, langsam).
@@ -1104,7 +1104,7 @@ kvm      = ja
 netzwerk = ja
 ram_max  = 6144M
 hintergrund = ja
-saalburg = NEUE_VERSION
+saalburg = 202611260908
 ```
 
 ```
