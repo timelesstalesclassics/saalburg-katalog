@@ -69,7 +69,7 @@ siehe `PLATTFORM.md` Abschnitt 18),
 `werkzeuge = zig, wine =11.0-1, bau >=2.0` (Werkzeuge anderer Apps, höchstens 4; Saalburg blendet
 das installierte Paket der Werkzeug-App nur lesbar und ausführbar ein, Pfad in
 `$SAALBURG_WERKZEUG_<KENNUNG>`; `=` bindet genau diese Version, `>=` verlangt mindestens diese;
-siehe `PLATTFORM.md` Abschnitt 19).
+beides erst ab Saalburg 202611261611, siehe `PLATTFORM.md` Abschnitt 19).
 
 Für die Store-Seite (nicht im Paket) optional `store/<kennung>/`:
 `info.conf` (`kategorie = Büro`, `empfohlen = ja`), `text.txt` (lange Beschreibung, höchstens
@@ -89,7 +89,7 @@ Für Werkzeuge wie Zig oder Wine (Hunderte MB, über 20 000 Dateien):
   Einträge, baut der Katalog es mit zstd (bis 100 000 Einträge, entpackt bis 4 GB). Signiert
   sind die komprimierten Bytes und der entpackte Inhalt; Saalburg entpackt bei der Installation
   ohne Rechte und vergleicht das Ergebnis mit der Signatur. Solche Apps brauchen die
-  Mindestversion aus `PLATTFORM.md` (Abschnitt 13) in `saalburg = …`.
+  Mindestversion `saalburg = 202611261611` (oder neuer, `PLATTFORM.md` Abschnitt 13).
 - **Release-Anhang**: Pakete über 90 MB und alle Werkzeug-Apps (`werkzeug = ja`) legt der Ablauf
   nicht in den Zweig `veroeffentlicht`, sondern als Anhang eines Releases `<kennung>-<version>`
   ab (bis 2 GB). Der Katalog führt Adresse, Größe und SHA-256 wie sonst; `anhaenge.txt` im Zweig

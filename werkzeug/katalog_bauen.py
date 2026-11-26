@@ -66,9 +66,9 @@ VERSION_RE = re.compile(r"^[0-9][0-9a-z.-]{0,30}$")
 PFAD_RE = re.compile(r"^[A-Za-z0-9._+-]+$")
 WERKZEUG_RE = re.compile(r"^([a-z0-9-]{1,31})\s*(?:(>=|=)\s*([0-9][0-9a-z.-]{0,30}))?$")
 
-# Saalburg-Version, ab der OSAPP2 (komprimierte Pakete) und werkzeug/werkzeuge gelten.
-# NEUE_VERSION: beim Veröffentlichen des System-Updates eintragen (Versionstabelle in PLATTFORM.md)
-OSAPP2_AB = 0
+# Saalburg-Version, ab der OSAPP2 (komprimierte Pakete) und werkzeug/werkzeuge gelten
+# (Versionstabelle in PLATTFORM.md)
+OSAPP2_AB = 202611261611
 # OSAPP1 bleibt für alles, was ältere Saalburg-Versionen lesen können und was als eine
 # Datei in Git passt; erst darüber (oder über 20 000 Einträge) wird komprimiert
 TAR_GRENZE = 90 * 1024 * 1024
