@@ -627,6 +627,9 @@ Ausschalten; Windows-Taste+Q beendet ohnehin nie hart. Fragt die App beim Schlie
   - die Daten einer App ohne Freigabe lesen.
 
   Was Claude mit der App tun soll, muss die App als MCP-Werkzeug anbieten.
+- **Werkzeug-Apps für Claude** (ab Saalburg NEUE_VERSION): Eine Werkzeug-App (`werkzeug = ja`)
+  kann der Nutzer auch für Claude freigeben; ihre Befehle aus `bin/` stehen dann im PATH von
+  Claude und laufen als claude. Abschnitt 19.
 
 ---
 
@@ -755,7 +758,7 @@ Im System sind unter anderem diese Pakete (Alpine 3.24, Stand des Images):
 
 | Bereich | Pakete |
 |---|---|
-| Shell, Werkzeuge | busybox 1.37, bash 5.3, nano, less, git, curl, ripgrep, poppler-utils (pdftoppm), alsa-utils |
+| Shell, Werkzeuge | busybox 1.37, bash 5.3, nano, less, git, curl, ripgrep, poppler-utils (pdftoppm), alsa-utils; ab Saalburg NEUE_VERSION GNU coreutils 9.11, findutils 4.10, grep 3.12, sed 4.9 (statt der gleichnamigen busybox-Befehle, z. B. `find -printf`, `sed -z`, `grep -P`, `date -d`; `ps`, `mount`, `pgrep` bleiben busybox) |
 | Python | **python3 3.14** mit numpy 2.4, scipy 1.17, Pillow 12.2, PyYAML, requests, pip; **numba 0.68** und llvmlite (selbst gebaut, gegen LLVM 22) |
 | Grafik | Mesa 26.1 (EGL, GLES, GBM, Iris), libdrm, libxkbcommon, cairo, pango, harfbuzz, freetype 2.14, fontconfig |
 | GUI-Toolkits | GTK 3.24 und GTK 4.22 (als Abhängigkeit von Chromium; Wayland-Backend) |
@@ -764,7 +767,7 @@ Im System sind unter anderem diese Pakete (Alpine 3.24, Stand des Images):
 | Sonstiges | sqlite, zlib, libpng, libjpeg-turbo, libgomp (OpenMP), ca-certificates |
 | Packen | `zstd` (ab Saalburg 202611261611, für `app packen --zstd`) |
 | Virtuelle Maschinen | QEMU 11.0 (`qemu-system-x86_64`, `qemu-img`) mit SeaBIOS und OVMF (`/usr/share/qemu/edk2-x86_64-code.fd`); nur x86_64, ab Saalburg 202611260908 (Abschnitt 17) |
-| Schriften | DejaVu, Open Sans, Terminess (Nerd Font Mono, `monospace`); `fc-match monospace`/`sans-serif` folgt der Nutzerwahl |
+| Schriften | DejaVu, Open Sans, Terminess (Nerd Font Mono, `monospace`); `fc-match monospace`/`sans-serif` folgt der Nutzerwahl; ab Saalburg NEUE_VERSION Liberation Sans/Serif/Mono (metrisch gleich zu Arial, Times New Roman, Courier New; `/usr/share/fonts/liberation`, auch unter `/usr/share/fonts/truetype/liberation`) |
 
 Prüfen lässt sich das auf Saalburg:
 - Paketliste: `apk info -v` im Systemabbild ist lesbar, `apk add` geht nicht;
@@ -819,6 +822,7 @@ Diese Befehle laufen als claude (oder ein anderer Benutzer), ohne root:
 | `app installieren <paket.osapp> [<werkzeug.osapp> …]`, `app store installieren <k>` | installieren; **der Nutzer bestätigt am Bildschirm**. Fehlende Werkzeuge der App kommen im selben Dialog mit (der Store holt sie aus dem Katalog) |
 | `app liste`, `app zurueck <k>`, `app entfernen <k> [--daten]` | installierte Apps; Änderungen nur mit Bestätigung (`--daten` löscht auch `$HOME` der App) |
 | `app einstellung [<k> <recht> ja\|nein]` | Rechte ansehen; Änderungen nur mit Bestätigung (`steuerung` auch `bedarf`; Rechte: `netzwerk`, `gpu`, `ton`, `drucken`, `dateien`, `hintergrund`, `kvm`, `steuerung`) |
+| `app einstellung <k> claude ja\|=<version>\|nein [<N>h\|unbegrenzt]`, `app werkzeuge [beenden <k>\|alle]` | Werkzeug-App für Claude freigeben (auf Zeit) – nur mit Bestätigung; Werkzeug-Apps, Freigaben, laufende Werkzeug-Bereiche (Abschnitt 19, ab Saalburg NEUE_VERSION) |
 | `app verbindungen`, `app verbinden <k>` | MCP-Verbindungen zu Apps |
 | `app steuerung anfordern <k> "<Begründung>"`, `app steuerung zurueckgeben <k>`, `app steuerung stand [k]` | Steuerung bei Bedarf (der Nutzer bestätigt am Bildschirm) |
 | `app datei …` | Dateidienst (siehe 3) |
@@ -868,6 +872,7 @@ nach dem Update.
 | 202611262215 | Läufer-Apps (Abschnitt 18): bei Nutzung neue Wahl `nutzung = weiterarbeiten` (Vorgabe) – die App arbeitet weiter, nachrangig (`cpu.idle` gegenüber allem, I/O-Klasse idle), `pause` bleibt `nein`; neue Zustandszeilen `benutzung`, `prioritaet` und `kvm` (Recht „Virtuelle Maschinen“ jetzt an); Leiste „· niedrige Priorität“; die Karte warnt, wenn `/dev/kvm` fehlt (VT-x im BIOS/UEFI aus) |
 | 202611270041 | Alle Apps (Web, Terminal, nativ) bekommen **zusammen höchstens N−1 Kerne** (`cpu.max` für die Gruppe `apps/`), Systemdienste haben Vorrang (`cpu.weight`); eine App allein kann die Oberfläche also nicht mehr aushungern. Eine Vollbild-App, die 5 s nicht antwortet, verliert das Vollbild (Leiste „reagiert nicht“ und Übersicht kommen zurück). Web-Apps live vom Stick: Chromium-Cache höchstens 100 MB (liegt dort im RAM und zählt zur Speichergrenze der App) |
 | 202611270915 | Speichergrenze als Bereich (Abschnitt 4): app.conf `ram_mindestens`, `ram_empfehlung`, `ram_hoechstens` (`ram_max` = älterer Name der Empfehlung), den Wert wählt der Nutzer in den Einstellungen (Erhöhen sofort, auch für die laufende App) oder bestätigt ihn auf Anfrage (`app einstellung <kennung> ram <MB>`); `memory.high` 10 % (höchstens 128 MB) unter `memory.max`; eine App, die dort mit hohem Speicherdruck hängen bleibt, beendet Saalburg nach etwa 10 s (`SIGTERM`, 3 s später hart) und meldet es in der Leiste mit „neu starten“ und „Grenze erhöhen“ – ebenso ein Ende durch den Kernel (OOM) (Abschnitt 8) |
+| NEUE_VERSION | Werkzeug-Apps für Claude (Abschnitt 19): Freigabe durch den Nutzer (auf Zeit, `app einstellung <k> claude …` als Anfrage mit Dialog), Befehle aus `bin/` im PATH von claude über einen Starter, jeder Start in eigenem cgroup-Bereich, Ablauf mit Ankündigung; `app werkzeuge`; Namen im Paket auch mit `@`; System: GNU coreutils, findutils, grep, sed statt der busybox-Befehle gleichen Namens, Schriften Liberation (auch unter `/usr/share/fonts/truetype/liberation`) |
 | 202611261611 | Große Pakete und Werkzeuge (Abschnitt 19): komprimierte Pakete OSAPP2 (zstd, bis 2 GB, entpackt bis 4 GB, bis 100 000 Einträge; Saalburg entpackt bei der Installation und prüft das Ergebnis gegen die Signatur); app.conf `werkzeug = ja` (Werkzeug-App) und `werkzeuge = <kennung>[ =<version> \| >=<version>]` (Werkzeug einer anderen App nur lesen und ausführen, `$SAALBURG_WERKZEUG_<KENNUNG>`, Versionsbindung); `app installieren <app> <werkzeug> …`, `app packen --zstd`; System: `zstd` |
 
 ---
@@ -1321,7 +1326,9 @@ deren installiertes Paket andere Apps nutzen dürfen. Sie selbst bekommt dadurch
 Ihr Paket ist für Nutzer nur lesbar: Caches, Präfixe und Einstellungen legt das Werkzeug im
 `$HOME` der nutzenden App ab (`XDG_CACHE_HOME` usw. zeigen dorthin). Programme darin also so
 bauen, dass sie aus einem schreibgeschützten Ordner laufen und ihren Ort selbst finden (relativ
-zur Programmdatei, nicht über feste Pfade). Keine Links im Paket.
+zur Programmdatei, nicht über feste Pfade). Keine Links im Paket. Ab Saalburg NEUE_VERSION
+nimmt Saalburg auch Namen mit `@` an (z. B. `node_modules/@npmcli`, mit `app packen`); der Bau
+dieses Katalogs bleibt bei `. _ - +`.
 
 **Nutzende App** (`werkzeuge = zig >=1.1, wine =11.0-1`, höchstens 4):
 
@@ -1351,6 +1358,37 @@ zur Programmdatei, nicht über feste Pfade). Keine Links im Paket.
   Nutzer ein Werkzeug, das Apps nutzen, warnt der Dialog.
 - Test-Apps (Testplatz) sehen die Werkzeuge der echten Installation ebenso, nur lesbar, unter
   demselben Pfad.
+
+**Werkzeug-Apps für Claude** (ab Saalburg NEUE_VERSION): Große Programme, die Claude im
+Terminal braucht (Node.js mit npm, FFmpeg, Java …), kommen nicht ins Systemabbild, sondern als
+Werkzeug-Apps, die der Nutzer für Claude freigibt.
+- **Freigabe** nur durch den Nutzer: Einstellungen → Apps & Rechte, Karte der Werkzeug-App,
+  „Claude darf nutzen“ für 1, 4 oder 8 Stunden, „Bis …“ oder unbegrenzt; „Beenden“ nimmt sie
+  zurück. Claude kann sie nur anfragen (`app einstellung <kennung> claude ja [<N>h]`, Dialog mit
+  Herausgeber, Befehlen und Dauer); `=<version>` statt `ja` bindet genau diese Version (sie bleibt
+  bei Updates installiert, wie bei `werkzeuge = … =<version>`). Ohne Freigabe sieht Claude die
+  Befehle nicht im PATH. Entfernen der Werkzeug-App löscht die Freigabe; eine neue Installation
+  muss neu freigegeben werden.
+- **Befehle**: jede ausführbare Datei in `bin/` des Pakets (gewöhnliche Dateien, nicht versteckt)
+  steht unter demselben Namen am Ende des PATH von Claude (Systembefehle gehen vor). Saalburg
+  startet sie über einen Starter, der bei jedem Aufruf die Freigabe prüft, und ruft dann
+  `$SAALBURG_WERKZEUG_<KENNUNG>/bin/<befehl>` mit dem vollen Pfad auf. Programme in `bin/` müssen
+  daher ihren Ort selbst finden (z. B. Shell-Hülle mit `readlink -f "$0"`) und dürfen nicht
+  davon ausgehen, unter `/usr` zu liegen; Bibliotheken über `RUNPATH` (`$ORIGIN/…`) oder die
+  Hülle. Sie laufen **als claude, mit Claudes Rechten** (Netz, Claudes Home und Projekte), nicht
+  in der Sandbox der Werkzeug-App; das Paket bleibt nur lesbar (Caches, globale Installationen
+  nach `$HOME`, z. B. npm mit `NPM_CONFIG_PREFIX=$HOME/.local`).
+- **Umgebung**: `SAALBURG_WERKZEUG_<KENNUNG>` (Ordner der freigegebenen Version) und
+  `SAALBURG_WERKZEUG_GRUPPE` (Name des Bereichs, s. u.) im gestarteten Programm.
+- **Jeder Start in eigenem Bereich**: ein cgroup-Bereich `konsole/werkzeuge/<kennung>-<pid>`
+  (Systemmonitor: `claude/werkzeug-…`), als Einheit beendbar (Nutzer: „Läufe beenden“ auf der
+  Karte; Claude: `app werkzeuge beenden <kennung>`). Noch ohne eigene Grenzen für RAM und CPU.
+- **Ablauf**: 5 Minuten vor dem Ende einer befristeten Freigabe meldet Saalburg es in der Leiste
+  und in `/run/werkzeuge/claude/ablauf`; danach startet kein Befehl des Werkzeugs mehr (Rückgabe
+  126) und laufende Prozesse werden beendet. Werkzeuge sollten Zwischenstände schreiben und
+  `SIGKILL` ohne Schaden überstehen.
+- **Lizenzen**: Werkzeug-Apps aus fremder Software bringen Lizenztexte und Quellenhinweise im
+  Paket mit (z. B. `LIZENZEN/`, `QUELLEN.txt`).
 
 **Beispiel**: Eine Bau-App mit Zig:
 
