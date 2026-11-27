@@ -49,7 +49,9 @@ Katalog (`/daten/claude/katalog`, `app katalog …`), den der App-Store zusätzl
 
 Angaben in `app.conf`: `kennung`, `version`, `name`, `beschreibung`, `symbol`, `farbe`,
 `art` (`terminal`, `web`, `programm`), `start` bzw. `url`, `reihe`, `netzwerk`, `gpu`, `ton`,
-`ram_max`, `ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server),
+`ram_max` bzw. ab Saalburg NEUE_VERSION der Bereich `ram_mindestens`, `ram_empfehlung`,
+`ram_hoechstens` (Speichergrenze; den Wert wählt der Nutzer, `PLATTFORM.md` Abschnitt 4),
+`ordner` (nur unter `/daten`), `steuerung = claude`, `verbindung` (MCP-Server),
 `hintergrund = ja` (läuft weiter, wenn nicht zu sehen; abschaltbar in den Einstellungen),
 `drucken = ja` (darf über Saalburg drucken, jeder Auftrag mit Bestätigung am Bildschirm; erst
 ab Saalburg 202611230126, also mit `saalburg = 202611230126`),
