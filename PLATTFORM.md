@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611271810.**
+**Stand: Saalburg 202611272346.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -375,7 +375,7 @@ Verhalten:
   Wer EGL direkt auf GBM oder `EGL_PLATFORM_DEVICE` nutzt, öffnet `/dev/dri/renderD128`.
 - **Nur Render-Knoten**: zeichnen und rechnen ja, Anzeige (`card*`, KMS, Modus) nie.
 - **Ohne Recht `gpu`**: Programme zeichnen per Software in `wl_shm`-Puffer.
-- **Videodekodierung (VA-API, ab Saalburg NEUE_VERSION)**: `libva` mit den Treibern
+- **Videodekodierung (VA-API, ab Saalburg 202611272346)**: `libva` mit den Treibern
   `radeonsi_drv_video.so` (Mesa, AMD) und `iHD_drv_video.so` (intel-media-driver, Intel ab
   Broadwell, z. B. N100) unter `/usr/lib/dri`, dazu `vainfo`. Native Apps mit `gpu = ja` können
   VA-API über den Render-Knoten nutzen (libva wählt den Treiber selbst). In QEMU und auf Rechnern
@@ -643,7 +643,7 @@ Ausschalten; Windows-Taste+Q beendet ohnehin nie hart. Fragt die App beim Schlie
 - **Chromium 158** im App-Modus (ohne Browserleiste), Wayland, GPU-Beschleunigung, Sprache
   Deutsch (Oberfläche und `Accept-Language`; vor Saalburg 202611231841 fehlte die deutsche
   Sprachdatei, Chromium war englisch).
-- **Hardware-Videodekodierung** (ab Saalburg NEUE_VERSION): Mit Recht `gpu` (Web-Apps: Standard
+- **Hardware-Videodekodierung** (ab Saalburg 202611272346): Mit Recht `gpu` (Web-Apps: Standard
   an) dekodiert Chromium Videos über VA-API auf der Grafikkarte (AMD: H.264, HEVC, VP9, je nach
   Karte AV1; Intel N100: auch AV1). Saalburg prüft vor jedem Start, ob ein Treiber antwortet,
   sonst wie bisher per Prozessor. Der Nutzer kann es unter Einstellungen → Aussehen & Schrift →
@@ -888,7 +888,7 @@ nach dem Update.
 | 202611271810 | Werkzeug-Apps für Claude (Abschnitt 19): ohne Freigabe für Claude gesperrt (Dateien außer `app.conf` gehören der Gruppe claude ohne Gruppenrechte), jeder Lauf mit Grenzen (RAM wie die Speichergrenze der App, N−1 Kerne, 4096 Prozesse), `app einstellung <k> claude …` nur mit Dauer, Passung über `werkzeug/SYSTEM.txt` (`app werkzeuge`) |
 | 202611271230 | Werkzeug-Apps für Claude (Abschnitt 19): Freigabe durch den Nutzer (auf Zeit, `app einstellung <k> claude …` als Anfrage mit Dialog), Befehle aus `bin/` im PATH von claude über einen Starter, jeder Start in eigenem cgroup-Bereich, Ablauf mit Ankündigung; `app werkzeuge`; Namen im Paket auch mit `@`; System: GNU coreutils, findutils, grep, sed statt der busybox-Befehle gleichen Namens, Schriften Liberation (auch unter `/usr/share/fonts/truetype/liberation`) |
 | 202611261611 | Große Pakete und Werkzeuge (Abschnitt 19): komprimierte Pakete OSAPP2 (zstd, bis 2 GB, entpackt bis 4 GB, bis 100 000 Einträge; Saalburg entpackt bei der Installation und prüft das Ergebnis gegen die Signatur); app.conf `werkzeug = ja` (Werkzeug-App) und `werkzeuge = <kennung>[ =<version> \| >=<version>]` (Werkzeug einer anderen App nur lesen und ausführen, `$SAALBURG_WERKZEUG_<KENNUNG>`, Versionsbindung); `app installieren <app> <werkzeug> …`, `app packen --zstd`; System: `zstd` |
-| NEUE_VERSION | Hardware-Videodekodierung (VA-API) für Web-Apps und Browser mit Recht `gpu` (AMD radeonsi, Intel iHD), Rückfall auf Software ohne Treiber, Einstellung „Hardware-Videodekodierung“; YouTube ohne AV1, wenn die Grafikkarte nur VP9 kann; System: `libva`-Treiber `radeonsi`/`iHD`, `vainfo` (Abschnitte 5 und 10) |
+| 202611272346 | Hardware-Videodekodierung (VA-API) für Web-Apps und Browser mit Recht `gpu` (AMD radeonsi, Intel iHD), Rückfall auf Software ohne Treiber, Einstellung „Hardware-Videodekodierung“; YouTube ohne AV1, wenn die Grafikkarte nur VP9 kann; System: `libva`-Treiber `radeonsi`/`iHD`, `vainfo` (Abschnitte 5 und 10) |
 
 ---
 
