@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611271230.**
+**Stand: Saalburg 202611271810.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -872,7 +872,7 @@ nach dem Update.
 | 202611262215 | Läufer-Apps (Abschnitt 18): bei Nutzung neue Wahl `nutzung = weiterarbeiten` (Vorgabe) – die App arbeitet weiter, nachrangig (`cpu.idle` gegenüber allem, I/O-Klasse idle), `pause` bleibt `nein`; neue Zustandszeilen `benutzung`, `prioritaet` und `kvm` (Recht „Virtuelle Maschinen“ jetzt an); Leiste „· niedrige Priorität“; die Karte warnt, wenn `/dev/kvm` fehlt (VT-x im BIOS/UEFI aus) |
 | 202611270041 | Alle Apps (Web, Terminal, nativ) bekommen **zusammen höchstens N−1 Kerne** (`cpu.max` für die Gruppe `apps/`), Systemdienste haben Vorrang (`cpu.weight`); eine App allein kann die Oberfläche also nicht mehr aushungern. Eine Vollbild-App, die 5 s nicht antwortet, verliert das Vollbild (Leiste „reagiert nicht“ und Übersicht kommen zurück). Web-Apps live vom Stick: Chromium-Cache höchstens 100 MB (liegt dort im RAM und zählt zur Speichergrenze der App) |
 | 202611270915 | Speichergrenze als Bereich (Abschnitt 4): app.conf `ram_mindestens`, `ram_empfehlung`, `ram_hoechstens` (`ram_max` = älterer Name der Empfehlung), den Wert wählt der Nutzer in den Einstellungen (Erhöhen sofort, auch für die laufende App) oder bestätigt ihn auf Anfrage (`app einstellung <kennung> ram <MB>`); `memory.high` 10 % (höchstens 128 MB) unter `memory.max`; eine App, die dort mit hohem Speicherdruck hängen bleibt, beendet Saalburg nach etwa 10 s (`SIGTERM`, 3 s später hart) und meldet es in der Leiste mit „neu starten“ und „Grenze erhöhen“ – ebenso ein Ende durch den Kernel (OOM) (Abschnitt 8) |
-| NEUE_VERSION | Werkzeug-Apps für Claude (Abschnitt 19): ohne Freigabe für Claude gesperrt (Dateien außer `app.conf` gehören der Gruppe claude ohne Gruppenrechte), jeder Lauf mit Grenzen (RAM wie die Speichergrenze der App, N−1 Kerne, 4096 Prozesse), `app einstellung <k> claude …` nur mit Dauer, Passung über `werkzeug/SYSTEM.txt` (`app werkzeuge`) |
+| 202611271810 | Werkzeug-Apps für Claude (Abschnitt 19): ohne Freigabe für Claude gesperrt (Dateien außer `app.conf` gehören der Gruppe claude ohne Gruppenrechte), jeder Lauf mit Grenzen (RAM wie die Speichergrenze der App, N−1 Kerne, 4096 Prozesse), `app einstellung <k> claude …` nur mit Dauer, Passung über `werkzeug/SYSTEM.txt` (`app werkzeuge`) |
 | 202611271230 | Werkzeug-Apps für Claude (Abschnitt 19): Freigabe durch den Nutzer (auf Zeit, `app einstellung <k> claude …` als Anfrage mit Dialog), Befehle aus `bin/` im PATH von claude über einen Starter, jeder Start in eigenem cgroup-Bereich, Ablauf mit Ankündigung; `app werkzeuge`; Namen im Paket auch mit `@`; System: GNU coreutils, findutils, grep, sed statt der busybox-Befehle gleichen Namens, Schriften Liberation (auch unter `/usr/share/fonts/truetype/liberation`) |
 | 202611261611 | Große Pakete und Werkzeuge (Abschnitt 19): komprimierte Pakete OSAPP2 (zstd, bis 2 GB, entpackt bis 4 GB, bis 100 000 Einträge; Saalburg entpackt bei der Installation und prüft das Ergebnis gegen die Signatur); app.conf `werkzeug = ja` (Werkzeug-App) und `werkzeuge = <kennung>[ =<version> \| >=<version>]` (Werkzeug einer anderen App nur lesen und ausführen, `$SAALBURG_WERKZEUG_<KENNUNG>`, Versionsbindung); `app installieren <app> <werkzeug> …`, `app packen --zstd`; System: `zstd` |
 
@@ -1366,12 +1366,12 @@ Werkzeug-Apps, die der Nutzer für Claude freigibt.
 - **Freigabe** nur durch den Nutzer: Einstellungen → Apps & Rechte, Karte der Werkzeug-App,
   „Claude darf nutzen“ für 1, 4 oder 8 Stunden, „Bis …“ oder unbegrenzt; „Beenden“ nimmt sie
   zurück. Claude kann sie nur anfragen (`app einstellung <kennung> claude ja <N>h`, Dialog mit
-  Herausgeber, Befehlen und Dauer; ab Saalburg NEUE_VERSION ist die Dauer Pflicht, „unbegrenzt“
+  Herausgeber, Befehlen und Dauer; ab Saalburg 202611271810 ist die Dauer Pflicht, „unbegrenzt“
   wählt nur der Nutzer); `=<version>` statt `ja` bindet genau diese Version (sie bleibt
   bei Updates installiert, wie bei `werkzeuge = … =<version>`). Ohne Freigabe sieht Claude die
   Befehle nicht im PATH. Entfernen der Werkzeug-App löscht die Freigabe; eine neue Installation
   muss neu freigegeben werden.
-- **Gesperrt ohne Freigabe** (ab Saalburg NEUE_VERSION): In jeder installierten Version einer
+- **Gesperrt ohne Freigabe** (ab Saalburg 202611271810): In jeder installierten Version einer
   Werkzeug-App gehört jeder Eintrag außer `app.conf` der Gruppe claude ohne Gruppenrechte; Claude
   kommt dann auch mit vollem Pfad nicht an das Paket, nur an die freigegebene Version. Apps, die das
   Werkzeug mit `werkzeuge = …` nutzen, sehen es unverändert. Werkzeuge dürfen sich also nicht auf
@@ -1389,13 +1389,13 @@ Werkzeug-Apps, die der Nutzer für Claude freigibt.
   `SAALBURG_WERKZEUG_GRUPPE` (Name des Bereichs, s. u.) im gestarteten Programm.
 - **Jeder Start in eigenem Bereich**: ein cgroup-Bereich `konsole/werkzeuge/<kennung>-<pid>`
   (Systemmonitor: `claude/werkzeug-…`), als Einheit beendbar (Nutzer: „Läufe beenden“ auf der
-  Karte; Claude: `app werkzeuge beenden <kennung>`). Ab Saalburg NEUE_VERSION mit Grenzen je
+  Karte; Claude: `app werkzeuge beenden <kennung>`). Ab Saalburg 202611271810 mit Grenzen je
   Lauf: RAM wie die Speichergrenze der Werkzeug-App (Abschnitt 4: `ram_empfehlung` bzw. Wahl des
   Nutzers), `memory.high` knapp darunter, höchstens N−1 Kerne, 4096 Prozesse; alle Läufe zusammen
   höchstens drei Viertel des RAM. Wird es eng, endet der ganze Lauf – Werkzeuge mit großem
   Speicherbedarf (z. B. ein LanguageTool-Server mit Java) sollten eine passende `ram_empfehlung`
   mitbringen.
-- **Passung zum System** (ab Saalburg NEUE_VERSION): Eine Werkzeug-App aus Alpine-Paketen kann in
+- **Passung zum System** (ab Saalburg 202611271810): Eine Werkzeug-App aus Alpine-Paketen kann in
   `werkzeug/SYSTEM.txt` die Pakete des Systemabbilds nennen, auf die sie baut (Kopf, Leerzeile, dann
   Zeilen `<paket> <version>` bis zur nächsten Leerzeile). Saalburg vergleicht das beim Start, nach
   Installationen und nach einem System-Update mit seiner Paketliste und meldet fehlende Pakete und
