@@ -2,7 +2,7 @@
 
 Was eine App auf Saalburg vorfindet, was sie darf und wie sie sich gut einfügt.
 Diese Beschreibung stammt aus dem Code von Saalburg, sie zeigt nicht den Code selbst.
-**Stand: Saalburg 202611270041.**
+**Stand: Saalburg 202611270915.**
 
 Regeln für dieses Repo (Ablauf, Store, `aussehen.css`) stehen in `CLAUDE.md` und `README.md`.
 Ändert sich in Saalburg etwas, das Apps betrifft, wird diese Datei mitgezogen.
@@ -224,10 +224,10 @@ Jede installierte App läuft eingesperrt. Das lässt sich nicht abschalten.
   Lokale Server auf 127.0.0.1 gehen also, nach außen nichts.
 - **cgroup** `/sys/fs/cgroup/apps/<kennung>`:
   - `memory.max` = Speichergrenze der App (Standard 1024 MB, Web-Apps 2048 MB). Ab Saalburg
-    NEUE_VERSION bringt die App dafür einen **Bereich** mit, den Wert wählt der Nutzer
+    202611270915 bringt die App dafür einen **Bereich** mit, den Wert wählt der Nutzer
     (Abschnitt „Speichergrenze“ unten); davor galt `ram_max` (16–16384 MB) fest;
   - `memory.high` 10 % darunter, höchstens 128 MB (z. B. 2048 → 1920 MB, ab Saalburg
-    NEUE_VERSION): Dort gibt der Kernel Seiten frei und bremst die App, statt sie an `memory.max`
+    202611270915): Dort gibt der Kernel Seiten frei und bremst die App, statt sie an `memory.max`
     kreisen zu lassen. Bleibt sie dort mit hohem Speicherdruck hängen, beendet Saalburg sie
     (Abschnitt 8);
   - `pids.max` 512, Web-Apps 4096;
@@ -236,7 +236,7 @@ Jede installierte App läuft eingesperrt. Das lässt sich nicht abschalten.
   keine Kamera, **kein Mikrofon**.
 - **Fremde Prozesse**: Andere Apps und claude laufen unter anderen UIDs und sind tabu.
 
-### Speichergrenze (ab Saalburg NEUE_VERSION)
+### Speichergrenze (ab Saalburg 202611270915)
 
 Die App nennt in der `app.conf` einen Bereich, den Wert legt der Nutzer fest:
 
@@ -249,7 +249,7 @@ Die App nennt in der `app.conf` einen Bereich, den Wert legt der Nutzer fest:
 
 Werte in MB (`512M`, `512`) oder GB (`4G`), 16 MB bis 64 GB, `ram_mindestens` ≤ `ram_empfehlung`
 ≤ `ram_hoechstens`. Ältere Systeme kennen die neuen Angaben nicht und lehnen die app.conf ab:
-wer sie nutzt, setzt `saalburg = NEUE_VERSION`; `ram_max` allein geht überall.
+wer sie nutzt, setzt `saalburg = 202611270915`; `ram_max` allein geht überall.
 
 - Der **Installations- und Update-Dialog** zeigt Wert und Bereich („2048 MB (wählbar 512 MB –
   12 GB in den Einstellungen)“).
@@ -541,7 +541,7 @@ Terminals stehen (`terminal_grund`) und setzen Text-, Akzent- und Meldungsfarben
 | Ausschalten oder Neustart | `SIGTERM`, bis zu **12 s** Frist, danach hart. Mit `schliessen_frist` ⁴: zuerst `xdg_toplevel.close` an alle Fenster der App (unter Wine `WM_CLOSE`), `SIGTERM` erst nach der Frist; Saalburg wartet entsprechend länger | auf `SIGTERM` (bzw. `close`) speichern und enden |
 | Nach dem Neustart | Saalburg öffnet die App wieder auf ihrem Platz (Web-Apps mit der letzten Seite derselben Herkunft) | Stand beim Start wiederherstellen |
 | Speichermangel | Der Kernel beendet zuerst schlafende Apps (oom_score_adj 800), dann wache (300), dann Claude (-500); Dienste haben -900 | regelmäßig speichern |
-| An der eigenen Speichergrenze festgefahren: über `memory.high`, Speicherdruck (PSI über 10 %) oder ständiges Nachladen eben verdrängter Seiten (über 20 MB/s), etwa 10 s lang (ab Saalburg NEUE_VERSION) | Saalburg beendet die App: `SIGTERM` an alle Prozesse, nach 3 s hart (`cgroup.kill`); die Leiste meldet „… beendet: Speichergrenze … · neu starten · Grenze erhöhen“, die Einstellungen halten es fest („Zu erledigen“). Ebenso gemeldet, wenn der Kernel sie an `memory.max` beendet (OOM) | unter der Grenze bleiben (Caches und Puffer nach `memory.max` richten), auf `SIGTERM` speichern; einen passenden Bereich (`ram_mindestens`/`ram_empfehlung`/`ram_hoechstens`) angeben |
+| An der eigenen Speichergrenze festgefahren: über `memory.high`, Speicherdruck (PSI über 10 %) oder ständiges Nachladen eben verdrängter Seiten (über 20 MB/s), etwa 10 s lang (ab Saalburg 202611270915) | Saalburg beendet die App: `SIGTERM` an alle Prozesse, nach 3 s hart (`cgroup.kill`); die Leiste meldet „… beendet: Speichergrenze … · neu starten · Grenze erhöhen“, die Einstellungen halten es fest („Zu erledigen“). Ebenso gemeldet, wenn der Kernel sie an `memory.max` beendet (OOM) | unter der Grenze bleiben (Caches und Puffer nach `memory.max` richten), auf `SIGTERM` speichern; einen passenden Bereich (`ram_mindestens`/`ram_empfehlung`/`ram_hoechstens`) angeben |
 
 ³ Knopf „Entfernen“ auf der Store-Seite ab Saalburg 202611230257 (Abschnitt 13); in der Übersicht öffnet
 Strg+I die Store-Seite der markierten App. Mitgelieferte Apps haben keinen Knopf.
@@ -867,7 +867,7 @@ nach dem Update.
 | 202611261259 | Web-Apps und Browser: Passwörter, Cookies und Anmelde-Token verschlüsselt mit einem Schlüssel je App (Schlüsseldienst, `--password-store=gnome-libsecret`, `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/schluessel/bus`); alte Profile werden beim Start ohne Datenverlust umgeschlüsselt (Abschnitt 10) |
 | 202611262215 | Läufer-Apps (Abschnitt 18): bei Nutzung neue Wahl `nutzung = weiterarbeiten` (Vorgabe) – die App arbeitet weiter, nachrangig (`cpu.idle` gegenüber allem, I/O-Klasse idle), `pause` bleibt `nein`; neue Zustandszeilen `benutzung`, `prioritaet` und `kvm` (Recht „Virtuelle Maschinen“ jetzt an); Leiste „· niedrige Priorität“; die Karte warnt, wenn `/dev/kvm` fehlt (VT-x im BIOS/UEFI aus) |
 | 202611270041 | Alle Apps (Web, Terminal, nativ) bekommen **zusammen höchstens N−1 Kerne** (`cpu.max` für die Gruppe `apps/`), Systemdienste haben Vorrang (`cpu.weight`); eine App allein kann die Oberfläche also nicht mehr aushungern. Eine Vollbild-App, die 5 s nicht antwortet, verliert das Vollbild (Leiste „reagiert nicht“ und Übersicht kommen zurück). Web-Apps live vom Stick: Chromium-Cache höchstens 100 MB (liegt dort im RAM und zählt zur Speichergrenze der App) |
-| NEUE_VERSION | Speichergrenze als Bereich (Abschnitt 4): app.conf `ram_mindestens`, `ram_empfehlung`, `ram_hoechstens` (`ram_max` = älterer Name der Empfehlung), den Wert wählt der Nutzer in den Einstellungen (Erhöhen sofort, auch für die laufende App) oder bestätigt ihn auf Anfrage (`app einstellung <kennung> ram <MB>`); `memory.high` 10 % (höchstens 128 MB) unter `memory.max`; eine App, die dort mit hohem Speicherdruck hängen bleibt, beendet Saalburg nach etwa 10 s (`SIGTERM`, 3 s später hart) und meldet es in der Leiste mit „neu starten“ und „Grenze erhöhen“ – ebenso ein Ende durch den Kernel (OOM) (Abschnitt 8) |
+| 202611270915 | Speichergrenze als Bereich (Abschnitt 4): app.conf `ram_mindestens`, `ram_empfehlung`, `ram_hoechstens` (`ram_max` = älterer Name der Empfehlung), den Wert wählt der Nutzer in den Einstellungen (Erhöhen sofort, auch für die laufende App) oder bestätigt ihn auf Anfrage (`app einstellung <kennung> ram <MB>`); `memory.high` 10 % (höchstens 128 MB) unter `memory.max`; eine App, die dort mit hohem Speicherdruck hängen bleibt, beendet Saalburg nach etwa 10 s (`SIGTERM`, 3 s später hart) und meldet es in der Leiste mit „neu starten“ und „Grenze erhöhen“ – ebenso ein Ende durch den Kernel (OOM) (Abschnitt 8) |
 | 202611261611 | Große Pakete und Werkzeuge (Abschnitt 19): komprimierte Pakete OSAPP2 (zstd, bis 2 GB, entpackt bis 4 GB, bis 100 000 Einträge; Saalburg entpackt bei der Installation und prüft das Ergebnis gegen die Signatur); app.conf `werkzeug = ja` (Werkzeug-App) und `werkzeuge = <kennung>[ =<version> \| >=<version>]` (Werkzeug einer anderen App nur lesen und ausführen, `$SAALBURG_WERKZEUG_<KENNUNG>`, Versionsbindung); `app installieren <app> <werkzeug> …`, `app packen --zstd`; System: `zstd` |
 
 ---
